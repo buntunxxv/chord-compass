@@ -1,0 +1,193 @@
+.upgrade-page {
+  min-height: 100vh;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+}
+
+.upgrade-page__header {
+  background: var(--black);
+  padding: 0 24px;
+}
+
+.upgrade-page__header-inner {
+  max-width: 800px;
+  margin: 0 auto;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.upgrade-page__logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.upgrade-page__logo-mark {
+  font-size: 20px;
+  color: var(--teal);
+}
+
+.upgrade-page__logo-name {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--white);
+  letter-spacing: -0.01em;
+}
+
+.upgrade-page__logo-by {
+  font-size: 12px;
+  color: rgba(255,255,255,0.4);
+}
+
+.upgrade-page__main {
+  max-width: 600px;
+  margin: 0 auto;
+  width: 100%;
+  padding: 48px 20px 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 40px;
+}
+
+.upgrade-page__hero {
+  text-align: center;
+}
+
+.upgrade-page__title {
+  font-size: 36px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--black);
+  margin-bottom: 10px;
+}
+
+.upgrade-page__subtitle {
+  font-size: 17px;
+  color: var(--text-muted);
+}
+
+.upgrade-page__plans {
+  display: flex;
+  gap: 16px;
+  width: 100%;
+  flex-wrap: wrap;
+}
+
+.upgrade-page__plan {
+  flex: 1;
+  min-width: 180px;
+  background: var(--white);
+  border-radius: var(--radius);
+  padding: 28px 24px;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  position: relative;
+  border: 2px solid transparent;
+}
+
+.upgrade-page__plan--highlight {
+  border-color: var(--teal);
+}
+
+.upgrade-page__plan-badge {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--teal);
+  color: var(--white);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 3px 12px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+.upgrade-page__plan-price {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.upgrade-page__plan-amount {
+  font-size: 40px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--black);
+}
+
+.upgrade-page__plan-period {
+  font-size: 15px;
+  color: var(--text-muted);
+}
+
+.upgrade-page__plan-save {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--teal);
+}
+
+.upgrade-page__cta-btn {
+  background: var(--teal);
+  color: var(--white);
+  border: none;
+  border-radius: 8px;
+  padding: 12px 20px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: not-allowed;
+  opacity: 0.6;
+  width: 100%;
+}
+
+.upgrade-page__cta-btn--outline {
+  background: transparent;
+  border: 2px solid var(--teal);
+  color: var(--teal);
+}
+
+.upgrade-page__features {
+  width: 100%;
+  background: var(--white);
+  border-radius: var(--radius);
+  padding: 24px 28px;
+  box-shadow: var(--shadow);
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.upgrade-page__features li {
+  font-size: 15px;
+  color: var(--text);
+  padding-left: 24px;
+  position: relative;
+}
+
+.upgrade-page__features li::before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: var(--teal);
+  font-weight: 700;
+}
+
+.upgrade-page__back {
+  color: var(--teal);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.upgrade-page__back:hover {
+  text-decoration: underline;
+}

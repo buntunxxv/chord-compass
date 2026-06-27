@@ -1,0 +1,54 @@
+.chord-output {
+  background: var(--white);
+  border-radius: var(--radius);
+  padding: 24px;
+  box-shadow: var(--shadow);
+}
+
+.chord-output--unavailable {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 80px;
+}
+
+.chord-output__unavailable-msg {
+  color: var(--text-muted);
+  font-size: 14px;
+  font-style: italic;
+}
+
+.chord-output__name {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--teal);
+  margin-bottom: 16px;
+  letter-spacing: -0.02em;
+}
+
+.chord-output__row {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 8px 0;
+  border-top: 1px solid var(--border);
+}
+
+.chord-output__row:last-child {
+  border-bottom: none;
+}
+
+.chord-output__row-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  min-width: 68px;
+}
+
+.chord-output__row-value {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text);
+}

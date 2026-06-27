@@ -1,0 +1,72 @@
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+}
+
+.app__header {
+  background: var(--black);
+  padding: 0 24px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 1px 0 rgba(255,255,255,0.06);
+}
+
+.app__header-inner {
+  max-width: 800px;
+  margin: 0 auto;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.app__logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.app__logo-mark {
+  font-size: 20px;
+  color: var(--teal);
+}
+
+.app__logo-name {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--white);
+  letter-spacing: -0.01em;
+}
+
+.app__logo-by {
+  font-size: 12px;
+  color: rgba(255,255,255,0.4);
+  font-weight: 400;
+}
+
+.app__main {
+  max-width: 800px;
+  margin: 0 auto;
+  width: 100%;
+  padding: 24px 20px 60px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.app__section {
+  width: 100%;
+}
+
+.app__unavailable {
+  background: var(--white);
+  border-radius: var(--radius);
+  padding: 20px 24px;
+  box-shadow: var(--shadow);
+  color: var(--text-muted);
+  font-size: 14px;
+  font-style: italic;
+}
