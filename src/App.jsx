@@ -76,10 +76,14 @@ export default function App() {
       <header className="app__header">
         <div className="app__header-inner">
           <div className="app__logo">
-            <span className="app__logo-mark">◈</span>
-            <span className="app__logo-name">Chord Compass</span>
+            <a href="https://www.kyndalearning.co.uk">
+              <img src="/kynda-logo-full.png" alt="Kynda Learning" />
+            </a>
           </div>
-          <span className="app__logo-by">by Kynda Learning</span>
+          <div className="app__header-tool">
+            <div className="app__header-divider" />
+            <span className="app__header-tool-name">Chord Compass</span>
+          </div>
         </div>
       </header>
 

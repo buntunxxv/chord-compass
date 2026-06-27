@@ -6,40 +6,45 @@
 }
 
 .upgrade-page__header {
-  background: var(--black);
+  background: var(--white);
   padding: 0 24px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
 }
 
 .upgrade-page__header-inner {
-  max-width: 800px;
+  max-width: 860px;
   margin: 0 auto;
-  height: 56px;
+  height: 64px;
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 
-.upgrade-page__logo {
+.upgrade-page__logo img {
+  height: 36px;
+  width: auto;
+  object-fit: contain;
+  display: block;
+}
+
+.upgrade-page__header-tool {
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
-.upgrade-page__logo-mark {
-  font-size: 20px;
-  color: var(--teal);
+.upgrade-page__header-divider {
+  width: 1px;
+  height: 20px;
+  background: var(--border);
 }
 
-.upgrade-page__logo-name {
-  font-size: 17px;
-  font-weight: 700;
-  color: var(--white);
-  letter-spacing: -0.01em;
-}
-
-.upgrade-page__logo-by {
+.upgrade-page__header-tool-name {
   font-size: 12px;
-  color: rgba(255,255,255,0.4);
+  font-weight: 700;
+  color: var(--teal);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 
 .upgrade-page__main {

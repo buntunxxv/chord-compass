@@ -7,10 +7,14 @@ export default function UpgradePage() {
       <header className="upgrade-page__header">
         <div className="upgrade-page__header-inner">
           <div className="upgrade-page__logo">
-            <span className="upgrade-page__logo-mark">◈</span>
-            <span className="upgrade-page__logo-name">Chord Compass</span>
+            <a href="https://www.kyndalearning.co.uk">
+              <img src="/kynda-logo-full.png" alt="Kynda Learning" />
+            </a>
           </div>
-          <span className="upgrade-page__logo-by">by Kynda Learning</span>
+          <div className="upgrade-page__header-tool">
+            <div className="upgrade-page__header-divider" />
+            <span className="upgrade-page__header-tool-name">Chord Compass</span>
+          </div>
         </div>
       </header>
 

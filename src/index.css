@@ -6,29 +6,29 @@
 
 :root {
   --teal: #119392;
+  --teal-dark: #0B7A72;
   --gold: #F5B82E;
   --white: #FFFFFF;
   --bg: #F7F7F7;
-  --black: #000000;
-  --text: #1a1a1a;
+  --black: #1A1A1A;
+  --text: #1A1A1A;
   --text-muted: #666666;
-  --border: #e0e0e0;
+  --border: #E1E1E1;
   --radius: 10px;
   --shadow: 0 2px 8px rgba(0,0,0,0.08);
+  --font: 'Poppins', system-ui, sans-serif;
+  --font-script: 'Lora', Georgia, serif;
 }
 
 html, body {
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font);
   background: var(--bg);
   color: var(--text);
   min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
 }
 
-button {
-  font-family: 'Inter', sans-serif;
+button, select, input {
+  font-family: var(--font);
   cursor: pointer;
-}
-
-select {
-  font-family: 'Inter', sans-serif;
 }

@@ -16,17 +16,19 @@
   background: var(--teal);
   color: var(--white);
   border: none;
-  border-radius: 8px;
-  padding: 12px 24px;
-  font-size: 15px;
-  font-weight: 600;
-  transition: background 0.15s, transform 0.1s;
+  border-radius: 0;
+  padding: 12px 28px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  transition: background 0.2s, transform 0.2s;
   white-space: nowrap;
 }
 
 .playback-controls__play-btn:hover:not(:disabled) {
-  background: #0d7a79;
-  transform: translateY(-1px);
+  background: var(--teal-dark);
+  transform: translateY(-2px);
 }
 
 .playback-controls__play-btn:disabled {
