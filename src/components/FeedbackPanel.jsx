@@ -234,12 +234,24 @@ export default function FeedbackPanel({ isOpen, onClose }) {
           <div className="fp-header__brand">
             <img src="/kynda-logo-full.png" alt="Kynda Learning" className="fp-header__logo" />
           </div>
-          <button className="fp-header__close" onClick={onClose} aria-label="Close feedback and return to tool">
-            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-              <path d="M2 2l14 14M16 2L2 16" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-            </svg>
-            <span>Back to tool</span>
-          </button>
+          <div className="fp-header__actions">
+            {(stage === 'questions' || stage === 'type') && (
+              <button
+                className="fp-header__restart"
+                onClick={startOver}
+                aria-label="Start over"
+                title="Clear all answers and start again"
+              >
+                ↺ Start over
+              </button>
+            )}
+            <button className="fp-header__close" onClick={onClose} aria-label="Close feedback and return to tool">
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                <path d="M2 2l14 14M16 2L2 16" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
+              <span>Back to tool</span>
+            </button>
+          </div>
         </div>
 
         {/* Progress bar */}

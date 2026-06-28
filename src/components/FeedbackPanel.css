@@ -68,6 +68,29 @@
   object-fit: contain;
 }
 
+.fp-header__actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.fp-header__restart {
+  background: none;
+  border: none;
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 600;
+  color: #aaa;
+  cursor: pointer;
+  padding: 6px 0;
+  transition: color 0.15s;
+  letter-spacing: 0.02em;
+}
+
+.fp-header__restart:hover {
+  color: #555;
+}
+
 .fp-header__close {
   display: flex;
   align-items: center;
