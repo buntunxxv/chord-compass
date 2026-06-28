@@ -7,6 +7,7 @@ import ChordOutputPanel from './components/ChordOutputPanel'
 import PianoDisplay from './components/PianoDisplay'
 import PlaybackControls from './components/PlaybackControls'
 import NextChordSuggestions from './components/NextChordSuggestions'
+import FeedbackPanel from './components/FeedbackPanel'
 import './App.css'
 
 // Map selector state to CHORD_DATA key
@@ -49,6 +50,7 @@ function getDisplayName(root, quality, extension) {
 export default function App() {
   const [selection, setSelection] = useState({ root: 'C', quality: 'major', extension: 'none' })
   const [bpm, setBpm] = useState(90)
+  const [feedbackOpen, setFeedbackOpen] = useState(false)
 
   const { root, quality, extension } = selection
 
@@ -137,6 +139,21 @@ export default function App() {
           </section>
         )}
       </main>
+
+      {/* Feedback button */}
+      <button
+        className="app__feedback-btn"
+        onClick={() => setFeedbackOpen(true)}
+        aria-label="Give feedback"
+      >
+        Share feedback
+      </button>
+
+      {/* Feedback panel — state persists while closed */}
+      <FeedbackPanel
+        isOpen={feedbackOpen}
+        onClose={() => setFeedbackOpen(false)}
+      />
     </div>
   )
 }
