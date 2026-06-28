@@ -445,6 +445,37 @@
   color: #1A1A1A;
 }
 
+/* ─── Notify fields ────────────────────────────────────────────────────────── */
+
+.fp-notify__fields {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.fp-input {
+  width: 100%;
+  border: 2px solid #E1E1E1;
+  border-radius: 10px;
+  padding: 12px 16px;
+  font-family: var(--font);
+  font-size: 15px;
+  color: #1A1A1A;
+  outline: none;
+  transition: border-color 0.15s;
+  background: #F7F7F7;
+}
+
+.fp-input:focus {
+  border-color: #119392;
+  background: #fff;
+}
+
+.fp-input::placeholder {
+  color: #aaa;
+}
+
 /* ─── Footer ───────────────────────────────────────────────────────────────── */
 
 .fp-footer {

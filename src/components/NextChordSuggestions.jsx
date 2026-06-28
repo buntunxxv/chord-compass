@@ -81,7 +81,7 @@ export default function NextChordSuggestions({ suggestions, currentNotes, bpm })
 
       <Link to="/upgrade" className="next-chords__upgrade-cta">
         <span className="next-chords__upgrade-lock">🔒</span>
-        <span>Unlock 2 more directions — <strong>Chord Compass Pro</strong></span>
+        <span>🔒 Future Pro: unlock more chord directions</span>
       </Link>
     </div>
   )

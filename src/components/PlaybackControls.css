@@ -108,6 +108,37 @@
   cursor: pointer;
 }
 
+.playback-controls__tempo-track {
+  position: relative;
+  height: 14px;
+}
+
+.playback-controls__tempo-center {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  transform: translateX(-50%);
+  width: 1px;
+  height: 8px;
+  background: var(--border);
+}
+
+.playback-controls__tempo-needle {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  width: 2px;
+  height: 14px;
+  background: var(--teal);
+  border-radius: 1px;
+  transition: left 0.05s linear, background 0.2s;
+}
+
+.playback-controls__tempo-needle--snapped {
+  background: var(--gold);
+  box-shadow: 0 0 4px var(--gold);
+}
+
 .playback-controls__bpm-range {
   display: flex;
   justify-content: space-between;

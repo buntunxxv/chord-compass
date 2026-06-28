@@ -8,83 +8,237 @@ const USER_TYPES = [
   {
     value: 'beginner',
     label: 'Beginner / Student',
-    description: 'Know some chords, building confidence',
+    description: 'I know some chords and I\'m building confidence.',
   },
   {
     value: 'intermediate',
     label: 'Intermediate Creator',
-    description: 'Writing music, developing your sound',
+    description: 'I write music, make beats, or develop song ideas.',
   },
   {
     value: 'advanced',
     label: 'Advanced Musician',
-    description: 'Experienced player or professional',
+    description: 'I\'m an experienced player, producer, teacher, or professional.',
   },
 ]
 
-const DIRECTION_LABELS = ['Familiar', 'Opens out', 'Moves forward', 'Tension', 'Darker', 'Lift', 'Surprise', 'Resolution']
-
 const QUESTIONS = {
   beginner: [
-    { id: 'b1', type: 'text', question: 'What did you think this tool was helping you do?', placeholder: 'Describe it in your own words…' },
-    { id: 'b2', type: 'scale', question: 'Was it clear how to choose a chord?', low: 'Very confusing', high: 'Very clear' },
-    { id: 'b3', type: 'scale', question: 'Did hearing the chord make music theory feel easier to understand?', low: 'Not at all', high: 'A lot easier' },
-    { id: 'b4', type: 'scale', question: 'Did the suggested next chords give you musical ideas?', low: 'Not really', high: 'Yes, definitely' },
-    { id: 'b5', type: 'multiselect', question: 'Which direction labels made sense to you?', options: DIRECTION_LABELS, hint: 'Select all that apply' },
-    { id: 'b6', type: 'multiselect', question: 'Which direction labels confused you?', options: DIRECTION_LABELS, hint: 'Select all that apply — none is fine' },
-    { id: 'b7', type: 'scale', question: 'Could you imagine using this while writing a song or beat?', low: 'Not really', high: 'Absolutely' },
-    { id: 'b8', type: 'text', question: 'What would you want the tool to show you next?', placeholder: 'Anything you felt was missing…' },
-    { id: 'b9', type: 'text', question: 'What would make you come back to it?', placeholder: 'Be honest — what\'s the missing piece?' },
-    { id: 'b10', type: 'scale', question: 'Would this help you learn chords better than a normal chord chart?', low: 'No, not really', high: 'Yes, much better' },
+    {
+      id: 'b1',
+      type: 'choice',
+      question: 'What did you think this tool was helping you do?',
+      options: [
+        'Find out what notes are in a chord',
+        'Learn how chords sound',
+        'Choose what chord could come next',
+        'Help write a song',
+        "I wasn't sure",
+      ],
+    },
+    {
+      id: 'b2',
+      type: 'choice',
+      question: 'Was it clear how to choose a chord using Root, Quality and Extension?',
+      options: ['Yes, clear', 'Mostly clear', 'A bit confusing', 'I did not understand it'],
+    },
+    {
+      id: 'b3',
+      type: 'choice',
+      question: 'Did hearing the chord make the notes/intervals easier to understand?',
+      options: ['Yes', 'A little', 'Not really', 'I did not use the sound'],
+    },
+    {
+      id: 'b4',
+      type: 'choice',
+      question: 'The tool showed next-chord ideas like "Familiar", "Opens out" and "Moves forward". Did those labels make sense?',
+      options: ['Yes, they helped', 'Some made sense', 'The labels were too vague', 'I did not understand them'],
+    },
+    {
+      id: 'b5',
+      type: 'choice',
+      question: 'Did any suggested next chord make you want to try building a progression?',
+      options: ['Yes', 'Maybe', 'Not yet', 'I did not understand the suggestions'],
+    },
+    {
+      id: 'b6',
+      type: 'text',
+      question: 'What confused you most?',
+      placeholder: 'Anything that felt unclear or unexpected…',
+    },
+    {
+      id: 'b7',
+      type: 'text',
+      question: 'What would make this more useful for learning chords?',
+      placeholder: "Be honest — what's the missing piece?",
+    },
   ],
   intermediate: [
-    { id: 'i1', type: 'scale', question: 'Would this help you get unstuck when writing chords?', low: 'Probably not', high: 'Yes, definitely' },
-    { id: 'i2', type: 'scale', question: 'Did any suggested next chord feel like something you\'d actually try?', low: 'None of them', high: 'Several did' },
-    { id: 'i3', type: 'scale', question: 'Did the direction labels help you understand the emotional effect of a chord move?', low: 'Not really', high: 'Yes, clearly' },
-    { id: 'i4', type: 'text', question: 'What felt missing from the current version?', placeholder: 'What would you expect to see that isn\'t here?' },
-    { id: 'i5', type: 'multiselect', question: 'Which genre modes would make this more useful for your work?', options: ['R&B', 'Pop', 'Drill', 'Gospel', 'Afrobeats', 'Soul', 'Film / Score', 'Jazz', 'Electronic', 'Rock'], hint: 'Select all that apply' },
-    { id: 'i6', type: 'choice', question: 'What would improve the tool most for you right now?', options: ['More chord options', 'Better voicings', 'Stronger explanations', 'All three equally'] },
-    { id: 'i7', type: 'scale', question: 'Would saving a progression matter to you?', low: 'Not really', high: 'Very much' },
-    { id: 'i8', type: 'scale', question: 'Would hearing playback at different tempos help you test ideas?', low: 'Not much', high: 'A lot' },
-    { id: 'i9', type: 'text', question: 'What would make this useful enough to return to?', placeholder: 'What\'s the one thing that would bring you back?' },
-    { id: 'i10', type: 'text', question: 'What feature would make a paid version worth considering?', placeholder: 'Think about what you\'d actually pay for…' },
+    {
+      id: 'i1',
+      type: 'choice',
+      question: 'Could this help you get unstuck when writing a chord progression?',
+      options: ['Yes', 'Possibly, with more options', 'Not in its current form', 'No'],
+    },
+    {
+      id: 'i2',
+      type: 'choice',
+      question: 'Did the playback help you judge the chord movement?',
+      options: ['Yes', 'A little', 'Not really', 'I did not use playback'],
+    },
+    {
+      id: 'i3',
+      type: 'choice',
+      question: 'Did any of the suggested next chords feel like something you might actually try in a song or beat?',
+      options: ['Yes', 'Maybe', 'Not yet', 'The suggestions felt too basic'],
+    },
+    {
+      id: 'i4',
+      type: 'choice',
+      question: 'Were the direction labels useful?',
+      options: [
+        'Yes, they helped me understand the feel',
+        'Some were useful',
+        'They need better wording',
+        'They did not help',
+      ],
+    },
+    {
+      id: 'i5',
+      type: 'multiselect',
+      question: 'What would make this more useful for your music-making?',
+      options: [
+        'More chord types',
+        'Better piano/guitar/bass voicings',
+        'Genre-based suggestions',
+        'Progression playback',
+        'Save/export ideas',
+        'Stronger explanations',
+        'Other',
+      ],
+      hint: 'Select all that apply',
+    },
+    {
+      id: 'i6',
+      type: 'choice',
+      question: 'When you saw the locked "Pro" directions, what did you expect would be behind it?',
+      options: [
+        'More chord suggestions',
+        'More advanced harmony',
+        'Genre-based ideas',
+        'Better playback',
+        'Full progressions',
+        "I wasn't sure",
+      ],
+    },
+    {
+      id: 'i7',
+      type: 'text',
+      question: 'Which genres or styles should this tool understand better?',
+      placeholder: 'R&B, jazz, film, drill, gospel — whatever applies to you…',
+    },
+    {
+      id: 'i8',
+      type: 'text',
+      question: 'What feature would need to exist before this felt worth paying for?',
+      placeholder: "Think about what you'd actually pay for…",
+    },
   ],
   advanced: [
-    { id: 'a1', type: 'scale', question: 'Does the core concept make sense as a songwriting education tool?', low: 'Not really', high: 'Definitely yes' },
-    { id: 'a2', type: 'scale', question: 'Are the chord direction labels musically believable?', low: 'No, too vague', high: 'Yes, accurate' },
-    { id: 'a3', type: 'text', question: 'Which labels feel too vague, inaccurate, or amateur?', placeholder: 'Name any that don\'t sit right musically…' },
-    { id: 'a4', type: 'text', question: 'Are any of the suggested chord movements misleading?', placeholder: 'Point to anything that feels wrong or off…' },
-    { id: 'a5', type: 'text', question: 'What would make this useful for a more advanced player?', placeholder: 'Think depth, not just more chords…' },
-    { id: 'a6', type: 'scale', question: 'Would richer voicings change your opinion of the tool?', low: 'Not much', high: 'Significantly' },
-    { id: 'a7', type: 'scale', question: 'Would instrument-specific voicings matter more than more chord theory?', low: 'Theory first', high: 'Voicings first' },
-    { id: 'a8', type: 'text', question: 'What genres or musical situations should the tool handle carefully?', placeholder: 'Where could lazy assumptions cause problems?' },
-    { id: 'a9', type: 'text', question: 'Where could this tool become genuinely valuable — even if it isn\'t there yet?', placeholder: 'Think about the right version of this idea…' },
-    { id: 'a10', type: 'text', question: 'What should I avoid building — because it would make the tool feel gimmicky?', placeholder: 'What would undermine the credibility?' },
+    {
+      id: 'a1',
+      type: 'choice',
+      question: 'Does the concept make sense as a songwriting education tool?',
+      options: ['Yes', 'Yes, but it needs deeper musical logic', 'Not yet', 'No'],
+    },
+    {
+      id: 'a2',
+      type: 'choice',
+      question: 'Are the current direction labels musically believable?',
+      options: ['Yes', 'Some are', 'They are too vague', 'They need a different system'],
+    },
+    {
+      id: 'a3',
+      type: 'choice',
+      question: 'Do any of the suggested chord movements feel misleading or too basic?',
+      options: [
+        'No, fine for Phase 1',
+        'Some are too basic',
+        'Some need better explanation',
+        'Yes, the logic needs work',
+      ],
+    },
+    {
+      id: 'a4',
+      type: 'multiselect',
+      question: 'What would make this useful for a more advanced player?',
+      options: [
+        'Better voicings',
+        'Voice-leading',
+        'Inversions/slash chords',
+        'Modal interchange',
+        'Secondary dominants',
+        'Genre-specific harmony',
+        'Reharmonisation ideas',
+        'Other',
+      ],
+      hint: 'Select all that apply',
+    },
+    {
+      id: 'a5',
+      type: 'choice',
+      question: 'When you saw the locked "Pro" directions, what did you expect would be behind it?',
+      options: [
+        'More chord suggestions',
+        'More advanced harmony',
+        'Genre-based ideas',
+        'Better playback',
+        'Full progressions',
+        "I wasn't sure",
+      ],
+    },
+    {
+      id: 'a6',
+      type: 'text',
+      question: 'What should this tool avoid becoming?',
+      placeholder: 'What would undermine its credibility?',
+    },
+    {
+      id: 'a7',
+      type: 'text',
+      question: 'Where is the strongest potential in this idea?',
+      placeholder: 'Think about the right version of this…',
+    },
+    {
+      id: 'a8',
+      type: 'text',
+      question: 'What is the one musical improvement you would make first?',
+      placeholder: 'Be specific…',
+    },
   ],
 }
 
-// ─── Scale component ──────────────────────────────────────────────────────────
+const FINAL_QUESTION = {
+  id: 'notify',
+  type: 'notify',
+  question: 'Would you like to hear when the next version is ready?',
+}
 
-function ScaleInput({ value, onChange, low, high }) {
+// ─── Choice component ─────────────────────────────────────────────────────────
+
+function ChoiceInput({ value, onChange, options }) {
   return (
-    <div className="fp-scale">
-      <div className="fp-scale__labels">
-        <span>{low}</span>
-        <span>{high}</span>
-      </div>
-      <div className="fp-scale__pips">
-        {[1, 2, 3, 4, 5].map(n => (
-          <button
-            key={n}
-            className={`fp-scale__pip ${value === n ? 'fp-scale__pip--active' : ''}`}
-            onClick={() => onChange(n)}
-            type="button"
-            aria-label={`${n} of 5`}
-          >
-            {n}
-          </button>
-        ))}
-      </div>
+    <div className="fp-choice">
+      {options.map(opt => (
+        <button
+          key={opt}
+          className={`fp-choice__option ${value === opt ? 'fp-choice__option--active' : ''}`}
+          onClick={() => onChange(opt)}
+          type="button"
+        >
+          {opt}
+        </button>
+      ))}
     </div>
   )
 }
@@ -115,21 +269,53 @@ function MultiSelect({ value = [], onChange, options }) {
   )
 }
 
-// ─── Choice component ─────────────────────────────────────────────────────────
+// ─── Notify question component ────────────────────────────────────────────────
 
-function ChoiceInput({ value, onChange, options }) {
+function NotifyQuestion({ answer, onChange }) {
+  const wantsNotify = answer?.wants === true
+  const declinedNotify = answer?.wants === false
   return (
-    <div className="fp-choice">
-      {options.map(opt => (
-        <button
-          key={opt}
-          className={`fp-choice__option ${value === opt ? 'fp-choice__option--active' : ''}`}
-          onClick={() => onChange(opt)}
-          type="button"
-        >
-          {opt}
-        </button>
-      ))}
+    <div className="fp-notify">
+      <div className="fp-choice">
+        {[
+          { label: "Yes, I'll leave my email", yes: true },
+          { label: 'No thanks', yes: false },
+        ].map(({ label, yes }) => (
+          <button
+            key={label}
+            className={`fp-choice__option ${(yes ? wantsNotify : declinedNotify) ? 'fp-choice__option--active' : ''}`}
+            onClick={() => onChange(yes ? { wants: true } : { wants: false })}
+            type="button"
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+      {wantsNotify && (
+        <div className="fp-notify__fields">
+          <input
+            className="fp-input"
+            type="text"
+            placeholder="Name"
+            value={answer?.name || ''}
+            onChange={e => onChange({ ...answer, name: e.target.value })}
+          />
+          <input
+            className="fp-input"
+            type="email"
+            placeholder="Email"
+            value={answer?.email || ''}
+            onChange={e => onChange({ ...answer, email: e.target.value })}
+          />
+          <input
+            className="fp-input"
+            type="text"
+            placeholder="Instrument or role"
+            value={answer?.role || ''}
+            onChange={e => onChange({ ...answer, role: e.target.value })}
+          />
+        </div>
+      )}
     </div>
   )
 }
@@ -137,25 +323,28 @@ function ChoiceInput({ value, onChange, options }) {
 // ─── Main panel ───────────────────────────────────────────────────────────────
 
 export default function FeedbackPanel({ isOpen, onClose }) {
-  const [stage, setStage] = useState('type') // 'type' | 'questions' | 'done'
+  const [stage, setStage] = useState('type') // 'type' | 'questions' | 'final' | 'done'
   const [userType, setUserType] = useState(null)
   const [questionIndex, setQuestionIndex] = useState(0)
   const [answers, setAnswers] = useState({})
-  const [direction, setDirection] = useState(1) // 1 = forward, -1 = back
+  const [direction, setDirection] = useState(1)
   const [animating, setAnimating] = useState(false)
   const textareaRef = useRef(null)
 
   const questions = userType ? QUESTIONS[userType] : []
-  const currentQ = questions[questionIndex]
+  const isFinal = stage === 'final'
+  const currentQ = isFinal ? FINAL_QUESTION : questions[questionIndex]
   const currentAnswer = currentQ ? answers[currentQ.id] : undefined
-  const progress = stage === 'questions' ? (questionIndex + 1) / questions.length : 0
 
-  // Auto-focus textarea when question changes
+  const totalSteps = questions.length + 1 // +1 for the notify question
+  const currentStep = stage === 'questions' ? questionIndex + 1 : stage === 'final' ? totalSteps : 0
+  const progress = (stage === 'questions' || stage === 'final') ? currentStep / totalSteps : 0
+
   useEffect(() => {
     if (currentQ?.type === 'text' && textareaRef.current) {
       setTimeout(() => textareaRef.current?.focus(), 320)
     }
-  }, [questionIndex, currentQ])
+  }, [questionIndex, stage, currentQ])
 
   function setAnswer(value) {
     setAnswers(prev => ({ ...prev, [currentQ.id]: value }))
@@ -164,8 +353,9 @@ export default function FeedbackPanel({ isOpen, onClose }) {
   function canAdvance() {
     if (stage === 'type') return !!userType
     if (!currentQ) return false
-    if (currentQ.type === 'text') return true // text is optional
-    if (currentQ.type === 'multiselect') return true // multiselect optional
+    if (currentQ.type === 'text') return true
+    if (currentQ.type === 'multiselect') return true
+    if (currentQ.type === 'notify') return true
     return currentAnswer !== undefined
   }
 
@@ -181,10 +371,17 @@ export default function FeedbackPanel({ isOpen, onClose }) {
         if (step === -1 && questionIndex === 0) {
           setStage('type')
         } else if (step === 1 && questionIndex === questions.length - 1) {
-          submitFeedback()
-          setStage('done')
+          setStage('final')
         } else {
           setQuestionIndex(i => i + step)
+        }
+      } else if (stage === 'final') {
+        if (step === -1) {
+          setStage('questions')
+          setQuestionIndex(questions.length - 1)
+        } else if (step === 1) {
+          submitFeedback()
+          setStage('done')
         }
       }
       setAnimating(false)
@@ -202,10 +399,6 @@ export default function FeedbackPanel({ isOpen, onClose }) {
     }
   }
 
-  function resetAndClose() {
-    onClose()
-  }
-
   function startOver() {
     setStage('type')
     setUserType(null)
@@ -215,14 +408,12 @@ export default function FeedbackPanel({ isOpen, onClose }) {
 
   return (
     <>
-      {/* Backdrop */}
       <div
         className={`fp-backdrop ${isOpen ? 'fp-backdrop--open' : ''}`}
         onClick={onClose}
         aria-hidden="true"
       />
 
-      {/* Panel */}
       <div
         className={`fp-panel ${isOpen ? 'fp-panel--open' : ''}`}
         role="dialog"
@@ -235,7 +426,7 @@ export default function FeedbackPanel({ isOpen, onClose }) {
             <img src="/kynda-logo-full.png" alt="Kynda Learning" className="fp-header__logo" />
           </div>
           <div className="fp-header__actions">
-            {(stage === 'questions' || stage === 'type') && (
+            {(stage === 'questions' || stage === 'type' || stage === 'final') && (
               <button
                 className="fp-header__restart"
                 onClick={startOver}
@@ -255,7 +446,7 @@ export default function FeedbackPanel({ isOpen, onClose }) {
         </div>
 
         {/* Progress bar */}
-        {stage === 'questions' && (
+        {(stage === 'questions' || stage === 'final') && (
           <div className="fp-progress">
             <div className="fp-progress__bar" style={{ width: `${progress * 100}%` }} />
           </div>
@@ -269,7 +460,9 @@ export default function FeedbackPanel({ isOpen, onClose }) {
             <div className="fp-screen">
               <div className="fp-screen__eyebrow">Early feedback</div>
               <h2 className="fp-screen__heading">Which best describes you?</h2>
-              <p className="fp-screen__sub">We'll ask you the right questions for your level.</p>
+              <p className="fp-screen__sub">
+                This is an early prototype. I'm testing whether the chord choices, sound playback and "where could this chord go?" ideas are useful enough to develop further.
+              </p>
               <div className="fp-typecards">
                 {USER_TYPES.map(t => (
                   <button
@@ -292,11 +485,11 @@ export default function FeedbackPanel({ isOpen, onClose }) {
             </div>
           )}
 
-          {/* Stage: questions */}
-          {stage === 'questions' && currentQ && (
+          {/* Stage: questions or final notify */}
+          {(stage === 'questions' || stage === 'final') && currentQ && (
             <div className="fp-screen">
               <div className="fp-screen__eyebrow">
-                {questionIndex + 1} of {questions.length}
+                {currentStep} of {totalSteps}
               </div>
               <h2 className="fp-screen__heading">{currentQ.question}</h2>
               {currentQ.hint && <p className="fp-screen__sub">{currentQ.hint}</p>}
@@ -312,12 +505,11 @@ export default function FeedbackPanel({ isOpen, onClose }) {
                     rows={4}
                   />
                 )}
-                {currentQ.type === 'scale' && (
-                  <ScaleInput
+                {currentQ.type === 'choice' && (
+                  <ChoiceInput
                     value={currentAnswer}
                     onChange={v => { setAnswer(v); setTimeout(() => navigate(1), 320) }}
-                    low={currentQ.low}
-                    high={currentQ.high}
+                    options={currentQ.options}
                   />
                 )}
                 {currentQ.type === 'multiselect' && (
@@ -327,11 +519,10 @@ export default function FeedbackPanel({ isOpen, onClose }) {
                     options={currentQ.options}
                   />
                 )}
-                {currentQ.type === 'choice' && (
-                  <ChoiceInput
-                    value={currentAnswer}
-                    onChange={v => { setAnswer(v); setTimeout(() => navigate(1), 320) }}
-                    options={currentQ.options}
+                {currentQ.type === 'notify' && (
+                  <NotifyQuestion
+                    answer={currentAnswer}
+                    onChange={setAnswer}
                   />
                 )}
               </div>
@@ -346,7 +537,7 @@ export default function FeedbackPanel({ isOpen, onClose }) {
               <p className="fp-screen__sub">
                 This feedback genuinely shapes what gets built next. We appreciate you taking the time.
               </p>
-              <button className="fp-btn fp-btn--primary" onClick={resetAndClose}>
+              <button className="fp-btn fp-btn--primary" onClick={() => { onClose(); startOver() }}>
                 Back to Chord Compass
               </button>
               <button className="fp-btn fp-btn--ghost" onClick={startOver}>
@@ -359,7 +550,7 @@ export default function FeedbackPanel({ isOpen, onClose }) {
         {/* Footer nav */}
         {stage !== 'done' && (
           <div className="fp-footer">
-            {(stage === 'questions') && (
+            {(stage === 'questions' || stage === 'final') && (
               <button className="fp-btn fp-btn--ghost" onClick={() => navigate(-1)} type="button">
                 ← Back
               </button>
@@ -373,7 +564,7 @@ export default function FeedbackPanel({ isOpen, onClose }) {
             >
               {stage === 'type'
                 ? 'Start →'
-                : questionIndex === questions.length - 1
+                : stage === 'final'
                 ? 'Submit'
                 : 'Next →'}
             </button>
