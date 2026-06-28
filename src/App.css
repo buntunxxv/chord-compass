@@ -23,11 +23,51 @@
   justify-content: space-between;
 }
 
+.app__logo {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.app__logo-link {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
 .app__logo img {
   height: 36px;
   width: auto;
   object-fit: contain;
   display: block;
+}
+
+.app__site-nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.app__site-nav-link {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-decoration: none;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: color 0.15s, background 0.15s;
+  white-space: nowrap;
+}
+
+.app__site-nav-link:hover {
+  color: var(--teal);
+  background: rgba(17, 147, 146, 0.06);
+}
+
+@media (max-width: 700px) {
+  .app__site-nav {
+    display: none;
+  }
 }
 
 .app__header-tool {

@@ -78,9 +78,14 @@ export default function App() {
       <header className="app__header">
         <div className="app__header-inner">
           <div className="app__logo">
-            <a href="https://www.kyndalearning.co.uk">
+            <a href="https://www.kyndalearning.co.uk" className="app__logo-link">
               <img src="/kynda-logo-full.png" alt="Kynda Learning" />
             </a>
+            <nav className="app__site-nav">
+              <a href="https://www.kyndalearning.co.uk/courses" className="app__site-nav-link">Courses</a>
+              <a href="https://www.kyndalearning.co.uk/workshops" className="app__site-nav-link">Workshops</a>
+              <a href="https://www.kyndalearning.co.uk/portal" className="app__site-nav-link">Portal</a>
+            </nav>
           </div>
           <div className="app__header-tool">
             <div className="app__header-divider" />
