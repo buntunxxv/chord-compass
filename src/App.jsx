@@ -85,6 +85,14 @@ export default function App() {
           <div className="app__header-tool">
             <div className="app__header-divider" />
             <span className="app__header-tool-name">Chord Compass</span>
+            <div className="app__header-divider" />
+            <button
+              className="app__header-feedback-btn"
+              onClick={() => setFeedbackOpen(true)}
+              aria-label="Share feedback"
+            >
+              Share feedback
+            </button>
           </div>
         </div>
       </header>
@@ -139,15 +147,6 @@ export default function App() {
           </section>
         )}
       </main>
-
-      {/* Feedback button */}
-      <button
-        className="app__feedback-btn"
-        onClick={() => setFeedbackOpen(true)}
-        aria-label="Give feedback"
-      >
-        Share feedback
-      </button>
 
       {/* Feedback panel — state persists while closed */}
       <FeedbackPanel

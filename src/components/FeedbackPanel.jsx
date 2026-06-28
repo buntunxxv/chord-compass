@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { supabase } from '../supabase'
 import './FeedbackPanel.css'
 
 // ─── Question data ───────────────────────────────────────────────────────────
@@ -190,13 +191,15 @@ export default function FeedbackPanel({ isOpen, onClose }) {
     }, 260)
   }
 
-  function submitFeedback() {
-    const result = { userType, answers, submittedAt: new Date().toISOString() }
-    console.log('[Chord Compass Feedback]', result)
+  async function submitFeedback() {
     try {
-      const existing = JSON.parse(localStorage.getItem('cc_feedback') || '[]')
-      localStorage.setItem('cc_feedback', JSON.stringify([...existing, result]))
-    } catch {}
+      await supabase.from('chord_compass_feedback').insert({
+        user_type: userType,
+        answers,
+      })
+    } catch (err) {
+      console.error('[Chord Compass Feedback] submit failed', err)
+    }
   }
 
   function resetAndClose() {
