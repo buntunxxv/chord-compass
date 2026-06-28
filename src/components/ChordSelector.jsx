@@ -1,5 +1,22 @@
 import { Chord } from 'tonal'
+import { CHORD_DATA } from '../chordData'
 import './ChordSelector.css'
+
+function toDataKey(root, quality, extension) {
+  if (quality === 'major'     && extension === 'none')  return `${root} major`
+  if (quality === 'minor'     && extension === 'none')  return `${root} minor`
+  if (quality === 'major'     && extension === '7')     return `${root}7`
+  if (quality === 'major'     && extension === 'maj7')  return `${root}maj7`
+  if (quality === 'minor'     && extension === '7')     return `${root}m7`
+  if (quality === 'major'     && extension === 'add9')  return `${root}add9`
+  if (quality === 'sus4'      && extension === 'none')  return `${root}sus4`
+  return null
+}
+
+function hasData(root, quality, extension) {
+  const key = toDataKey(root, quality, extension)
+  return key !== null && key in CHORD_DATA
+}
 
 const ROOTS = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
 const ROOT_DISPLAY = ['C', 'C♯', 'D', 'D♯', 'E', 'F', 'F♯', 'G', 'G♯', 'A', 'A♯', 'B']
@@ -72,7 +89,9 @@ export default function ChordSelector({ root, quality, extension, onChange }) {
             onChange={e => handleChange('root', e.target.value)}
           >
             {ROOTS.map((r, i) => (
-              <option key={r} value={r}>{ROOT_DISPLAY[i]}</option>
+              <option key={r} value={r} disabled={!hasData(r, quality, extension)}>
+                {ROOT_DISPLAY[i]}
+              </option>
             ))}
           </select>
         </div>
@@ -85,7 +104,9 @@ export default function ChordSelector({ root, quality, extension, onChange }) {
             onChange={e => handleChange('quality', e.target.value)}
           >
             {QUALITIES.map(q => (
-              <option key={q.value} value={q.value}>{q.label}</option>
+              <option key={q.value} value={q.value} disabled={!hasData(root, q.value, extension)}>
+                {q.label}
+              </option>
             ))}
           </select>
         </div>
@@ -98,7 +119,9 @@ export default function ChordSelector({ root, quality, extension, onChange }) {
             onChange={e => handleChange('extension', e.target.value)}
           >
             {EXTENSIONS.map(e => (
-              <option key={e.value} value={e.value}>{e.label}</option>
+              <option key={e.value} value={e.value} disabled={!hasData(root, quality, e.value)}>
+                {e.label}
+              </option>
             ))}
           </select>
         </div>
