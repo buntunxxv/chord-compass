@@ -275,7 +275,13 @@ export default function FeedbackPanel({ isOpen, onClose }) {
                   <button
                     key={t.value}
                     className={`fp-typecard ${userType === t.value ? 'fp-typecard--active' : ''}`}
-                    onClick={() => setUserType(t.value)}
+                    onClick={() => {
+                      setUserType(t.value)
+                      setTimeout(() => {
+                        setStage('questions')
+                        setQuestionIndex(0)
+                      }, 320)
+                    }}
                     type="button"
                   >
                     <span className="fp-typecard__label">{t.label}</span>
@@ -309,7 +315,7 @@ export default function FeedbackPanel({ isOpen, onClose }) {
                 {currentQ.type === 'scale' && (
                   <ScaleInput
                     value={currentAnswer}
-                    onChange={setAnswer}
+                    onChange={v => { setAnswer(v); setTimeout(() => navigate(1), 320) }}
                     low={currentQ.low}
                     high={currentQ.high}
                   />
@@ -324,7 +330,7 @@ export default function FeedbackPanel({ isOpen, onClose }) {
                 {currentQ.type === 'choice' && (
                   <ChoiceInput
                     value={currentAnswer}
-                    onChange={setAnswer}
+                    onChange={v => { setAnswer(v); setTimeout(() => navigate(1), 320) }}
                     options={currentQ.options}
                   />
                 )}
