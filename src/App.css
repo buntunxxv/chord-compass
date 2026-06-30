@@ -70,6 +70,87 @@
   }
 }
 
+/* ─── Hamburger button ──────────────────────────────────────────────────────── */
+
+.app__hamburger {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  width: 40px;
+  height: 40px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: var(--radius);
+  transition: background 0.15s;
+}
+
+.app__hamburger:hover {
+  background: rgba(17, 147, 146, 0.08);
+}
+
+.app__hamburger-line {
+  display: block;
+  width: 22px;
+  height: 2px;
+  background: var(--text-muted);
+  border-radius: 2px;
+}
+
+/* ─── Mobile dropdown menu ──────────────────────────────────────────────────── */
+
+.app__mobile-menu {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--border);
+  padding: 8px 0;
+  background: var(--white);
+}
+
+.app__mobile-menu-link {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-decoration: none;
+  padding: 12px 24px;
+  transition: color 0.15s, background 0.15s;
+}
+
+.app__mobile-menu-link:hover {
+  color: var(--teal);
+  background: rgba(17, 147, 146, 0.06);
+}
+
+/* ─── Mobile feedback button (fixed bottom) ─────────────────────────────────── */
+
+.app__mobile-feedback-btn {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 99;
+  background: var(--teal);
+  color: var(--white);
+  border: none;
+  padding: 16px 24px;
+  padding-bottom: calc(16px + env(safe-area-inset-bottom));
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.app__mobile-feedback-btn:hover {
+  background: var(--teal-dark);
+}
+
 .app__header-tool {
   display: flex;
   align-items: center;
@@ -136,11 +217,19 @@
   transform: translateY(-1px);
 }
 
-@media (max-width: 600px) {
-  .app__header-tool-name {
+@media (max-width: 700px) {
+  .app__header-divider,
+  .app__header-tool-name,
+  .app__header-feedback-btn {
     display: none;
   }
-  .app__header-divider:first-child {
-    display: none;
+  .app__hamburger {
+    display: flex;
+  }
+  .app__mobile-feedback-btn {
+    display: block;
+  }
+  .app__main {
+    padding-bottom: calc(80px + env(safe-area-inset-bottom));
   }
 }

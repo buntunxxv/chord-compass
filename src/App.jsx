@@ -51,6 +51,7 @@ export default function App() {
   const [selection, setSelection] = useState({ root: 'C', quality: 'major', extension: 'none' })
   const [bpm, setBpm] = useState(90)
   const [feedbackOpen, setFeedbackOpen] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
 
   const { root, quality, extension } = selection
 
@@ -98,8 +99,25 @@ export default function App() {
             >
               Share feedback
             </button>
+            <button
+              className="app__hamburger"
+              onClick={() => setMenuOpen(o => !o)}
+              aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+              aria-expanded={menuOpen}
+            >
+              <span className="app__hamburger-line" />
+              <span className="app__hamburger-line" />
+              <span className="app__hamburger-line" />
+            </button>
           </div>
         </div>
+        {menuOpen && (
+          <div className="app__mobile-menu">
+            <a href="https://www.kyndalearning.co.uk/courses" className="app__mobile-menu-link" onClick={() => setMenuOpen(false)}>Courses</a>
+            <a href="https://www.kyndalearning.co.uk/workshops" className="app__mobile-menu-link" onClick={() => setMenuOpen(false)}>Workshops</a>
+            <a href="https://www.kyndalearning.co.uk/portal" className="app__mobile-menu-link" onClick={() => setMenuOpen(false)}>Portal</a>
+          </div>
+        )}
       </header>
 
       <main className="app__main">
@@ -152,6 +170,14 @@ export default function App() {
           </section>
         )}
       </main>
+
+      <button
+        className="app__mobile-feedback-btn"
+        onClick={() => setFeedbackOpen(true)}
+        aria-label="Share feedback"
+      >
+        Share feedback
+      </button>
 
       {/* Feedback panel — state persists while closed */}
       <FeedbackPanel
