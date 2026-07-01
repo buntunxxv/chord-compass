@@ -10,7 +10,7 @@ export const CHORD_DATA = {
   "G7":       { notes: ["G3","B3","D4","F4"],   next: [{ chord: "C",  notes: ["C4","E4","G4"], label: "Resolution" }, { chord: "Cm",    notes: ["C4","Eb4","G4"], label: "Darker" }, { chord: "Em",    notes: ["E4","G4","B4"], label: "Familiar" }] },
   "Am7":      { notes: ["A3","C4","E4","G4"],   next: [{ chord: "Fmaj7",notes: ["F3","A3","C4","E4"], label: "Familiar" }, { chord: "Dm7",notes: ["D4","F4","A4","C5"], label: "Moves forward" }, { chord: "C",notes: ["C4","E4","G4"], label: "Opens out" }] },
   "Dm7":      { notes: ["D4","F4","A4","C5"],   next: [{ chord: "G7", notes: ["G3","B3","D4","F4"], label: "Tension" }, { chord: "Cmaj7",notes: ["C4","E4","G4","B4"], label: "Resolution" }, { chord: "Am7",notes: ["A3","C4","E4","G4"], label: "Familiar" }] },
-  "E7":       { notes: ["E4","G#4","B4","D5"],  next: [{ chord: "Am", notes: ["A3","C4","E4"], label: "Tension" }, { chord: "Am7",   notes: ["A3","C4","E4","G4"], label: "Familiar" }, { chord: "A",     notes: ["A3","C#4","E4"], label: "Darker" }] },
+  "E7":       { notes: ["E3","G#3","B3","D4"],  next: [{ chord: "Am", notes: ["A3","C4","E4"], label: "Tension" }, { chord: "Am7",   notes: ["A3","C4","E4","G4"], label: "Familiar" }, { chord: "A",     notes: ["A3","C#4","E4"], label: "Darker" }] },
 
   "D major": { notes: ["D4","F#4","A4"],   next: [{ chord: "Bm",  notes: ["B3","D4","F#4"],   label: "Familiar" }, { chord: "G",  notes: ["G3","B3","D4"],    label: "Opens out" },  { chord: "A",  notes: ["A3","C#4","E4"],   label: "Moves forward" }] },
   "D minor": { notes: ["D4","F4","A4"],    next: [{ chord: "Gm",  notes: ["G3","Bb3","D4"],   label: "Darker"   }, { chord: "Bb", notes: ["Bb3","D4","F4"],   label: "Opens out" },  { chord: "F",  notes: ["F3","A3","C4"],    label: "Familiar"      }] },
@@ -23,7 +23,7 @@ export const CHORD_DATA = {
   "A major": { notes: ["A3","C#4","E4"],   next: [{ chord: "F#m", notes: ["F#3","A3","C#4"],  label: "Familiar" }, { chord: "D",  notes: ["D4","F#4","A4"],   label: "Opens out" },  { chord: "E",  notes: ["E4","G#4","B4"],   label: "Moves forward" }] },
   "A minor": { notes: ["A3","C4","E4"],    next: [{ chord: "Dm",  notes: ["D4","F4","A4"],    label: "Darker"   }, { chord: "F",  notes: ["F3","A3","C4"],    label: "Opens out" },  { chord: "C",  notes: ["C4","E4","G4"],    label: "Familiar"      }] },
   "B major": { notes: ["B3","D#4","F#4"],  next: [{ chord: "G#m", notes: ["G#3","B3","D#4"],  label: "Familiar" }, { chord: "E",  notes: ["E4","G#4","B4"],   label: "Opens out" },  { chord: "F#", notes: ["F#3","A#3","C#4"], label: "Moves forward" }] },
-  "B minor": { notes: ["B3","D4","F#4"],   next: [{ chord: "Em",  notes: ["E3","G3","B3"],    label: "Darker"   }, { chord: "G",  notes: ["G3","B3","D4"],    label: "Opens out" },  { chord: "D",  notes: ["D3","F#3","A3"],   label: "Familiar"      }] }
+  "B minor": { notes: ["B3","D4","F#4"],   next: [{ chord: "Em",  notes: ["E4","G4","B4"],    label: "Darker"   }, { chord: "G",  notes: ["G3","B3","D4"],    label: "Opens out" },  { chord: "D",  notes: ["D4","F#4","A4"],   label: "Familiar"      }] }
 };
 
 export const LABEL_COLORS = {

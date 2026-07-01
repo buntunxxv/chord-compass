@@ -1,44 +1,65 @@
 import './PianoDisplay.css'
 
-// Layout for one octave C4–B4
-// White keys: C D E F G A B (7 keys)
-// Black keys: C# D# F# G# A# (5 keys)
-
-const WHITE_KEYS = ['C4', 'D4', 'E4', 'F4', 'G4', 'A4', 'B4']
-const WHITE_KEY_LABELS = ['C', 'D', 'E', 'F', 'G', 'A', 'B']
-
-// black key position: index in white keys array (left edge as fraction of white key width)
-// C#=between C(0) and D(1), D#=between D(1) and E(2), F#=between F(3) and G(4), G#=between G(4) and A(5), A#=between A(5) and B(6)
-const BLACK_KEYS = [
-  { note: 'C#4', display: 'C♯', whiteIndex: 0 },
-  { note: 'D#4', display: 'D♯', whiteIndex: 1 },
-  { note: 'F#4', display: 'F♯', whiteIndex: 3 },
-  { note: 'G#4', display: 'G♯', whiteIndex: 4 },
-  { note: 'A#4', display: 'A♯', whiteIndex: 5 },
+// Two octaves, C3–D5, so a chord's notes render at their real pitch
+// height instead of being wrapped into a single octave — wrapping made
+// some voicings look like unexplained inversions. The extra D5 (beyond
+// a clean two octaves) is needed so a 9th (e.g. Cadd9) can render as a
+// true 9th — an octave above the root's 2nd — rather than collapsing
+// into a 2nd within the same octave.
+const WHITE_KEYS = [
+  'C3', 'D3', 'E3', 'F3', 'G3', 'A3', 'B3',
+  'C4', 'D4', 'E4', 'F4', 'G4', 'A4', 'B4',
+  'C5', 'D5',
 ]
 
-const WHITE_KEY_WIDTH = 52
+// black key position: index in the white-key array (sits to the right of that key)
+const BLACK_KEYS = [
+  { note: 'C#3', display: 'C♯', whiteIndex: 0 },
+  { note: 'D#3', display: 'D♯', whiteIndex: 1 },
+  { note: 'F#3', display: 'F♯', whiteIndex: 3 },
+  { note: 'G#3', display: 'G♯', whiteIndex: 4 },
+  { note: 'A#3', display: 'A♯', whiteIndex: 5 },
+  { note: 'C#4', display: 'C♯', whiteIndex: 7 },
+  { note: 'D#4', display: 'D♯', whiteIndex: 8 },
+  { note: 'F#4', display: 'F♯', whiteIndex: 10 },
+  { note: 'G#4', display: 'G♯', whiteIndex: 11 },
+  { note: 'A#4', display: 'A♯', whiteIndex: 12 },
+  { note: 'C#5', display: 'C♯', whiteIndex: 14 },
+]
+
+const WHITE_KEY_WIDTH = 42
 const WHITE_KEY_HEIGHT = 160
-const BLACK_KEY_WIDTH = 32
+const BLACK_KEY_WIDTH = 26
 const BLACK_KEY_HEIGHT = 100
-const SVG_WIDTH = WHITE_KEY_WIDTH * 7
+const SVG_WIDTH = WHITE_KEY_WIDTH * WHITE_KEYS.length
 const SVG_HEIGHT = WHITE_KEY_HEIGHT + 24
 
-// Resolve enharmonic equivalents to sharp form for comparison
-const ENHARMONIC = { 'Cb': 'B', 'Db': 'C#', 'Eb': 'D#', 'Fb': 'E', 'Gb': 'F#', 'Ab': 'G#', 'Bb': 'A#' }
+// A "C" key also shows its octave number so students can read the anchor points
+function whiteKeyLabel(note) {
+  return note[0] === 'C' ? note : note[0]
+}
+
+// Resolve enharmonic equivalents to sharp form, keeping the octave correct
+// (Cb sits in the octave below the C it borrows its number from)
+const ENHARMONIC = { Cb: 'B', Db: 'C#', Eb: 'D#', Fb: 'E', Gb: 'F#', Ab: 'G#', Bb: 'A#' }
+const ENHARMONIC_OCTAVE_SHIFT = { Cb: -1 }
 
 function normalizeNote(note) {
-  const pitch = note.replace(/\d+$/, '').replace('♯', '#').replace('♭', 'b')
-  return ENHARMONIC[pitch] ?? pitch
+  const m = note.replace('♯', '#').replace('♭', 'b').match(/^([A-G][#b]?)(\d)$/)
+  if (!m) return note
+  const [, pitch, octaveStr] = m
+  const mappedPitch = ENHARMONIC[pitch] ?? pitch
+  const octave = parseInt(octaveStr, 10) + (ENHARMONIC_OCTAVE_SHIFT[pitch] ?? 0)
+  return `${mappedPitch}${octave}`
 }
 
 function noteMatches(keyNote, chordNotes) {
-  const keyPitch = normalizeNote(keyNote)
-  return chordNotes.some(n => normalizeNote(n) === keyPitch)
+  const normalizedKey = normalizeNote(keyNote)
+  return chordNotes.some(n => normalizeNote(n) === normalizedKey)
 }
 
 function isRoot(keyNote, rootNote) {
-  return normalizeNote(keyNote) === normalizeNote(rootNote)
+  return !!rootNote && normalizeNote(keyNote) === normalizeNote(rootNote)
 }
 
 const SUGGEST_FILL = '#8B5CF6'
@@ -63,9 +84,10 @@ function resolveKeyStyle(note, notes, root, previewNotes, defaultFill) {
   return { fill: defaultFill, active: false, shared: false, textFill: '#aaaaaa' }
 }
 
-export default function PianoDisplay({ chordNotes, rootNote, previewNotes }) {
+export default function PianoDisplay({ chordNotes, previewNotes }) {
   const notes = chordNotes || []
-  const root = rootNote || ''
+  // The first note in a chord's data is always its root (by convention)
+  const root = notes.length > 0 ? notes[0] : null
   const hasPreview = !!(previewNotes && previewNotes.length > 0)
 
   return (
@@ -75,7 +97,7 @@ export default function PianoDisplay({ chordNotes, rootNote, previewNotes }) {
         xmlns="http://www.w3.org/2000/svg"
         className="piano-display__svg"
         role="img"
-        aria-label="Piano keyboard showing chord tones"
+        aria-label="Piano keyboard showing chord tones across two octaves"
       >
         {/* White keys */}
         {WHITE_KEYS.map((note, i) => {
@@ -111,12 +133,12 @@ export default function PianoDisplay({ chordNotes, rootNote, previewNotes }) {
                 x={x + WHITE_KEY_WIDTH / 2}
                 y={WHITE_KEY_HEIGHT - 14}
                 textAnchor="middle"
-                fontSize={11}
+                fontSize={note[0] === 'C' ? 9.5 : 11}
                 fontWeight={style.active ? '600' : '500'}
                 fontFamily="Inter, sans-serif"
                 fill={style.textFill}
               >
-                {WHITE_KEY_LABELS[i]}
+                {whiteKeyLabel(note)}
               </text>
             </g>
           )
@@ -157,7 +179,7 @@ export default function PianoDisplay({ chordNotes, rootNote, previewNotes }) {
                   x={x + BLACK_KEY_WIDTH / 2}
                   y={BLACK_KEY_HEIGHT - 10}
                   textAnchor="middle"
-                  fontSize={9}
+                  fontSize={8}
                   fontWeight="600"
                   fontFamily="Inter, sans-serif"
                   fill={style.textFill}
@@ -178,7 +200,7 @@ export default function PianoDisplay({ chordNotes, rootNote, previewNotes }) {
           fill="#aaaaaa"
           fontFamily="Inter, sans-serif"
         >
-          C4 – B4
+          C3 – D5
         </text>
       </svg>
 

@@ -111,7 +111,6 @@ export default function App() {
 
   // Notes to highlight: use CHORD_DATA notes if available, else derive from tonal at octave 4
   const chordNotes = chordEntry?.notes || []
-  const rootNote = root
 
   const available = !!chordEntry
 
@@ -190,7 +189,6 @@ export default function App() {
         <section className="app__section">
           <PianoDisplay
             chordNotes={chordNotes}
-            rootNote={rootNote}
             previewNotes={previewNotes}
           />
         </section>
