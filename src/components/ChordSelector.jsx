@@ -18,8 +18,8 @@ function hasData(root, quality, extension) {
   return key !== null && key in CHORD_DATA
 }
 
-const ROOTS = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
-const ROOT_DISPLAY = ['C', 'C♯', 'D', 'D♯', 'E', 'F', 'F♯', 'G', 'G♯', 'A', 'A♯', 'B']
+const ROOTS = ['C', 'D', 'E', 'F', 'G', 'A', 'B']
+const ROOT_DISPLAY = ['C', 'D', 'E', 'F', 'G', 'A', 'B']
 
 const QUALITIES = [
   { value: 'major', label: 'Major', tonal: 'M' },
@@ -83,6 +83,7 @@ export default function ChordSelector({ root, quality, extension, onChange }) {
       <div className="chord-selector__dropdowns">
         <div className="chord-selector__field">
           <label className="chord-selector__label">Root</label>
+          <span className="chord-selector__hint">The note the chord is named after</span>
           <select
             className="chord-selector__select"
             value={root}
@@ -94,10 +95,19 @@ export default function ChordSelector({ root, quality, extension, onChange }) {
               </option>
             ))}
           </select>
+          <a
+            href="https://www.kyndalearning.co.uk"
+            className="chord-selector__pro-lock"
+            title="Sharp and flat root notes are available in Chord Compass Pro"
+          >
+            <span className="chord-selector__pro-lock-icon">🔒</span>
+            C♯ D♯ F♯ G♯ A♯ + flats — Pro
+          </a>
         </div>
 
         <div className="chord-selector__field">
           <label className="chord-selector__label">Quality</label>
+          <span className="chord-selector__hint">Major sounds bright, minor is darker</span>
           <select
             className="chord-selector__select"
             value={quality}
@@ -113,6 +123,7 @@ export default function ChordSelector({ root, quality, extension, onChange }) {
 
         <div className="chord-selector__field">
           <label className="chord-selector__label">Extension</label>
+          <span className="chord-selector__hint">Extra notes that add colour — start with None</span>
           <select
             className="chord-selector__select"
             value={extension}

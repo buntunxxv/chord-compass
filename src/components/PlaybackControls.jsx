@@ -62,7 +62,7 @@ export default function PlaybackControls({ notes, bpm, onBpmChange }) {
 
       <div className="playback-controls__bpm">
         <label className="playback-controls__bpm-label">
-          <span className="playback-controls__bpm-title">BPM</span>
+          <span className="playback-controls__bpm-title" title="Beats per minute — how fast the chord plays">BPM</span>
           <span className="playback-controls__bpm-value">{bpm}</span>
         </label>
         <input

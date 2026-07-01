@@ -42,7 +42,7 @@ export default function ChordOutputPanel({ chordName, notes, intervals, availabl
       </div>
       {intervals && intervals.length > 0 && (
         <div className="chord-output__row">
-          <span className="chord-output__row-label">Intervals</span>
+          <span className="chord-output__row-label" title="The distance between each note — Root is the tonic, 3 is the third, 5 is the fifth">Intervals</span>
           <span className="chord-output__row-value">
             {intervals.map(formatInterval).join(' · ')}
           </span>
