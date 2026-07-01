@@ -1,5 +1,7 @@
 import { Chord } from 'tonal'
+import { Link } from 'react-router-dom'
 import { CHORD_DATA } from '../chordData'
+import { logEvent } from '../analytics/events'
 import './ChordSelector.css'
 
 function toDataKey(root, quality, extension) {
@@ -95,14 +97,15 @@ export default function ChordSelector({ root, quality, extension, onChange }) {
               </option>
             ))}
           </select>
-          <a
-            href="https://www.kyndalearning.co.uk"
+          <Link
+            to="/upgrade"
             className="chord-selector__pro-lock"
             title="Sharp and flat root notes are available in Chord Compass Pro"
+            onClick={() => logEvent('upgrade_cta_click', { source: 'root_selector' })}
           >
             <span className="chord-selector__pro-lock-icon">🔒</span>
             C♯ D♯ F♯ G♯ A♯ + flats — Pro
-          </a>
+          </Link>
         </div>
 
         <div className="chord-selector__field">

@@ -1,7 +1,13 @@
+import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import { logEvent } from './analytics/events'
 import './UpgradePage.css'
 
 export default function UpgradePage() {
+  useEffect(() => {
+    logEvent('upgrade_page_view')
+  }, [])
+
   return (
     <div className="upgrade-page">
       <header className="upgrade-page__header">

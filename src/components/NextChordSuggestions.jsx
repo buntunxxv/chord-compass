@@ -4,6 +4,7 @@ import * as Tone from 'tone'
 import { LABEL_COLORS, LABEL_EXPLANATIONS } from '../chordData'
 import { createKeysSynth } from '../audio/synth'
 import { formatNoteNames } from '../utils/formatNotes'
+import { logEvent } from '../analytics/events'
 import './NextChordSuggestions.css'
 
 export default function NextChordSuggestions({ suggestions, currentNotes, bpm, previewIndex, onPreviewChange }) {
@@ -96,7 +97,11 @@ export default function NextChordSuggestions({ suggestions, currentNotes, bpm, p
         })}
       </div>
 
-      <Link to="/upgrade" className="next-chords__upgrade-cta">
+      <Link
+        to="/upgrade"
+        className="next-chords__upgrade-cta"
+        onClick={() => logEvent('upgrade_cta_click', { source: 'next_chords' })}
+      >
         <span className="next-chords__upgrade-lock">🔒</span>
         <span>Future Pro: unlock more chord directions</span>
       </Link>
