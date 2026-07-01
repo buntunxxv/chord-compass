@@ -70,6 +70,32 @@
   }
 }
 
+/* ─── Help (?) button ───────────────────────────────────────────────────────── */
+
+.app__help-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid var(--teal);
+  background: none;
+  color: var(--teal);
+  font-family: var(--font);
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.15s, color 0.15s;
+}
+
+.app__help-btn:hover {
+  background: var(--teal);
+  color: var(--white);
+}
+
 /* ─── Hamburger button ──────────────────────────────────────────────────────── */
 
 .app__hamburger {
