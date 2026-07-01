@@ -157,6 +157,12 @@ export default function App() {
             <a href="https://www.kyndalearning.co.uk/courses" className="app__mobile-menu-link" onClick={() => setMenuOpen(false)}>Courses</a>
             <a href="https://www.kyndalearning.co.uk/workshops" className="app__mobile-menu-link" onClick={() => setMenuOpen(false)}>Workshops</a>
             <a href="https://www.kyndalearning.co.uk/portal" className="app__mobile-menu-link" onClick={() => setMenuOpen(false)}>Portal</a>
+            <button
+              className="app__mobile-menu-link app__mobile-menu-feedback"
+              onClick={() => { setMenuOpen(false); setFeedbackOpen(true) }}
+            >
+              Share feedback
+            </button>
           </div>
         )}
       </header>
@@ -192,8 +198,6 @@ export default function App() {
         <section className="app__section">
           <PlaybackControls
             notes={chordNotes}
-            bpm={bpm}
-            onBpmChange={setBpm}
           />
         </section>
 
@@ -215,24 +219,15 @@ export default function App() {
             <p>This chord combination is not available in Stage 1. Select one of the 12 seed chords to explore suggestions.</p>
           </section>
         )}
-
-        <section className="app__section">
-          <ProgressionStrip
-            progression={progression}
-            bpm={bpm}
-            onClear={clearProgression}
-            teaserMessage={progressionTeaser}
-          />
-        </section>
       </main>
 
-      <button
-        className="app__mobile-feedback-btn"
-        onClick={() => setFeedbackOpen(true)}
-        aria-label="Share feedback"
-      >
-        Share feedback
-      </button>
+      <ProgressionStrip
+        progression={progression}
+        bpm={bpm}
+        onBpmChange={setBpm}
+        onClear={clearProgression}
+        teaserMessage={progressionTeaser}
+      />
 
       {/* Feedback panel — state persists while closed */}
       <FeedbackPanel

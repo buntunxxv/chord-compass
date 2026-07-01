@@ -124,31 +124,12 @@
   background: rgba(17, 147, 146, 0.06);
 }
 
-/* ─── Mobile feedback button (fixed bottom) ─────────────────────────────────── */
-
-.app__mobile-feedback-btn {
-  display: none;
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  z-index: 99;
-  background: var(--teal);
-  color: var(--white);
+.app__mobile-menu-feedback {
+  background: none;
   border: none;
-  padding: 16px 24px;
-  padding-bottom: calc(16px + env(safe-area-inset-bottom));
+  text-align: left;
   font-family: var(--font);
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
   cursor: pointer;
-  transition: background 0.2s;
-}
-
-.app__mobile-feedback-btn:hover {
-  background: var(--teal-dark);
 }
 
 .app__header-tool {
@@ -175,7 +156,7 @@
   max-width: 860px;
   margin: 0 auto;
   width: 100%;
-  padding: 28px 20px 60px;
+  padding: 28px 20px calc(90px + env(safe-area-inset-bottom));
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -228,10 +209,7 @@
   .app__hamburger {
     display: flex;
   }
-  .app__mobile-feedback-btn {
-    display: block;
-  }
   .app__main {
-    padding-bottom: calc(80px + env(safe-area-inset-bottom));
+    padding-bottom: calc(190px + env(safe-area-inset-bottom));
   }
 }

@@ -3,20 +3,12 @@ import * as Tone from 'tone'
 import { createKeysSynth } from '../audio/synth'
 import './PlaybackControls.css'
 
-const BPM_MIN = 60
-const BPM_MAX = 140
-const BPM_MID = 100
-const SNAP_THRESHOLD = 4
+// A single chord preview doesn't need a tempo — just hold it long enough to hear
+const HOLD_SECONDS = 1.5
 
-function snapBpm(val) {
-  return Math.abs(val - BPM_MID) <= SNAP_THRESHOLD ? BPM_MID : val
-}
-
-export default function PlaybackControls({ notes, bpm, onBpmChange }) {
+export default function PlaybackControls({ notes }) {
   const [playing, setPlaying] = useState(false)
   const synthRef = useRef(null)
-
-  const needlePct = ((bpm - BPM_MIN) / (BPM_MAX - BPM_MIN)) * 100
 
   async function handlePlay() {
     if (playing || !notes || notes.length === 0) return
@@ -28,17 +20,13 @@ export default function PlaybackControls({ notes, bpm, onBpmChange }) {
       navigator.audioSession.type = 'playback'
     }
     await Tone.start()
-    Tone.getTransport().bpm.value = bpm
 
     if (!synthRef.current) {
       synthRef.current = createKeysSynth()
     }
 
-    const duration = '2n'
-    synthRef.current.triggerAttackRelease(notes, duration)
-
-    const durationMs = (60 / bpm) * 2 * 1000
-    setTimeout(() => setPlaying(false), durationMs + 200)
+    synthRef.current.triggerAttackRelease(notes, HOLD_SECONDS)
+    setTimeout(() => setPlaying(false), HOLD_SECONDS * 1000 + 200)
   }
 
   return (
@@ -56,35 +44,6 @@ export default function PlaybackControls({ notes, bpm, onBpmChange }) {
         )}
         <span>{playing ? 'Playing…' : 'Play Chord'}</span>
       </button>
-
-      <div className="playback-controls__bpm">
-        <label className="playback-controls__bpm-label">
-          <span className="playback-controls__bpm-title" title="Beats per minute — how fast the chord plays">BPM</span>
-          <span className="playback-controls__bpm-value">{bpm}</span>
-        </label>
-        <input
-          type="range"
-          min={60}
-          max={140}
-          value={bpm}
-          onChange={e => onBpmChange(snapBpm(Number(e.target.value)))}
-          className="playback-controls__slider"
-          aria-label="Tempo in BPM"
-          style={{ '--pct': `${needlePct}%` }}
-        />
-        <div className="playback-controls__tempo-track">
-          <div className="playback-controls__tempo-center" />
-          <div
-            className={`playback-controls__tempo-needle ${bpm === BPM_MID ? 'playback-controls__tempo-needle--snapped' : ''}`}
-            style={{ left: `calc(9px + ${needlePct / 100} * (100% - 18px))` }}
-          />
-        </div>
-        <div className="playback-controls__bpm-range">
-          <span>{BPM_MIN}</span>
-          <span>{BPM_MID}</span>
-          <span>{BPM_MAX}</span>
-        </div>
-      </div>
     </div>
   )
 }

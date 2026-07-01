@@ -5,8 +5,6 @@
   box-shadow: var(--shadow);
   display: flex;
   align-items: center;
-  gap: 28px;
-  flex-wrap: wrap;
 }
 
 .playback-controls__play-btn {
@@ -42,106 +40,4 @@
 
 .playback-controls__icon {
   font-size: 16px;
-}
-
-.playback-controls__bpm {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  flex: 1;
-  min-width: 160px;
-}
-
-.playback-controls__bpm-label {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-}
-
-.playback-controls__bpm-title {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-}
-
-.playback-controls__bpm-value {
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--teal);
-}
-
-.playback-controls__slider {
-  appearance: none;
-  width: 100%;
-  height: 4px;
-  background: linear-gradient(to right, var(--teal) 0%, var(--teal) calc((var(--val, 50%) )), var(--border) calc((var(--val, 50%) )));
-  border-radius: 2px;
-  cursor: pointer;
-  outline: none;
-}
-
-.playback-controls__slider::-webkit-slider-thumb {
-  appearance: none;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: var(--teal);
-  border: 2px solid var(--white);
-  box-shadow: 0 0 0 1.5px var(--teal);
-  cursor: pointer;
-  transition: transform 0.1s;
-}
-
-.playback-controls__slider::-webkit-slider-thumb:hover {
-  transform: scale(1.15);
-}
-
-.playback-controls__slider::-moz-range-thumb {
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: var(--teal);
-  border: 2px solid var(--white);
-  box-shadow: 0 0 0 1.5px var(--teal);
-  cursor: pointer;
-}
-
-.playback-controls__tempo-track {
-  position: relative;
-  height: 14px;
-}
-
-.playback-controls__tempo-center {
-  position: absolute;
-  left: 50%;
-  top: 0;
-  transform: translateX(-50%);
-  width: 1px;
-  height: 8px;
-  background: var(--border);
-}
-
-.playback-controls__tempo-needle {
-  position: absolute;
-  top: 0;
-  transform: translateX(-50%);
-  width: 2px;
-  height: 14px;
-  background: var(--teal);
-  border-radius: 1px;
-  transition: left 0.05s linear, background 0.2s;
-}
-
-.playback-controls__tempo-needle--snapped {
-  background: var(--gold);
-  box-shadow: 0 0 4px var(--gold);
-}
-
-.playback-controls__bpm-range {
-  display: flex;
-  justify-content: space-between;
-  font-size: 11px;
-  color: var(--text-muted);
 }

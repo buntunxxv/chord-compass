@@ -3,7 +3,16 @@ import * as Tone from 'tone'
 import { createKeysSynth } from '../audio/synth'
 import './ProgressionStrip.css'
 
-export default function ProgressionStrip({ progression, bpm, onClear, teaserMessage }) {
+const BPM_MIN = 60
+const BPM_MAX = 140
+const BPM_MID = 100
+const SNAP_THRESHOLD = 4
+
+function snapBpm(val) {
+  return Math.abs(val - BPM_MID) <= SNAP_THRESHOLD ? BPM_MID : val
+}
+
+export default function ProgressionStrip({ progression, bpm, onBpmChange, onClear, teaserMessage }) {
   const [activeIndex, setActiveIndex] = useState(null)
   const [isPlaying, setIsPlaying] = useState(false)
   const synthRef = useRef(null)
@@ -36,43 +45,59 @@ export default function ProgressionStrip({ progression, bpm, onClear, teaserMess
 
   return (
     <div className="progression-strip">
-      <h2 className="progression-strip__title">Your progression</h2>
-
-      {progression.length === 0 ? (
-        <p className="progression-strip__empty">
-          Add chords with "Add current chord" or "Add to progression" to build a simple sequence.
-        </p>
-      ) : (
-        <div className="progression-strip__chart">
-          {progression.map((entry, i) => (
-            <span
-              key={i}
-              className={`progression-strip__slot ${activeIndex === i ? 'progression-strip__slot--active' : ''}`}
-            >
-              {entry.chord}
-            </span>
-          ))}
-        </div>
-      )}
-
       {teaserMessage && (
-        <p className="progression-strip__teaser">🔒 {teaserMessage}</p>
+        <div className="progression-strip__teaser">🔒 {teaserMessage}</div>
       )}
 
-      <div className="progression-strip__actions">
+      <div className="progression-strip__bar">
+        <span className="progression-strip__label">Progression</span>
+
+        {progression.length === 0 ? (
+          <p className="progression-strip__empty">Add chords above to build a sequence</p>
+        ) : (
+          <div className="progression-strip__chart">
+            {progression.map((entry, i) => (
+              <span
+                key={i}
+                className={`progression-strip__slot ${activeIndex === i ? 'progression-strip__slot--active' : ''}`}
+              >
+                {entry.chord}
+              </span>
+            ))}
+          </div>
+        )}
+
+        <div className="progression-strip__bpm">
+          <span
+            className={`progression-strip__bpm-value ${bpm === BPM_MID ? 'progression-strip__bpm-value--snapped' : ''}`}
+            title="Tempo — only affects sequences of more than one chord"
+          >
+            {bpm} BPM
+          </span>
+          <input
+            type="range"
+            min={BPM_MIN}
+            max={BPM_MAX}
+            value={bpm}
+            onChange={e => onBpmChange(snapBpm(Number(e.target.value)))}
+            className="progression-strip__bpm-slider"
+            aria-label="Tempo in BPM"
+          />
+        </div>
+
         <button
           className={`progression-strip__play-btn ${isPlaying ? 'progression-strip__play-btn--playing' : ''}`}
           onClick={handlePlay}
           disabled={isPlaying || progression.length === 0}
         >
-          {isPlaying ? '♪ Playing…' : '▶ Play progression'}
+          {isPlaying ? '♪ Playing…' : '▶ Play'}
         </button>
         <button
           className="progression-strip__clear-btn"
           onClick={onClear}
           disabled={progression.length === 0}
         >
-          Clear progression
+          Clear
         </button>
       </div>
     </div>
