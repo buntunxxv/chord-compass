@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import { Chord } from 'tonal'
 import { CHORD_DATA } from './chordData'
 import { buildChordSymbol } from './components/ChordSelector'
@@ -7,8 +7,13 @@ import ChordOutputPanel from './components/ChordOutputPanel'
 import PianoDisplay from './components/PianoDisplay'
 import PlaybackControls from './components/PlaybackControls'
 import NextChordSuggestions from './components/NextChordSuggestions'
+import ProgressionStrip from './components/ProgressionStrip'
 import FeedbackPanel from './components/FeedbackPanel'
 import './App.css'
+
+const PROGRESSION_LIMIT = 4
+const PROGRESSION_STORAGE_KEY = 'chordCompassProgression'
+const PROGRESSION_TEASER = 'Longer progressions are coming in Chord Compass Pro.'
 
 // Map selector state to CHORD_DATA key
 function toDataKey(root, quality, extension) {
@@ -53,6 +58,16 @@ export default function App() {
   const [feedbackOpen, setFeedbackOpen] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [previewIndex, setPreviewIndex] = useState(null)
+  const [progression, setProgression] = useState(() => {
+    try {
+      const stored = localStorage.getItem(PROGRESSION_STORAGE_KEY)
+      return stored ? JSON.parse(stored) : []
+    } catch {
+      return []
+    }
+  })
+  const [progressionTeaser, setProgressionTeaser] = useState('')
+  const teaserTimeoutRef = useRef(null)
 
   const { root, quality, extension } = selection
 
@@ -65,6 +80,24 @@ export default function App() {
   }, [dataKey])
 
   const previewNotes = previewIndex != null ? chordEntry?.next?.[previewIndex]?.notes : null
+
+  useEffect(() => {
+    localStorage.setItem(PROGRESSION_STORAGE_KEY, JSON.stringify(progression))
+  }, [progression])
+
+  function addToProgression(chord, notes) {
+    if (progression.length >= PROGRESSION_LIMIT) {
+      setProgressionTeaser(PROGRESSION_TEASER)
+      if (teaserTimeoutRef.current) clearTimeout(teaserTimeoutRef.current)
+      teaserTimeoutRef.current = setTimeout(() => setProgressionTeaser(''), 4000)
+      return
+    }
+    setProgression(prev => [...prev, { chord, notes }])
+  }
+
+  function clearProgression() {
+    setProgression([])
+  }
 
   const symbol = useMemo(() => buildChordSymbol(root, quality, extension), [root, quality, extension])
   const tonalChord = useMemo(() => (symbol ? Chord.get(symbol) : null), [symbol])
@@ -144,6 +177,7 @@ export default function App() {
             notes={chordNotes}
             intervals={intervals}
             available={available}
+            onAddToProgression={addToProgression}
           />
         </section>
 
@@ -171,6 +205,7 @@ export default function App() {
               bpm={bpm}
               previewIndex={previewIndex}
               onPreviewChange={setPreviewIndex}
+              onAddToProgression={addToProgression}
             />
           </section>
         )}
@@ -180,6 +215,15 @@ export default function App() {
             <p>This chord combination is not available in Stage 1. Select one of the 12 seed chords to explore suggestions.</p>
           </section>
         )}
+
+        <section className="app__section">
+          <ProgressionStrip
+            progression={progression}
+            bpm={bpm}
+            onClear={clearProgression}
+            teaserMessage={progressionTeaser}
+          />
+        </section>
       </main>
 
       <button

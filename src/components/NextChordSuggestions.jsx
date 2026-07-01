@@ -7,7 +7,7 @@ import { formatNoteNames } from '../utils/formatNotes'
 import { logEvent } from '../analytics/events'
 import './NextChordSuggestions.css'
 
-export default function NextChordSuggestions({ suggestions, currentNotes, bpm, previewIndex, onPreviewChange }) {
+export default function NextChordSuggestions({ suggestions, currentNotes, bpm, previewIndex, onPreviewChange, onAddToProgression }) {
   const [playingIndex, setPlayingIndex] = useState(null)
   const synthRef = useRef(null)
 
@@ -84,14 +84,23 @@ export default function NextChordSuggestions({ suggestions, currentNotes, bpm, p
                 <p className="next-chords__explanation">{explanation}</p>
               )}
 
-              <button
-                className={`next-chords__hear-btn ${isPlaying ? 'next-chords__hear-btn--playing' : ''}`}
-                onClick={e => { e.stopPropagation(); handleHear(i, s.notes) }}
-                disabled={playingIndex !== null}
-                aria-label={`Hear movement to ${s.chord}`}
-              >
-                {isPlaying ? '♪ Playing…' : 'Hear →'}
-              </button>
+              <div className="next-chords__card-actions">
+                <button
+                  className={`next-chords__hear-btn ${isPlaying ? 'next-chords__hear-btn--playing' : ''}`}
+                  onClick={e => { e.stopPropagation(); handleHear(i, s.notes) }}
+                  disabled={playingIndex !== null}
+                  aria-label={`Hear movement to ${s.chord}`}
+                >
+                  {isPlaying ? '♪ Playing…' : 'Hear →'}
+                </button>
+                <button
+                  className="next-chords__add-btn"
+                  onClick={e => { e.stopPropagation(); onAddToProgression(s.chord, s.notes) }}
+                  aria-label={`Add ${s.chord} to progression`}
+                >
+                  + Add to progression
+                </button>
+              </div>
             </div>
           )
         })}

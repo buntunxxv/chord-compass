@@ -1,0 +1,110 @@
+.progression-strip {
+  background: var(--white);
+  border-radius: var(--radius);
+  padding: 24px;
+  box-shadow: var(--shadow);
+}
+
+.progression-strip__title {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+}
+
+.progression-strip__empty {
+  color: var(--text-muted);
+  font-size: 14px;
+  font-style: italic;
+}
+
+.progression-strip__chart {
+  display: flex;
+  flex-wrap: wrap;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.progression-strip__slot {
+  padding: 14px 20px;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+  border-right: 1.5px solid var(--border);
+  transition: background 0.2s, color 0.2s;
+}
+
+.progression-strip__slot:last-child {
+  border-right: none;
+}
+
+.progression-strip__slot--active {
+  background: var(--teal);
+  color: var(--white);
+}
+
+.progression-strip__teaser {
+  margin-top: 14px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #a06a00;
+  background: #fff6e6;
+  border-radius: 8px;
+  padding: 10px 14px;
+}
+
+.progression-strip__actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 18px;
+}
+
+.progression-strip__play-btn {
+  background: var(--teal);
+  color: var(--white);
+  border: none;
+  border-radius: 6px;
+  padding: 10px 20px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  transition: background 0.2s;
+}
+
+.progression-strip__play-btn:hover:not(:disabled) {
+  background: var(--teal-dark);
+}
+
+.progression-strip__play-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.progression-strip__play-btn--playing {
+  background: var(--teal-dark);
+}
+
+.progression-strip__clear-btn {
+  background: transparent;
+  border: 1.5px solid var(--border);
+  color: var(--text-muted);
+  border-radius: 6px;
+  padding: 10px 20px;
+  font-size: 13px;
+  font-weight: 600;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.progression-strip__clear-btn:hover:not(:disabled) {
+  border-color: var(--text-muted);
+  color: var(--text);
+}
+
+.progression-strip__clear-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}

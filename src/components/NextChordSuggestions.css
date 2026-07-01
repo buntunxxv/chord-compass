@@ -85,6 +85,13 @@
   color: var(--text-muted);
 }
 
+.next-chords__card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: auto;
+}
+
 .next-chords__hear-btn {
   background: transparent;
   border: 1.5px solid var(--teal);
@@ -94,8 +101,6 @@
   font-size: 13px;
   font-weight: 600;
   transition: background 0.15s, color 0.15s;
-  align-self: flex-start;
-  margin-top: auto;
 }
 
 .next-chords__hear-btn:hover:not(:disabled) {
@@ -111,6 +116,22 @@
 .next-chords__hear-btn--playing {
   background: var(--teal);
   color: var(--white);
+}
+
+.next-chords__add-btn {
+  background: transparent;
+  border: 1.5px solid var(--border);
+  color: var(--text-muted);
+  border-radius: 6px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.next-chords__add-btn:hover {
+  border-color: var(--teal);
+  color: var(--teal);
 }
 
 .next-chords__upgrade-cta {

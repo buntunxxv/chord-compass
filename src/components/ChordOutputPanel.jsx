@@ -19,7 +19,7 @@ function formatInterval(interval) {
   return INTERVAL_NAMES[interval] || interval
 }
 
-export default function ChordOutputPanel({ chordName, notes, intervals, available }) {
+export default function ChordOutputPanel({ chordName, notes, intervals, available, onAddToProgression }) {
   if (!available) {
     return (
       <div className="chord-output chord-output--unavailable">
@@ -32,7 +32,16 @@ export default function ChordOutputPanel({ chordName, notes, intervals, availabl
 
   return (
     <div className="chord-output">
-      <div className="chord-output__name">{chordName}</div>
+      <div className="chord-output__top">
+        <div className="chord-output__name">{chordName}</div>
+        <button
+          className="chord-output__add-btn"
+          onClick={() => onAddToProgression(chordName, notes)}
+          aria-label={`Add ${chordName} to progression`}
+        >
+          + Add current chord
+        </button>
+      </div>
       <div className="chord-output__row">
         <span className="chord-output__row-label">Notes</span>
         <span className="chord-output__row-value">
