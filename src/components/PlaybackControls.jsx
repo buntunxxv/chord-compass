@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react'
 import * as Tone from 'tone'
+import { createKeysSynth } from '../audio/synth'
 import './PlaybackControls.css'
 
 const BPM_MIN = 60
@@ -30,11 +31,7 @@ export default function PlaybackControls({ notes, bpm, onBpmChange }) {
     Tone.getTransport().bpm.value = bpm
 
     if (!synthRef.current) {
-      synthRef.current = new Tone.PolySynth(Tone.Synth, {
-        oscillator: { type: 'triangle' },
-        envelope: { attack: 0.02, decay: 0.3, sustain: 0.4, release: 1.2 },
-        volume: -8,
-      }).toDestination()
+      synthRef.current = createKeysSynth()
     }
 
     const duration = '2n'

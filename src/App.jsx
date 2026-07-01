@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { Chord } from 'tonal'
 import { CHORD_DATA } from './chordData'
 import { buildChordSymbol } from './components/ChordSelector'
@@ -52,11 +52,19 @@ export default function App() {
   const [bpm, setBpm] = useState(90)
   const [feedbackOpen, setFeedbackOpen] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [previewIndex, setPreviewIndex] = useState(null)
 
   const { root, quality, extension } = selection
 
   const dataKey = useMemo(() => toDataKey(root, quality, extension), [root, quality, extension])
   const chordEntry = dataKey ? CHORD_DATA[dataKey] : null
+
+  // Suggested-chord preview only makes sense for the chord it was shown under
+  useEffect(() => {
+    setPreviewIndex(null)
+  }, [dataKey])
+
+  const previewNotes = previewIndex != null ? chordEntry?.next?.[previewIndex]?.notes : null
 
   const symbol = useMemo(() => buildChordSymbol(root, quality, extension), [root, quality, extension])
   const tonalChord = useMemo(() => (symbol ? Chord.get(symbol) : null), [symbol])
@@ -143,6 +151,7 @@ export default function App() {
           <PianoDisplay
             chordNotes={chordNotes}
             rootNote={rootNote}
+            previewNotes={previewNotes}
           />
         </section>
 
@@ -160,6 +169,8 @@ export default function App() {
               suggestions={chordEntry.next}
               currentNotes={chordNotes}
               bpm={bpm}
+              previewIndex={previewIndex}
+              onPreviewChange={setPreviewIndex}
             />
           </section>
         )}

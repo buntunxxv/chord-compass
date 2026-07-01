@@ -32,13 +32,20 @@
   padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  gap: 10px;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
 }
 
 .next-chords__card:hover {
   border-color: var(--teal);
   box-shadow: 0 2px 10px rgba(17, 147, 146, 0.1);
+}
+
+.next-chords__card--selected {
+  border-color: var(--suggest);
+  background: var(--suggest-tint);
+  box-shadow: 0 2px 10px rgba(139, 92, 246, 0.15);
 }
 
 .next-chords__card-top {
@@ -65,6 +72,19 @@
   white-space: nowrap;
 }
 
+.next-chords__notes {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  letter-spacing: 0.02em;
+}
+
+.next-chords__explanation {
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: var(--text-muted);
+}
+
 .next-chords__hear-btn {
   background: transparent;
   border: 1.5px solid var(--teal);
@@ -75,6 +95,7 @@
   font-weight: 600;
   transition: background 0.15s, color 0.15s;
   align-self: flex-start;
+  margin-top: auto;
 }
 
 .next-chords__hear-btn:hover:not(:disabled) {

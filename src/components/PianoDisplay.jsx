@@ -41,9 +41,32 @@ function isRoot(keyNote, rootNote) {
   return normalizeNote(keyNote) === normalizeNote(rootNote)
 }
 
-export default function PianoDisplay({ chordNotes, rootNote }) {
+const SUGGEST_FILL = '#8B5CF6'
+
+// Work out fill + whether the key gets a "shared" ring for a single key
+function resolveKeyStyle(note, notes, root, previewNotes, defaultFill) {
+  const inCurrent = noteMatches(note, notes)
+  const inPreview = previewNotes && previewNotes.length > 0 && noteMatches(note, previewNotes)
+  const isCurrentRoot = isRoot(note, root)
+
+  if (inCurrent) {
+    return {
+      fill: isCurrentRoot ? '#F5B82E' : '#119392',
+      active: true,
+      shared: inPreview,
+      textFill: isCurrentRoot ? '#7a5500' : '#ffffff',
+    }
+  }
+  if (inPreview) {
+    return { fill: SUGGEST_FILL, active: true, shared: false, textFill: '#ffffff' }
+  }
+  return { fill: defaultFill, active: false, shared: false, textFill: '#aaaaaa' }
+}
+
+export default function PianoDisplay({ chordNotes, rootNote, previewNotes }) {
   const notes = chordNotes || []
   const root = rootNote || ''
+  const hasPreview = !!(previewNotes && previewNotes.length > 0)
 
   return (
     <div className="piano-display">
@@ -57,11 +80,7 @@ export default function PianoDisplay({ chordNotes, rootNote }) {
         {/* White keys */}
         {WHITE_KEYS.map((note, i) => {
           const x = i * WHITE_KEY_WIDTH
-          const active = noteMatches(note, notes)
-          const isRootKey = isRoot(note, root)
-          let fill = '#ffffff'
-          if (isRootKey && active) fill = '#F5B82E'
-          else if (active) fill = '#119392'
+          const style = resolveKeyStyle(note, notes, root, previewNotes, '#ffffff')
 
           return (
             <g key={note}>
@@ -71,36 +90,34 @@ export default function PianoDisplay({ chordNotes, rootNote }) {
                 width={WHITE_KEY_WIDTH - 2}
                 height={WHITE_KEY_HEIGHT}
                 rx={4}
-                fill={fill}
+                fill={style.fill}
                 stroke="#c8c8c8"
                 strokeWidth={1.5}
               />
-              {active && (
-                <text
-                  x={x + WHITE_KEY_WIDTH / 2}
-                  y={WHITE_KEY_HEIGHT - 14}
-                  textAnchor="middle"
-                  fontSize={11}
-                  fontWeight="600"
-                  fontFamily="Inter, sans-serif"
-                  fill={isRootKey ? '#7a5500' : '#ffffff'}
-                >
-                  {WHITE_KEY_LABELS[i]}
-                </text>
+              {style.shared && (
+                <rect
+                  x={x + 4}
+                  y={4}
+                  width={WHITE_KEY_WIDTH - 8}
+                  height={WHITE_KEY_HEIGHT - 8}
+                  rx={3}
+                  fill="none"
+                  stroke={SUGGEST_FILL}
+                  strokeWidth={2.5}
+                  strokeDasharray="4 3"
+                />
               )}
-              {!active && (
-                <text
-                  x={x + WHITE_KEY_WIDTH / 2}
-                  y={WHITE_KEY_HEIGHT - 14}
-                  textAnchor="middle"
-                  fontSize={11}
-                  fontWeight="500"
-                  fontFamily="Inter, sans-serif"
-                  fill="#aaaaaa"
-                >
-                  {WHITE_KEY_LABELS[i]}
-                </text>
-              )}
+              <text
+                x={x + WHITE_KEY_WIDTH / 2}
+                y={WHITE_KEY_HEIGHT - 14}
+                textAnchor="middle"
+                fontSize={11}
+                fontWeight={style.active ? '600' : '500'}
+                fontFamily="Inter, sans-serif"
+                fill={style.textFill}
+              >
+                {WHITE_KEY_LABELS[i]}
+              </text>
             </g>
           )
         })}
@@ -108,11 +125,7 @@ export default function PianoDisplay({ chordNotes, rootNote }) {
         {/* Black keys — rendered on top */}
         {BLACK_KEYS.map(({ note, display, whiteIndex }) => {
           const x = whiteIndex * WHITE_KEY_WIDTH + WHITE_KEY_WIDTH - BLACK_KEY_WIDTH / 2 - 1
-          const active = noteMatches(note, notes)
-          const isRootKey = isRoot(note, root)
-          let fill = '#1a1a1a'
-          if (isRootKey && active) fill = '#F5B82E'
-          else if (active) fill = '#119392'
+          const style = resolveKeyStyle(note, notes, root, previewNotes, '#1a1a1a')
 
           return (
             <g key={note}>
@@ -122,11 +135,24 @@ export default function PianoDisplay({ chordNotes, rootNote }) {
                 width={BLACK_KEY_WIDTH}
                 height={BLACK_KEY_HEIGHT}
                 rx={3}
-                fill={fill}
+                fill={style.fill}
                 stroke="#000"
                 strokeWidth={1}
               />
-              {active && (
+              {style.shared && (
+                <rect
+                  x={x + 3}
+                  y={3}
+                  width={BLACK_KEY_WIDTH - 6}
+                  height={BLACK_KEY_HEIGHT - 6}
+                  rx={2}
+                  fill="none"
+                  stroke={SUGGEST_FILL}
+                  strokeWidth={2}
+                  strokeDasharray="3 2"
+                />
+              )}
+              {style.active && (
                 <text
                   x={x + BLACK_KEY_WIDTH / 2}
                   y={BLACK_KEY_HEIGHT - 10}
@@ -134,7 +160,7 @@ export default function PianoDisplay({ chordNotes, rootNote }) {
                   fontSize={9}
                   fontWeight="600"
                   fontFamily="Inter, sans-serif"
-                  fill={isRootKey ? '#7a5500' : '#ffffff'}
+                  fill={style.textFill}
                 >
                   {display}
                 </text>
@@ -155,6 +181,20 @@ export default function PianoDisplay({ chordNotes, rootNote }) {
           C4 – B4
         </text>
       </svg>
+
+      {hasPreview && (
+        <div className="piano-display__legend">
+          <span className="piano-display__legend-item">
+            <span className="piano-display__legend-dot piano-display__legend-dot--current" /> Current chord
+          </span>
+          <span className="piano-display__legend-item">
+            <span className="piano-display__legend-dot piano-display__legend-dot--suggested" /> Suggested chord
+          </span>
+          <span className="piano-display__legend-item">
+            <span className="piano-display__legend-dot piano-display__legend-dot--shared" /> Shared note
+          </span>
+        </div>
+      )}
     </div>
   )
 }

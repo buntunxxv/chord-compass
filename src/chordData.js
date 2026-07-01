@@ -36,3 +36,14 @@ export const LABEL_COLORS = {
   "Surprise":       { bg: "#fde8f5", text: "#a0284a" },
   "Resolution":     { bg: "#f0ffe8", text: "#2d7a1a" },
 };
+
+export const LABEL_EXPLANATIONS = {
+  "Familiar":       "A natural next step that stays close to home — an easy, expected move.",
+  "Opens out":      "Steps outside the immediate key, widening the harmonic colour.",
+  "Moves forward":  "Pushes the progression toward a new centre, creating a sense of motion.",
+  "Tension":        "Builds tension that wants to resolve, adding a pull forward.",
+  "Darker":         "Shifts to a minor colour, giving the progression a more introspective feel.",
+  "Lift":           "Brightens the mood, lifting the energy of the progression.",
+  "Surprise":       "An unexpected turn that breaks from the obvious choice.",
+  "Resolution":     "Resolves the tension and feels like coming home.",
+};

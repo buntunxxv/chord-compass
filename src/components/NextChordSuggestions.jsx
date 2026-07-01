@@ -1,32 +1,27 @@
 import { useState, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import * as Tone from 'tone'
-import { LABEL_COLORS } from '../chordData'
+import { LABEL_COLORS, LABEL_EXPLANATIONS } from '../chordData'
+import { createKeysSynth } from '../audio/synth'
+import { formatNoteNames } from '../utils/formatNotes'
 import './NextChordSuggestions.css'
 
-function getSynthRef(ref) {
-  if (!ref.current) {
-    ref.current = new Tone.PolySynth(Tone.Synth, {
-      oscillator: { type: 'triangle' },
-      envelope: { attack: 0.02, decay: 0.3, sustain: 0.4, release: 1.2 },
-      volume: -8,
-    }).toDestination()
-  }
-  return ref.current
-}
-
-export default function NextChordSuggestions({ suggestions, currentNotes, bpm }) {
+export default function NextChordSuggestions({ suggestions, currentNotes, bpm, previewIndex, onPreviewChange }) {
   const [playingIndex, setPlayingIndex] = useState(null)
   const synthRef = useRef(null)
 
   async function handleHear(index, nextNotes) {
+    onPreviewChange(index)
     if (playingIndex !== null) return
     setPlayingIndex(index)
 
     await Tone.start()
     Tone.getTransport().bpm.value = bpm
 
-    const synth = getSynthRef(synthRef)
+    if (!synthRef.current) {
+      synthRef.current = createKeysSynth()
+    }
+    const synth = synthRef.current
     const beatDuration = 60 / bpm // seconds per beat
     const barDuration = beatDuration * 4 // one bar = 4 beats
     const chordDuration = '1m' // one measure per chord
@@ -43,6 +38,10 @@ export default function NextChordSuggestions({ suggestions, currentNotes, bpm })
     setTimeout(() => setPlayingIndex(null), totalMs)
   }
 
+  function handleCardClick(index) {
+    onPreviewChange(previewIndex === index ? null : index)
+  }
+
   if (!suggestions || suggestions.length === 0) {
     return null
   }
@@ -53,10 +52,21 @@ export default function NextChordSuggestions({ suggestions, currentNotes, bpm })
       <div className="next-chords__cards">
         {suggestions.map((s, i) => {
           const labelStyle = LABEL_COLORS[s.label] || { bg: '#f0f0f0', text: '#555' }
+          const explanation = LABEL_EXPLANATIONS[s.label] || ''
           const isPlaying = playingIndex === i
+          const isSelected = previewIndex === i
+          const noteNames = formatNoteNames(s.notes)
 
           return (
-            <div className="next-chords__card" key={i}>
+            <div
+              className={`next-chords__card ${isSelected ? 'next-chords__card--selected' : ''}`}
+              key={i}
+              onClick={() => handleCardClick(i)}
+              role="button"
+              tabIndex={0}
+              aria-pressed={isSelected}
+              onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && handleCardClick(i)}
+            >
               <div className="next-chords__card-top">
                 <span className="next-chords__chord-name">{s.chord}</span>
                 <span
@@ -66,9 +76,16 @@ export default function NextChordSuggestions({ suggestions, currentNotes, bpm })
                   {s.label}
                 </span>
               </div>
+
+              <p className="next-chords__notes">{noteNames.join(' · ')}</p>
+
+              {explanation && (
+                <p className="next-chords__explanation">{explanation}</p>
+              )}
+
               <button
                 className={`next-chords__hear-btn ${isPlaying ? 'next-chords__hear-btn--playing' : ''}`}
-                onClick={() => handleHear(i, s.notes)}
+                onClick={e => { e.stopPropagation(); handleHear(i, s.notes) }}
                 disabled={playingIndex !== null}
                 aria-label={`Hear movement to ${s.chord}`}
               >
@@ -81,7 +98,7 @@ export default function NextChordSuggestions({ suggestions, currentNotes, bpm })
 
       <Link to="/upgrade" className="next-chords__upgrade-cta">
         <span className="next-chords__upgrade-lock">🔒</span>
-        <span>🔒 Future Pro: unlock more chord directions</span>
+        <span>Future Pro: unlock more chord directions</span>
       </Link>
     </div>
   )

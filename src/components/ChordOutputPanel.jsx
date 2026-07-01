@@ -1,3 +1,4 @@
+import { formatNoteNames } from '../utils/formatNotes'
 import './ChordOutputPanel.css'
 
 const INTERVAL_NAMES = {
@@ -27,9 +28,7 @@ export default function ChordOutputPanel({ chordName, notes, intervals, availabl
     )
   }
 
-  const noteNames = notes
-    .map(n => n.replace(/\d+$/, '').replace('b', '♭').replace('#', '♯'))
-    .filter((n, i, arr) => arr.indexOf(n) === i)
+  const noteNames = formatNoteNames(notes)
 
   return (
     <div className="chord-output">
