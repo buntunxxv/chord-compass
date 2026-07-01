@@ -9,6 +9,7 @@ import PlaybackControls from './components/PlaybackControls'
 import NextChordSuggestions from './components/NextChordSuggestions'
 import ProgressionStrip from './components/ProgressionStrip'
 import FeedbackPanel from './components/FeedbackPanel'
+import OnboardingModal from './components/OnboardingModal'
 import './App.css'
 
 const PROGRESSION_LIMIT = 4
@@ -57,6 +58,13 @@ export default function App() {
   const [bpm, setBpm] = useState(90)
   const [feedbackOpen, setFeedbackOpen] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [onboardingOpen, setOnboardingOpen] = useState(false)
+
+  useEffect(() => {
+    if (!localStorage.getItem('kcc_seen_intro')) {
+      setOnboardingOpen(true)
+    }
+  }, [])
   const [previewIndex, setPreviewIndex] = useState(null)
   const [progression, setProgression] = useState(() => {
     try {
@@ -149,6 +157,13 @@ export default function App() {
               <span className="app__hamburger-line" />
               <span className="app__hamburger-line" />
             </button>
+            <button
+              className="app__help-btn"
+              onClick={() => setOnboardingOpen(true)}
+              aria-label="How to use Chord Compass"
+            >
+              ?
+            </button>
           </div>
         </div>
         {menuOpen && (
@@ -231,6 +246,11 @@ export default function App() {
       <FeedbackPanel
         isOpen={feedbackOpen}
         onClose={() => setFeedbackOpen(false)}
+      />
+
+      <OnboardingModal
+        isOpen={onboardingOpen}
+        onClose={() => setOnboardingOpen(false)}
       />
     </div>
   )
