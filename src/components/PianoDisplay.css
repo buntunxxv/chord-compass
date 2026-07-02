@@ -8,6 +8,16 @@
   align-items: center;
 }
 
+.piano-display__title {
+  align-self: flex-start;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+}
+
 .piano-display__svg {
   width: 100%;
   max-width: 640px;

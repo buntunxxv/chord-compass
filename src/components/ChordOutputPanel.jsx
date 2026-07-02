@@ -50,8 +50,11 @@ export default function ChordOutputPanel({ chordName, notes, intervals, availabl
 
   if (!available) {
     return (
-      <div className="chord-output chord-output--unavailable">
-        <p className="chord-output__unavailable-msg">Chord not available in Stage 1</p>
+      <div className="chord-output">
+        <h2 className="chord-output__title">Your Chord</h2>
+        <div className="chord-output--unavailable">
+          <p className="chord-output__unavailable-msg">Chord not available in Stage 1</p>
+        </div>
       </div>
     )
   }
@@ -60,6 +63,7 @@ export default function ChordOutputPanel({ chordName, notes, intervals, availabl
 
   return (
     <div className="chord-output">
+      <h2 className="chord-output__title">Your Chord</h2>
       <div className="chord-output__top">
         <div className="chord-output__name">{chordName}</div>
         <div className="chord-output__actions">

@@ -82,6 +82,7 @@ export default function ChordSelector({ root, quality, extension, onChange }) {
 
   return (
     <div className="chord-selector">
+      <h2 className="chord-selector__title">Build a Chord</h2>
       <div className="chord-selector__dropdowns">
         <div className="chord-selector__field">
           <label className="chord-selector__label">Root</label>

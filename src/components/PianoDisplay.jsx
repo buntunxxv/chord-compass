@@ -107,6 +107,7 @@ export default function PianoDisplay({ chordNotes, previewNotes }) {
 
   return (
     <div className="piano-display">
+      <h2 className="piano-display__title">On the Keys</h2>
       <svg
         viewBox={`0 0 ${SVG_WIDTH} ${SVG_HEIGHT}`}
         xmlns="http://www.w3.org/2000/svg"
