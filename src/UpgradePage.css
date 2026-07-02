@@ -77,6 +77,7 @@
 
 .upgrade-page__plans {
   display: flex;
+  justify-content: center;
   gap: 16px;
   width: 100%;
   flex-wrap: wrap;
@@ -84,14 +85,17 @@
 
 .upgrade-page__plan {
   flex: 1;
-  min-width: 180px;
+  min-width: 220px;
+  max-width: 320px;
   background: var(--white);
   border-radius: var(--radius);
   padding: 28px 24px;
   box-shadow: var(--shadow);
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  align-items: center;
+  text-align: center;
+  gap: 12px;
   position: relative;
   border: 2px solid transparent;
 }
@@ -129,15 +133,16 @@
   color: var(--black);
 }
 
-.upgrade-page__plan-period {
-  font-size: 15px;
-  color: var(--text-muted);
-}
-
-.upgrade-page__plan-save {
+.upgrade-page__plan-note {
   font-size: 13px;
   font-weight: 600;
   color: var(--teal);
+}
+
+.upgrade-page__plan-blurb {
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.4;
 }
 
 .upgrade-page__cta-btn {
@@ -151,12 +156,6 @@
   cursor: not-allowed;
   opacity: 0.6;
   width: 100%;
-}
-
-.upgrade-page__cta-btn--outline {
-  background: transparent;
-  border: 2px solid var(--teal);
-  color: var(--teal);
 }
 
 .upgrade-page__features {

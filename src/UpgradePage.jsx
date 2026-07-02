@@ -32,23 +32,13 @@ export default function UpgradePage() {
 
         <div className="upgrade-page__plans">
           <div className="upgrade-page__plan upgrade-page__plan--highlight">
-            <div className="upgrade-page__plan-badge">Most popular</div>
+            <div className="upgrade-page__plan-badge">Founder Access</div>
             <div className="upgrade-page__plan-price">
-              <span className="upgrade-page__plan-amount">£6</span>
-              <span className="upgrade-page__plan-period">/month</span>
+              <span className="upgrade-page__plan-amount">£9–£19</span>
             </div>
+            <p className="upgrade-page__plan-note">One-time payment — final price TBD</p>
+            <p className="upgrade-page__plan-blurb">You're backing the build, not paying for a finished product.</p>
             <button className="upgrade-page__cta-btn" disabled>
-              Coming soon
-            </button>
-          </div>
-
-          <div className="upgrade-page__plan">
-            <div className="upgrade-page__plan-price">
-              <span className="upgrade-page__plan-amount">£49</span>
-              <span className="upgrade-page__plan-period">/year</span>
-            </div>
-            <p className="upgrade-page__plan-save">Save 32%</p>
-            <button className="upgrade-page__cta-btn upgrade-page__cta-btn--outline" disabled>
               Coming soon
             </button>
           </div>
@@ -58,8 +48,7 @@ export default function UpgradePage() {
           <li>5 next-chord suggestions per chord</li>
           <li>Extended chord types — 9th, 11th, 13th, altered</li>
           <li>Slash chords and inversions</li>
-          <li>Full direction label explanations</li>
-          <li>Progression playback (4-chord sequences)</li>
+          <li>Longer progressions — no 4-chord limit</li>
           <li>Save and export progressions</li>
           <li>Multiple piano voicings</li>
           <li>"Explain this like I'm writing a song" mode</li>
