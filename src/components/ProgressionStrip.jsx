@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react'
 import * as Tone from 'tone'
 import { createKeysSynth } from '../audio/synth'
+import { voiceLeadProgression } from '../utils/voiceLeading'
 import './ProgressionStrip.css'
 
 const BPM_MIN = 60
@@ -31,7 +32,12 @@ export default function ProgressionStrip({ progression, bpm, onBpmChange, onClea
     const barDuration = (60 / bpm) * 4 // seconds per chord (one bar)
     const now = Tone.now()
 
-    progression.forEach((entry, i) => {
+    // Root of each chord stays exactly as stored — only the upper notes are
+    // re-voiced to the closest octave to the previous chord, so playback
+    // doesn't jump registers every chord without ever using an inversion
+    const voicedProgression = voiceLeadProgression(progression)
+
+    voicedProgression.forEach((entry, i) => {
       synth.triggerAttackRelease(entry.notes, '1m', now + i * barDuration)
       setTimeout(() => {
         setActiveIndex(i)
