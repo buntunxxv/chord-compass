@@ -49,6 +49,15 @@
   letter-spacing: -0.01em;
 }
 
+.om-subtitle {
+  margin: 6px 0 0;
+  font-family: 'Inter', 'Poppins', system-ui, sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.4;
+}
+
 /* ─── Body ───────────────────────────────────────────────────────────────────── */
 
 .om-body {
@@ -114,11 +123,15 @@
   }
 
   .om-header {
-    padding: 22px 20px 18px;
+    padding: 20px 20px 16px;
   }
 
   .om-title {
     font-size: 18px;
+  }
+
+  .om-subtitle {
+    font-size: 12px;
   }
 
   .om-body {

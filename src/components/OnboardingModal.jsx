@@ -21,23 +21,24 @@ export default function OnboardingModal({ isOpen, onClose }) {
       >
         <div className="om-header">
           <h2 className="om-title" id="om-title">Welcome to Chord Compass</h2>
+          <p className="om-subtitle">Build chord progressions by ear — no theory knowledge needed.</p>
         </div>
         <div className="om-body">
           <div className="om-item">
-            <span className="om-label">Root</span>
-            <p className="om-text">The starting note your chord is built on — try C, F♯, or B♭.</p>
+            <span className="om-label">1 · Pick your chord</span>
+            <p className="om-text">Choose a Root note and Quality. The piano lights up to show you exactly which notes are in that chord.</p>
           </div>
           <div className="om-item">
-            <span className="om-label">Quality</span>
-            <p className="om-text">Major sounds bright, minor sounds moody — quality shapes the emotion.</p>
+            <span className="om-label">2 · See where it can go</span>
+            <p className="om-text">Scroll down to "Where could this chord go?" — these are chords that naturally follow yours, drawn from real music theory.</p>
           </div>
           <div className="om-item">
-            <span className="om-label">Hear →</span>
-            <p className="om-text">Tap any suggested chord to preview how it flows from the one you're on.</p>
+            <span className="om-label">3 · Hear the transition</span>
+            <p className="om-text">Tap <strong>Hear →</strong> on any suggestion to hear your chord move into it. Add the ones you like to build a progression at the bottom.</p>
           </div>
         </div>
         <div className="om-footer">
-          <button className="om-dismiss" onClick={handleDismiss}>Got it, let's go</button>
+          <button className="om-dismiss" onClick={handleDismiss}>Got it, let's explore</button>
         </div>
       </div>
     </div>
