@@ -12,7 +12,7 @@ function snapBpm(val) {
   return Math.abs(val - BPM_MID) <= SNAP_THRESHOLD ? BPM_MID : val
 }
 
-export default function ProgressionStrip({ progression, bpm, onBpmChange, onClear, teaserMessage }) {
+export default function ProgressionStrip({ progression, bpm, onBpmChange, onClear, teaserMessage, onPlayingChordChange }) {
   const [activeIndex, setActiveIndex] = useState(null)
   const [isPlaying, setIsPlaying] = useState(false)
   const synthRef = useRef(null)
@@ -33,13 +33,17 @@ export default function ProgressionStrip({ progression, bpm, onBpmChange, onClea
 
     progression.forEach((entry, i) => {
       synth.triggerAttackRelease(entry.notes, '1m', now + i * barDuration)
-      setTimeout(() => setActiveIndex(i), i * barDuration * 1000)
+      setTimeout(() => {
+        setActiveIndex(i)
+        onPlayingChordChange?.(entry.notes)
+      }, i * barDuration * 1000)
     })
 
     const totalMs = progression.length * barDuration * 1000 + 300
     setTimeout(() => {
       setActiveIndex(null)
       setIsPlaying(false)
+      onPlayingChordChange?.(null)
     }, totalMs)
   }
 

@@ -75,6 +75,7 @@ export default function App() {
   })
   const [progressionTeaser, setProgressionTeaser] = useState('')
   const teaserTimeoutRef = useRef(null)
+  const [playingChordNotes, setPlayingChordNotes] = useState(null)
 
   const { root, quality, extension } = selection
 
@@ -120,6 +121,10 @@ export default function App() {
   const chordNotes = chordEntry?.notes || []
 
   const available = !!chordEntry
+
+  // While a progression plays, the piano should track whatever's actually sounding
+  const pianoNotes = playingChordNotes || chordNotes
+  const pianoPreviewNotes = playingChordNotes ? null : previewNotes
 
   return (
     <div className="app">
@@ -202,8 +207,8 @@ export default function App() {
 
         <section className="app__section">
           <PianoDisplay
-            chordNotes={chordNotes}
-            previewNotes={previewNotes}
+            chordNotes={pianoNotes}
+            previewNotes={pianoPreviewNotes}
           />
         </section>
 
@@ -233,6 +238,7 @@ export default function App() {
         onBpmChange={setBpm}
         onClear={clearProgression}
         teaserMessage={progressionTeaser}
+        onPlayingChordChange={setPlayingChordNotes}
       />
 
       {/* Feedback panel — state persists while closed */}
