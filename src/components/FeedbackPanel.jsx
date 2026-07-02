@@ -322,7 +322,7 @@ function NotifyQuestion({ answer, onChange }) {
 
 // ─── Main panel ───────────────────────────────────────────────────────────────
 
-export default function FeedbackPanel({ isOpen, onClose }) {
+export default function FeedbackPanel({ isOpen, onClose, theme }) {
   const [stage, setStage] = useState('type') // 'type' | 'questions' | 'final' | 'done'
   const [userType, setUserType] = useState(null)
   const [questionIndex, setQuestionIndex] = useState(0)
@@ -423,7 +423,7 @@ export default function FeedbackPanel({ isOpen, onClose }) {
         {/* Header */}
         <div className="fp-header">
           <div className="fp-header__brand">
-            <img src="/kynda-logo-full.png" alt="Kynda Learning" className="fp-header__logo" />
+            <img src={theme === 'dark' ? '/kynda-logo-white.png' : '/kynda-logo-full.png'} alt="Kynda Learning" className="fp-header__logo" />
           </div>
           <div className="fp-header__actions">
             {(stage === 'questions' || stage === 'type' || stage === 'final') && (

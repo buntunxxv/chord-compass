@@ -135,7 +135,7 @@ export default function App() {
         <div className="app__header-inner">
           <div className="app__logo">
             <a href="https://www.kyndalearning.co.uk" className="app__logo-link">
-              <img src="/kynda-logo-full.png" alt="Kynda Learning" />
+              <img src={resolvedTheme === 'dark' ? '/kynda-logo-white.png' : '/kynda-logo-full.png'} alt="Kynda Learning" />
             </a>
             <nav className="app__site-nav">
               <a href="https://www.kyndalearning.co.uk/courses" className="app__site-nav-link">Courses</a>
@@ -250,6 +250,7 @@ export default function App() {
       <FeedbackPanel
         isOpen={feedbackOpen}
         onClose={() => setFeedbackOpen(false)}
+        theme={resolvedTheme}
       />
 
       <OnboardingModal

@@ -6,7 +6,7 @@
 }
 
 .app__header {
-  background: var(--header-bg);
+  background: var(--white);
   padding: 0 24px;
   position: sticky;
   top: 0;

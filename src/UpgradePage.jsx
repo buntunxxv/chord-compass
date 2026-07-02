@@ -6,7 +6,7 @@ import ThemeToggle from './components/ThemeToggle'
 import './UpgradePage.css'
 
 export default function UpgradePage() {
-  const { preference: themePreference, setPreference: setThemePreference } = useTheme()
+  const { preference: themePreference, resolvedTheme, setPreference: setThemePreference } = useTheme()
 
   useEffect(() => {
     logEvent('upgrade_page_view')
@@ -18,7 +18,7 @@ export default function UpgradePage() {
         <div className="upgrade-page__header-inner">
           <div className="upgrade-page__logo">
             <a href="https://www.kyndalearning.co.uk">
-              <img src="/kynda-logo-full.png" alt="Kynda Learning" />
+              <img src={resolvedTheme === 'dark' ? '/kynda-logo-white.png' : '/kynda-logo-full.png'} alt="Kynda Learning" />
             </a>
           </div>
           <div className="upgrade-page__header-tool">
