@@ -7,6 +7,7 @@
 :root {
   --teal: #119392;
   --teal-dark: #0B7A72;
+  --teal-tint: #EAF6F6;
   --gold: #F5B82E;
   --suggest: #8B5CF6;
   --suggest-tint: #F5F1FE;
@@ -15,11 +16,39 @@
   --black: #1A1A1A;
   --text: #1A1A1A;
   --text-muted: #666666;
+  --text-faint: #999999;
   --border: #E1E1E1;
+  --warn-text: #A06A00;
+  --warn-bg: #FFF6E6;
+  --backdrop: rgba(26, 26, 26, 0.45);
+  --panel-shadow: -4px 0 32px rgba(0, 0, 0, 0.14);
+  --header-bg: #FFFFFF;
+  --on-accent: #FFFFFF;
   --radius: 10px;
   --shadow: 0 2px 8px rgba(0,0,0,0.08);
   --font: 'Poppins', system-ui, sans-serif;
   --font-script: 'Lora', Georgia, serif;
+}
+
+[data-theme="dark"] {
+  --teal: #22B8B0;
+  --teal-dark: #1A938C;
+  --teal-tint: #123433;
+  --gold: #F5B82E;
+  --suggest: #A78BFA;
+  --suggest-tint: #2A2440;
+  --white: #1C1F23;
+  --bg: #121417;
+  --black: #F5F5F5;
+  --text: #E0E2E5;
+  --text-muted: #9BA1A8;
+  --text-faint: #6B7280;
+  --border: #33383E;
+  --warn-text: #E0B34D;
+  --warn-bg: #3A2E10;
+  --backdrop: rgba(0, 0, 0, 0.6);
+  --panel-shadow: -4px 0 32px rgba(0, 0, 0, 0.5);
+  --shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
 }
 
 html, body {
@@ -28,6 +57,7 @@ html, body {
   color: var(--text);
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
+  transition: background 0.2s ease, color 0.2s ease;
 }
 
 button, select, input {

@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect, useRef } from 'react'
 import { Chord } from 'tonal'
 import { CHORD_DATA } from './chordData'
 import { buildChordSymbol } from './components/ChordSelector'
+import { useTheme } from './hooks/useTheme'
 import ChordSelector from './components/ChordSelector'
 import ChordOutputPanel from './components/ChordOutputPanel'
 import PianoDisplay from './components/PianoDisplay'
@@ -9,6 +10,7 @@ import NextChordSuggestions from './components/NextChordSuggestions'
 import ProgressionStrip from './components/ProgressionStrip'
 import FeedbackPanel from './components/FeedbackPanel'
 import OnboardingModal from './components/OnboardingModal'
+import ThemeToggle from './components/ThemeToggle'
 import './App.css'
 
 const PROGRESSION_LIMIT = 4
@@ -76,6 +78,7 @@ export default function App() {
   const [progressionTeaser, setProgressionTeaser] = useState('')
   const teaserTimeoutRef = useRef(null)
   const [playingChordNotes, setPlayingChordNotes] = useState(null)
+  const { preference: themePreference, resolvedTheme, setPreference: setThemePreference } = useTheme()
 
   const { root, quality, extension } = selection
 
@@ -151,6 +154,7 @@ export default function App() {
             >
               Share feedback
             </button>
+            <ThemeToggle preference={themePreference} onChange={setThemePreference} />
             <button
               className="app__hamburger"
               onClick={() => setMenuOpen(o => !o)}
@@ -221,6 +225,7 @@ export default function App() {
               previewIndex={previewIndex}
               onPreviewChange={setPreviewIndex}
               onAddToProgression={addToProgression}
+              theme={resolvedTheme}
             />
           </section>
         )}

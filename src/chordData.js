@@ -37,6 +37,17 @@ export const LABEL_COLORS = {
   "Resolution":     { bg: "#f0ffe8", text: "#2d7a1a" },
 };
 
+export const LABEL_COLORS_DARK = {
+  "Familiar":       { bg: "#123433", text: "#5fd1cb" },
+  "Opens out":      { bg: "#16233d", text: "#7ea6f5" },
+  "Moves forward":  { bg: "#3a2a0f", text: "#f0aa4d" },
+  "Tension":        { bg: "#3a1616", text: "#f0817a" },
+  "Darker":         { bg: "#241c38", text: "#b79ae8" },
+  "Lift":           { bg: "#16321f", text: "#6fd98c" },
+  "Surprise":       { bg: "#3a1626", text: "#f080a8" },
+  "Resolution":     { bg: "#243a13", text: "#9ad96f" },
+};
+
 export const LABEL_EXPLANATIONS = {
   "Familiar":       "A natural next step that stays close to home — an easy, expected move.",
   "Opens out":      "Steps outside the immediate key, widening the harmonic colour.",

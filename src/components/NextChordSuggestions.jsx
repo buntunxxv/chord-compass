@@ -1,13 +1,15 @@
 import { useState, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import * as Tone from 'tone'
-import { LABEL_COLORS, LABEL_EXPLANATIONS } from '../chordData'
+import { LABEL_COLORS, LABEL_COLORS_DARK, LABEL_EXPLANATIONS } from '../chordData'
 import { createKeysSynth } from '../audio/synth'
 import { formatNoteNames } from '../utils/formatNotes'
 import { logEvent } from '../analytics/events'
 import './NextChordSuggestions.css'
 
-export default function NextChordSuggestions({ suggestions, currentNotes, bpm, previewIndex, onPreviewChange, onAddToProgression }) {
+export default function NextChordSuggestions({ suggestions, currentNotes, bpm, previewIndex, onPreviewChange, onAddToProgression, theme }) {
+  const labelColors = theme === 'dark' ? LABEL_COLORS_DARK : LABEL_COLORS
+  const labelFallback = theme === 'dark' ? { bg: '#2a2a2a', text: '#bbb' } : { bg: '#f0f0f0', text: '#555' }
   const [playingIndex, setPlayingIndex] = useState(null)
   const synthRef = useRef(null)
 
@@ -52,7 +54,7 @@ export default function NextChordSuggestions({ suggestions, currentNotes, bpm, p
       <h2 className="next-chords__title">Where could this chord go?</h2>
       <div className="next-chords__cards">
         {suggestions.map((s, i) => {
-          const labelStyle = LABEL_COLORS[s.label] || { bg: '#f0f0f0', text: '#555' }
+          const labelStyle = labelColors[s.label] || labelFallback
           const explanation = LABEL_EXPLANATIONS[s.label] || ''
           const isPlaying = playingIndex === i
           const isSelected = previewIndex === i

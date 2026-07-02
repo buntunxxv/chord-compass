@@ -1,0 +1,33 @@
+.theme-toggle {
+  display: flex;
+  align-items: center;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 3px;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.theme-toggle__btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: transparent;
+  border: none;
+  font-size: 12px;
+  line-height: 1;
+  padding: 0;
+  transition: background 0.15s;
+}
+
+.theme-toggle__btn:hover {
+  background: rgba(17, 147, 146, 0.12);
+}
+
+.theme-toggle__btn--active {
+  background: var(--teal);
+}

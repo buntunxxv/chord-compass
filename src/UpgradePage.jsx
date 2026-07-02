@@ -1,9 +1,13 @@
 import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { logEvent } from './analytics/events'
+import { useTheme } from './hooks/useTheme'
+import ThemeToggle from './components/ThemeToggle'
 import './UpgradePage.css'
 
 export default function UpgradePage() {
+  const { preference: themePreference, setPreference: setThemePreference } = useTheme()
+
   useEffect(() => {
     logEvent('upgrade_page_view')
   }, [])
@@ -20,6 +24,7 @@ export default function UpgradePage() {
           <div className="upgrade-page__header-tool">
             <div className="upgrade-page__header-divider" />
             <span className="upgrade-page__header-tool-name">Chord Compass</span>
+            <ThemeToggle preference={themePreference} onChange={setThemePreference} />
           </div>
         </div>
       </header>
