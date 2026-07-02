@@ -13,18 +13,21 @@ const WHITE_KEYS = [
 ]
 
 // black key position: index in the white-key array (sits to the right of that key)
+// no fixed display spelling here — a black key can be a chord's sharp or its
+// flat depending on the chord (e.g. C minor's E♭ vs B major's D♯), so the
+// label is derived per-render from whichever note actually lit it up
 const BLACK_KEYS = [
-  { note: 'C#3', display: 'C♯', whiteIndex: 0 },
-  { note: 'D#3', display: 'D♯', whiteIndex: 1 },
-  { note: 'F#3', display: 'F♯', whiteIndex: 3 },
-  { note: 'G#3', display: 'G♯', whiteIndex: 4 },
-  { note: 'A#3', display: 'A♯', whiteIndex: 5 },
-  { note: 'C#4', display: 'C♯', whiteIndex: 7 },
-  { note: 'D#4', display: 'D♯', whiteIndex: 8 },
-  { note: 'F#4', display: 'F♯', whiteIndex: 10 },
-  { note: 'G#4', display: 'G♯', whiteIndex: 11 },
-  { note: 'A#4', display: 'A♯', whiteIndex: 12 },
-  { note: 'C#5', display: 'C♯', whiteIndex: 14 },
+  { note: 'C#3', whiteIndex: 0 },
+  { note: 'D#3', whiteIndex: 1 },
+  { note: 'F#3', whiteIndex: 3 },
+  { note: 'G#3', whiteIndex: 4 },
+  { note: 'A#3', whiteIndex: 5 },
+  { note: 'C#4', whiteIndex: 7 },
+  { note: 'D#4', whiteIndex: 8 },
+  { note: 'F#4', whiteIndex: 10 },
+  { note: 'G#4', whiteIndex: 11 },
+  { note: 'A#4', whiteIndex: 12 },
+  { note: 'C#5', whiteIndex: 14 },
 ]
 
 const WHITE_KEY_WIDTH = 42
@@ -62,6 +65,17 @@ function isRoot(keyNote, rootNote) {
   return !!rootNote && normalizeNote(keyNote) === normalizeNote(rootNote)
 }
 
+// Find how a note is actually spelled (flat or sharp) within a chord's note
+// list, e.g. for keyNote "D#4" this returns "E♭" if the chord spells it that
+// way, so the piano matches how the chord is actually written, not a fixed
+// sharp-only convention
+function findSpelling(keyNote, chordNotes) {
+  const normalizedKey = normalizeNote(keyNote)
+  const match = chordNotes.find(n => normalizeNote(n) === normalizedKey)
+  if (!match) return null
+  return match.replace(/\d+$/, '').replace('#', '♯').replace('b', '♭')
+}
+
 const SUGGEST_FILL = '#8B5CF6'
 
 // Work out fill + whether the key gets a "shared" ring for a single key
@@ -76,12 +90,13 @@ function resolveKeyStyle(note, notes, root, previewNotes, defaultFill) {
       active: true,
       shared: inPreview,
       textFill: isCurrentRoot ? '#7a5500' : '#ffffff',
+      spelling: findSpelling(note, notes),
     }
   }
   if (inPreview) {
-    return { fill: SUGGEST_FILL, active: true, shared: false, textFill: '#ffffff' }
+    return { fill: SUGGEST_FILL, active: true, shared: false, textFill: '#ffffff', spelling: findSpelling(note, previewNotes) }
   }
-  return { fill: defaultFill, active: false, shared: false, textFill: '#aaaaaa' }
+  return { fill: defaultFill, active: false, shared: false, textFill: '#aaaaaa', spelling: null }
 }
 
 export default function PianoDisplay({ chordNotes, previewNotes }) {
@@ -145,7 +160,7 @@ export default function PianoDisplay({ chordNotes, previewNotes }) {
         })}
 
         {/* Black keys — rendered on top */}
-        {BLACK_KEYS.map(({ note, display, whiteIndex }) => {
+        {BLACK_KEYS.map(({ note, whiteIndex }) => {
           const x = whiteIndex * WHITE_KEY_WIDTH + WHITE_KEY_WIDTH - BLACK_KEY_WIDTH / 2 - 1
           const style = resolveKeyStyle(note, notes, root, previewNotes, '#1a1a1a')
 
@@ -184,7 +199,7 @@ export default function PianoDisplay({ chordNotes, previewNotes }) {
                   fontFamily="Inter, sans-serif"
                   fill={style.textFill}
                 >
-                  {display}
+                  {style.spelling}
                 </text>
               )}
             </g>

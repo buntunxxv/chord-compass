@@ -34,6 +34,13 @@
   letter-spacing: -0.02em;
 }
 
+.chord-output__actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 .chord-output__add-btn {
   background: transparent;
   border: 1.5px solid var(--teal);
@@ -49,6 +56,38 @@
 .chord-output__add-btn:hover {
   background: var(--teal);
   color: var(--white);
+}
+
+.chord-output__play-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--teal);
+  color: var(--white);
+  border: none;
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  transition: background 0.2s;
+}
+
+.chord-output__play-btn:hover:not(:disabled) {
+  background: var(--teal-dark);
+}
+
+.chord-output__play-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.chord-output__play-btn--playing {
+  background: var(--teal-dark);
+}
+
+.chord-output__play-icon {
+  font-size: 14px;
 }
 
 .chord-output__row {

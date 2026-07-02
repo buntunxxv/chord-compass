@@ -38,7 +38,6 @@
 .progression-strip__chart {
   display: flex;
   flex-wrap: nowrap;
-  overflow-x: auto;
   border: 1.5px solid var(--border);
   border-radius: 8px;
   flex: 1;
@@ -46,12 +45,16 @@
 }
 
 .progression-strip__slot {
-  padding: 8px 14px;
+  flex: 1 1 0;
+  padding: 8px 6px;
   font-size: 14px;
   font-weight: 700;
   color: var(--text);
+  text-align: center;
   border-right: 1.5px solid var(--border);
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   transition: background 0.2s, color 0.2s;
 }
 

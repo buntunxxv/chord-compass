@@ -5,7 +5,6 @@ import { buildChordSymbol } from './components/ChordSelector'
 import ChordSelector from './components/ChordSelector'
 import ChordOutputPanel from './components/ChordOutputPanel'
 import PianoDisplay from './components/PianoDisplay'
-import PlaybackControls from './components/PlaybackControls'
 import NextChordSuggestions from './components/NextChordSuggestions'
 import ProgressionStrip from './components/ProgressionStrip'
 import FeedbackPanel from './components/FeedbackPanel'
@@ -205,12 +204,6 @@ export default function App() {
           <PianoDisplay
             chordNotes={chordNotes}
             previewNotes={previewNotes}
-          />
-        </section>
-
-        <section className="app__section">
-          <PlaybackControls
-            notes={chordNotes}
           />
         </section>
 

@@ -1,3 +1,6 @@
+import { useState, useRef } from 'react'
+import * as Tone from 'tone'
+import { createKeysSynth } from '../audio/synth'
 import { formatNoteNames } from '../utils/formatNotes'
 import './ChordOutputPanel.css'
 
@@ -19,7 +22,32 @@ function formatInterval(interval) {
   return INTERVAL_NAMES[interval] || interval
 }
 
+// A single chord preview doesn't need a tempo — just hold it long enough to hear
+const HOLD_SECONDS = 1.5
+
 export default function ChordOutputPanel({ chordName, notes, intervals, available, onAddToProgression }) {
+  const [playing, setPlaying] = useState(false)
+  const synthRef = useRef(null)
+
+  async function handlePlay() {
+    if (playing || !notes || notes.length === 0) return
+    setPlaying(true)
+
+    // Use playback audio session on iOS so sound follows device volume
+    // rather than the ringer/silent switch (requires iOS 16.4+)
+    if (navigator.audioSession) {
+      navigator.audioSession.type = 'playback'
+    }
+    await Tone.start()
+
+    if (!synthRef.current) {
+      synthRef.current = createKeysSynth()
+    }
+
+    synthRef.current.triggerAttackRelease(notes, HOLD_SECONDS)
+    setTimeout(() => setPlaying(false), HOLD_SECONDS * 1000 + 200)
+  }
+
   if (!available) {
     return (
       <div className="chord-output chord-output--unavailable">
@@ -34,13 +62,24 @@ export default function ChordOutputPanel({ chordName, notes, intervals, availabl
     <div className="chord-output">
       <div className="chord-output__top">
         <div className="chord-output__name">{chordName}</div>
-        <button
-          className="chord-output__add-btn"
-          onClick={() => onAddToProgression(chordName, notes)}
-          aria-label={`Add ${chordName} to progression`}
-        >
-          + Add current chord
-        </button>
+        <div className="chord-output__actions">
+          <button
+            className={`chord-output__play-btn ${playing ? 'chord-output__play-btn--playing' : ''}`}
+            onClick={handlePlay}
+            disabled={playing || !notes || notes.length === 0}
+            aria-label="Play chord"
+          >
+            <span className="chord-output__play-icon">{playing ? '♪' : '▶'}</span>
+            {playing ? 'Playing…' : 'Play Chord'}
+          </button>
+          <button
+            className="chord-output__add-btn"
+            onClick={() => onAddToProgression(chordName, notes)}
+            aria-label={`Add ${chordName} to progression`}
+          >
+            + Add current chord
+          </button>
+        </div>
       </div>
       <div className="chord-output__row">
         <span className="chord-output__row-label">Notes</span>
