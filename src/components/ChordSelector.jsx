@@ -11,6 +11,7 @@ function toDataKey(root, quality, extension) {
   if (quality === 'major'     && extension === 'maj7')  return `${root}maj7`
   if (quality === 'minor'     && extension === '7')     return `${root}m7`
   if (quality === 'major'     && extension === 'add9')  return `${root}add9`
+  if (quality === 'sus2'      && extension === 'none')  return `${root}sus2`
   if (quality === 'sus4'      && extension === 'none')  return `${root}sus4`
   return null
 }
