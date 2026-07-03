@@ -20,24 +20,15 @@ export default function OnboardingModal({ isOpen, onClose }) {
         aria-labelledby="om-title"
       >
         <div className="om-header">
-          <h2 className="om-title" id="om-title">Welcome to Chord Compass</h2>
+          <h2 className="om-title" id="om-title">Find your next chord.</h2>
         </div>
         <div className="om-body">
-          <div className="om-item">
-            <span className="om-label">Root</span>
-            <p className="om-text">The starting note your chord is built on — try C, F♯, or B♭.</p>
-          </div>
-          <div className="om-item">
-            <span className="om-label">Quality</span>
-            <p className="om-text">Major sounds bright, minor sounds moody — quality shapes the emotion.</p>
-          </div>
-          <div className="om-item">
-            <span className="om-label">Hear →</span>
-            <p className="om-text">Tap any suggested chord to preview how it flows from the one you're on.</p>
-          </div>
+          <p className="om-text">Chord Compass helps you explore where your song could go next.</p>
+          <p className="om-text">Choose a starting chord, then follow different musical directions — smooth, emotional, dark, bright, tense, or surprising.</p>
+          <p className="om-text">There is no single correct answer. Listen, compare, and choose the chord that fits your song.</p>
         </div>
         <div className="om-footer">
-          <button className="om-dismiss" onClick={handleDismiss}>Got it, let's go</button>
+          <button className="om-dismiss" onClick={handleDismiss}>Start exploring</button>
         </div>
       </div>
     </div>
