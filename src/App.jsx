@@ -185,6 +185,10 @@ export default function App() {
             >
               Share feedback
             </button>
+            <div className="app__mobile-menu-theme">
+              <span className="app__mobile-menu-theme-label">Appearance</span>
+              <ThemeToggle preference={themePreference} onChange={setThemePreference} />
+            </div>
           </div>
         )}
       </header>

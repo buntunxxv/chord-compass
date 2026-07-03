@@ -158,6 +158,21 @@
   cursor: pointer;
 }
 
+.app__mobile-menu-theme {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 24px 14px;
+  border-top: 1px solid var(--border);
+  margin-top: 4px;
+}
+
+.app__mobile-menu-theme-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
 .app__header-tool {
   display: flex;
   align-items: center;
@@ -226,7 +241,8 @@
 
 @media (max-width: 700px) {
   .app__header-divider,
-  .app__header-feedback-btn {
+  .app__header-feedback-btn,
+  .app__header-tool .theme-toggle {
     display: none;
   }
   .app__header-tool-name {
