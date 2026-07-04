@@ -22,200 +22,101 @@ const USER_TYPES = [
   },
 ]
 
-const QUESTIONS = {
-  beginner: [
-    {
-      id: 'b1',
-      type: 'choice',
-      question: 'What did you think this tool was helping you do?',
-      options: [
-        'Find out what notes are in a chord',
-        'Learn how chords sound',
-        'Choose what chord could come next',
-        'Help write a song',
-        "I wasn't sure",
-      ],
-    },
-    {
-      id: 'b2',
-      type: 'choice',
-      question: 'Was it clear how to choose a chord using Root, Quality and Extension?',
-      options: ['Yes, clear', 'Mostly clear', 'A bit confusing', 'I did not understand it'],
-    },
-    {
-      id: 'b3',
-      type: 'choice',
-      question: 'Did hearing the chord make the notes/intervals easier to understand?',
-      options: ['Yes', 'A little', 'Not really', 'I did not use the sound'],
-    },
-    {
-      id: 'b4',
-      type: 'choice',
-      question: 'The tool showed next-chord ideas like "Familiar", "Opens out" and "Moves forward". Did those labels make sense?',
-      options: ['Yes, they helped', 'Some made sense', 'The labels were too vague', 'I did not understand them'],
-    },
-    {
-      id: 'b5',
-      type: 'choice',
-      question: 'Did any suggested next chord make you want to try building a progression?',
-      options: ['Yes', 'Maybe', 'Not yet', 'I did not understand the suggestions'],
-    },
-    {
-      id: 'b6',
-      type: 'text',
-      question: 'What confused you most?',
-      placeholder: 'Anything that felt unclear or unexpected…',
-    },
-    {
-      id: 'b7',
-      type: 'text',
-      question: 'What would make this more useful for learning chords?',
-      placeholder: "Be honest — what's the missing piece?",
-    },
-  ],
-  intermediate: [
-    {
-      id: 'i1',
-      type: 'choice',
-      question: 'Could this help you get unstuck when writing a chord progression?',
-      options: ['Yes', 'Possibly, with more options', 'Not in its current form', 'No'],
-    },
-    {
-      id: 'i2',
-      type: 'choice',
-      question: 'Did the playback help you judge the chord movement?',
-      options: ['Yes', 'A little', 'Not really', 'I did not use playback'],
-    },
-    {
-      id: 'i3',
-      type: 'choice',
-      question: 'Did any of the suggested next chords feel like something you might actually try in a song or beat?',
-      options: ['Yes', 'Maybe', 'Not yet', 'The suggestions felt too basic'],
-    },
-    {
-      id: 'i4',
-      type: 'choice',
-      question: 'Were the direction labels useful?',
-      options: [
-        'Yes, they helped me understand the feel',
-        'Some were useful',
-        'They need better wording',
-        'They did not help',
-      ],
-    },
-    {
-      id: 'i5',
-      type: 'multiselect',
-      question: 'What would make this more useful for your music-making?',
-      options: [
-        'More chord types',
-        'Better piano/guitar/bass voicings',
-        'Genre-based suggestions',
-        'Progression playback',
-        'Save/export ideas',
-        'Stronger explanations',
-        'Other',
-      ],
-      hint: 'Select all that apply',
-    },
-    {
-      id: 'i6',
-      type: 'choice',
-      question: 'When you saw the locked "Pro" directions, what did you expect would be behind it?',
-      options: [
-        'More chord suggestions',
-        'More advanced harmony',
-        'Genre-based ideas',
-        'Better playback',
-        'Full progressions',
-        "I wasn't sure",
-      ],
-    },
-    {
-      id: 'i7',
-      type: 'text',
-      question: 'Which genres or styles should this tool understand better?',
-      placeholder: 'R&B, jazz, film, drill, gospel — whatever applies to you…',
-    },
-    {
-      id: 'i8',
-      type: 'text',
-      question: 'What feature would need to exist before this felt worth paying for?',
-      placeholder: "Think about what you'd actually pay for…",
-    },
-  ],
-  advanced: [
-    {
-      id: 'a1',
-      type: 'choice',
-      question: 'Does the concept make sense as a songwriting education tool?',
-      options: ['Yes', 'Yes, but it needs deeper musical logic', 'Not yet', 'No'],
-    },
-    {
-      id: 'a2',
-      type: 'choice',
-      question: 'Are the current direction labels musically believable?',
-      options: ['Yes', 'Some are', 'They are too vague', 'They need a different system'],
-    },
-    {
-      id: 'a3',
-      type: 'choice',
-      question: 'Do any of the suggested chord movements feel misleading or too basic?',
-      options: [
-        'No, fine for Phase 1',
-        'Some are too basic',
-        'Some need better explanation',
-        'Yes, the logic needs work',
-      ],
-    },
-    {
-      id: 'a4',
-      type: 'multiselect',
-      question: 'What would make this useful for a more advanced player?',
-      options: [
-        'Better voicings',
-        'Voice-leading',
-        'Inversions/slash chords',
-        'Modal interchange',
-        'Secondary dominants',
-        'Genre-specific harmony',
-        'Reharmonisation ideas',
-        'Other',
-      ],
-      hint: 'Select all that apply',
-    },
-    {
-      id: 'a5',
-      type: 'choice',
-      question: 'When you saw the locked "Pro" directions, what did you expect would be behind it?',
-      options: [
-        'More chord suggestions',
-        'More advanced harmony',
-        'Genre-based ideas',
-        'Better playback',
-        'Full progressions',
-        "I wasn't sure",
-      ],
-    },
-    {
-      id: 'a6',
-      type: 'text',
-      question: 'What should this tool avoid becoming?',
-      placeholder: 'What would undermine its credibility?',
-    },
-    {
-      id: 'a7',
-      type: 'text',
-      question: 'Where is the strongest potential in this idea?',
-      placeholder: 'Think about the right version of this…',
-    },
-    {
-      id: 'a8',
-      type: 'text',
-      question: 'What is the one musical improvement you would make first?',
-      placeholder: 'Be specific…',
-    },
-  ],
+// Feedback Round 2 — the same 10 questions for every user type, plus one
+// level-specific question at the end. The task given to testers: "Build a
+// 4-chord progression, play it back, then give feedback."
+const CORE_QUESTIONS = [
+  {
+    id: 'q1',
+    type: 'choice',
+    question: 'What did you think Chord Compass was helping you do?',
+    options: [
+      'Understand the notes in a chord',
+      'Hear how a chord sounds',
+      'Find a chord to play next',
+      'Build a chord progression for a song',
+      "I wasn't sure",
+    ],
+  },
+  {
+    id: 'q2',
+    type: 'choice',
+    question: 'Could you build a 4-chord progression without help?',
+    options: ['Yes, easily', 'Yes, but it took some trial and error', 'No, I got stuck', "I didn't try"],
+  },
+  {
+    id: 'q3',
+    type: 'choice',
+    question: 'Did the suggested chord cards help you decide what to add next?',
+    options: ['Yes, a lot', 'A little', 'Not really', "I didn't notice them"],
+  },
+  {
+    id: 'q4',
+    type: 'choice',
+    question: 'Did the notes shown on each suggested chord help, or was it too much information?',
+    options: ['Helped me understand the chord', "Nice to have, didn't change my decision", 'Too much information', "I didn't look at them"],
+  },
+  {
+    id: 'q5',
+    type: 'choice',
+    question: 'Did the song direction labels (e.g. "Familiar", "Opens out", "Moves forward") make sense?',
+    options: ['Yes, immediately', 'Mostly, but not all of them', 'No, they were confusing', "I didn't notice them"],
+  },
+  {
+    id: 'q6',
+    type: 'choice',
+    question: 'Did hearing the full progression help you understand the chord movement?',
+    options: ['Yes, definitely', 'A little', 'Not really', "I didn't play it back"],
+  },
+  {
+    id: 'q7',
+    type: 'text',
+    question: 'What confused you?',
+    placeholder: 'Anything that felt unclear or unexpected…',
+  },
+  {
+    id: 'q8',
+    type: 'text',
+    question: 'What would make you come back and use this again?',
+    placeholder: "Be honest — what's missing?",
+  },
+  {
+    id: 'q9',
+    type: 'text',
+    question: 'What did you expect Future Pro / locked Pro features to include?',
+    placeholder: 'Take a guess — what did the lock icon make you think of?',
+  },
+  {
+    id: 'q10',
+    type: 'text',
+    question: 'Would you pay for a deeper version of this? If yes, what feature would make it worth paying for?',
+    placeholder: "Yes/no, and what would make it worth it…",
+  },
+]
+
+const LEVEL_QUESTIONS = {
+  beginner: {
+    id: 'level',
+    type: 'text',
+    question: 'What helped you learn most?',
+    placeholder: 'The specific thing that clicked…',
+  },
+  intermediate: {
+    id: 'level',
+    type: 'text',
+    question: 'What would make this useful while writing music?',
+    placeholder: 'Think about your actual workflow…',
+  },
+  advanced: {
+    id: 'level',
+    type: 'text',
+    question: 'What would make this credible beyond beginner level?',
+    placeholder: "Be specific — what's missing for a serious player?",
+  },
+}
+
+function getQuestions(userType) {
+  return userType ? [...CORE_QUESTIONS, LEVEL_QUESTIONS[userType]] : []
 }
 
 const FINAL_QUESTION = {
@@ -234,32 +135,6 @@ function ChoiceInput({ value, onChange, options }) {
           key={opt}
           className={`fp-choice__option ${value === opt ? 'fp-choice__option--active' : ''}`}
           onClick={() => onChange(opt)}
-          type="button"
-        >
-          {opt}
-        </button>
-      ))}
-    </div>
-  )
-}
-
-// ─── Multiselect component ────────────────────────────────────────────────────
-
-function MultiSelect({ value = [], onChange, options }) {
-  function toggle(opt) {
-    if (value.includes(opt)) {
-      onChange(value.filter(v => v !== opt))
-    } else {
-      onChange([...value, opt])
-    }
-  }
-  return (
-    <div className="fp-multiselect">
-      {options.map(opt => (
-        <button
-          key={opt}
-          className={`fp-multiselect__pill ${value.includes(opt) ? 'fp-multiselect__pill--active' : ''}`}
-          onClick={() => toggle(opt)}
           type="button"
         >
           {opt}
@@ -331,7 +206,7 @@ export default function FeedbackPanel({ isOpen, onClose, theme }) {
   const [animating, setAnimating] = useState(false)
   const textareaRef = useRef(null)
 
-  const questions = userType ? QUESTIONS[userType] : []
+  const questions = getQuestions(userType)
   const isFinal = stage === 'final'
   const currentQ = isFinal ? FINAL_QUESTION : questions[questionIndex]
   const currentAnswer = currentQ ? answers[currentQ.id] : undefined
@@ -354,7 +229,6 @@ export default function FeedbackPanel({ isOpen, onClose, theme }) {
     if (stage === 'type') return !!userType
     if (!currentQ) return false
     if (currentQ.type === 'text') return true
-    if (currentQ.type === 'multiselect') return true
     if (currentQ.type === 'notify') return true
     return currentAnswer !== undefined
   }
@@ -461,7 +335,7 @@ export default function FeedbackPanel({ isOpen, onClose, theme }) {
               <div className="fp-screen__eyebrow">Early feedback</div>
               <h2 className="fp-screen__heading">Which best describes you?</h2>
               <p className="fp-screen__sub">
-                This is an early prototype. I'm testing whether the chord choices, sound playback and "where could this chord go?" ideas are useful enough to develop further.
+                This is an early prototype. The task: build a 4-chord progression, play it back, then tell us what you thought.
               </p>
               <div className="fp-typecards">
                 {USER_TYPES.map(t => (
@@ -509,13 +383,6 @@ export default function FeedbackPanel({ isOpen, onClose, theme }) {
                   <ChoiceInput
                     value={currentAnswer}
                     onChange={v => { setAnswer(v); setTimeout(() => navigate(1), 320) }}
-                    options={currentQ.options}
-                  />
-                )}
-                {currentQ.type === 'multiselect' && (
-                  <MultiSelect
-                    value={currentAnswer || []}
-                    onChange={setAnswer}
                     options={currentQ.options}
                   />
                 )}

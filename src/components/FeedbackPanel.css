@@ -322,38 +322,6 @@
   color: var(--on-accent);
 }
 
-/* ─── Multiselect ──────────────────────────────────────────────────────────── */
-
-.fp-multiselect {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.fp-multiselect__pill {
-  padding: 8px 16px;
-  border-radius: 100px;
-  border: 2px solid var(--border);
-  background: var(--bg);
-  font-family: var(--font);
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-muted);
-  cursor: pointer;
-  transition: border-color 0.15s, background 0.15s, color 0.15s;
-}
-
-.fp-multiselect__pill:hover {
-  border-color: var(--teal);
-  color: var(--teal);
-}
-
-.fp-multiselect__pill--active {
-  border-color: var(--teal);
-  background: var(--teal);
-  color: var(--on-accent);
-}
-
 /* ─── Choice ───────────────────────────────────────────────────────────────── */
 
 .fp-choice {
