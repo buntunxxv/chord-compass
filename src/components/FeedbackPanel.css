@@ -196,6 +196,12 @@
   line-height: 1.6;
 }
 
+.fp-screen__hint {
+  font-size: 12px;
+  color: var(--text-faint);
+  line-height: 1.5;
+}
+
 /* ─── User type cards ──────────────────────────────────────────────────────── */
 
 .fp-typecards {

@@ -337,6 +337,7 @@ export default function FeedbackPanel({ isOpen, onClose, theme }) {
               <p className="fp-screen__sub">
                 This is an early prototype. The task: build a 4-chord progression, play it back, then tell us what you thought.
               </p>
+              <p className="fp-screen__hint">Tap anywhere outside this panel anytime to pause and keep using the tool — your answers are saved.</p>
               <div className="fp-typecards">
                 {USER_TYPES.map(t => (
                   <button
