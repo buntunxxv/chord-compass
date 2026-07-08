@@ -2,7 +2,7 @@
   position: fixed;
   inset: 0;
   z-index: 300;
-  background: rgba(26, 26, 26, 0.5);
+  background: var(--backdrop);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -18,12 +18,12 @@
 }
 
 .om-card {
-  background: #fff;
+  background: var(--white);
   border-radius: 16px;
   max-width: 440px;
   width: 100%;
   overflow: hidden;
-  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.18);
+  box-shadow: var(--shadow);
   font-family: 'Inter', 'Poppins', system-ui, sans-serif;
   transform: translateY(-14px) scale(0.97);
   transition: transform 0.28s cubic-bezier(0.34, 1.4, 0.64, 1);
@@ -36,7 +36,7 @@
 /* ─── Header ─────────────────────────────────────────────────────────────────── */
 
 .om-header {
-  background: #119392;
+  background: var(--teal);
   padding: 26px 28px 22px;
 }
 
@@ -45,7 +45,7 @@
   font-family: 'Inter', 'Poppins', system-ui, sans-serif;
   font-size: 22px;
   font-weight: 700;
-  color: #fff;
+  color: var(--on-accent);
   letter-spacing: -0.02em;
 }
 
@@ -63,7 +63,7 @@
   font-family: 'Inter', 'Poppins', system-ui, sans-serif;
   font-size: 15px;
   line-height: 1.6;
-  color: #444;
+  color: var(--text-muted);
 }
 
 /* ─── Footer ─────────────────────────────────────────────────────────────────── */
@@ -74,8 +74,8 @@
 
 .om-dismiss {
   width: 100%;
-  background: #119392;
-  color: #fff;
+  background: var(--teal);
+  color: var(--on-accent);
   border: none;
   border-radius: 8px;
   padding: 12px 24px;
@@ -88,7 +88,7 @@
 }
 
 .om-dismiss:hover {
-  background: #0B7A72;
+  background: var(--teal-dark);
 }
 
 /* ─── Mobile ─────────────────────────────────────────────────────────────────── */
