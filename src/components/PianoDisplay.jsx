@@ -1,3 +1,6 @@
+import { useState, useRef, useCallback, useEffect } from 'react'
+import * as Tone from 'tone'
+import { createKeysSynth } from '../audio/synth'
 import './PianoDisplay.css'
 
 // Two octaves, C3–D5, so a chord's notes render at their real pitch
@@ -105,6 +108,28 @@ export default function PianoDisplay({ chordNotes, previewNotes }) {
   const root = notes.length > 0 ? notes[0] : null
   const hasPreview = !!(previewNotes && previewNotes.length > 0)
 
+  const synthRef = useRef(null)
+  const timerRef = useRef(null)
+  const [pressedNote, setPressedNote] = useState(null)
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current)
+      if (synthRef.current) synthRef.current.dispose()
+    }
+  }, [])
+
+  const playNote = useCallback(async (note) => {
+    await Tone.start()
+    if (!synthRef.current) {
+      synthRef.current = createKeysSynth()
+    }
+    if (timerRef.current) clearTimeout(timerRef.current)
+    setPressedNote(note)
+    synthRef.current.triggerAttackRelease(note, '8n')
+    timerRef.current = setTimeout(() => setPressedNote(null), 150)
+  }, [])
+
   return (
     <div className="piano-display">
       <h2 className="piano-display__title">On the Keys</h2>
@@ -112,16 +137,25 @@ export default function PianoDisplay({ chordNotes, previewNotes }) {
         viewBox={`0 0 ${SVG_WIDTH} ${SVG_HEIGHT}`}
         xmlns="http://www.w3.org/2000/svg"
         className="piano-display__svg"
-        role="img"
+        role="group"
         aria-label="Piano keyboard showing chord tones across two octaves"
       >
         {/* White keys */}
         {WHITE_KEYS.map((note, i) => {
           const x = i * WHITE_KEY_WIDTH
           const style = resolveKeyStyle(note, notes, root, previewNotes, '#ffffff')
+          const isPressed = pressedNote === note
 
           return (
-            <g key={note}>
+            <g
+              key={note}
+              onClick={() => playNote(note)}
+              style={{ cursor: 'pointer' }}
+              role="button"
+              aria-label={`Play ${note}`}
+              tabIndex={0}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') playNote(note) }}
+            >
               <rect
                 x={x + 1}
                 y={0}
@@ -132,6 +166,17 @@ export default function PianoDisplay({ chordNotes, previewNotes }) {
                 stroke="#c8c8c8"
                 strokeWidth={1.5}
               />
+              {isPressed && (
+                <rect
+                  x={x + 1}
+                  y={0}
+                  width={WHITE_KEY_WIDTH - 2}
+                  height={WHITE_KEY_HEIGHT}
+                  rx={4}
+                  fill="rgba(17,147,146,0.18)"
+                  style={{ pointerEvents: 'none' }}
+                />
+              )}
               {style.shared && (
                 <rect
                   x={x + 4}
@@ -153,6 +198,7 @@ export default function PianoDisplay({ chordNotes, previewNotes }) {
                 fontWeight={style.active ? '600' : '500'}
                 fontFamily="Inter, sans-serif"
                 fill={style.textFill}
+                style={{ pointerEvents: 'none' }}
               >
                 {whiteKeyLabel(note)}
               </text>
@@ -164,9 +210,18 @@ export default function PianoDisplay({ chordNotes, previewNotes }) {
         {BLACK_KEYS.map(({ note, whiteIndex }) => {
           const x = whiteIndex * WHITE_KEY_WIDTH + WHITE_KEY_WIDTH - BLACK_KEY_WIDTH / 2 - 1
           const style = resolveKeyStyle(note, notes, root, previewNotes, '#1a1a1a')
+          const isPressed = pressedNote === note
 
           return (
-            <g key={note}>
+            <g
+              key={note}
+              onClick={() => playNote(note)}
+              style={{ cursor: 'pointer' }}
+              role="button"
+              aria-label={`Play ${note}`}
+              tabIndex={0}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') playNote(note) }}
+            >
               <rect
                 x={x}
                 y={0}
@@ -177,6 +232,17 @@ export default function PianoDisplay({ chordNotes, previewNotes }) {
                 stroke="#000"
                 strokeWidth={1}
               />
+              {isPressed && (
+                <rect
+                  x={x}
+                  y={0}
+                  width={BLACK_KEY_WIDTH}
+                  height={BLACK_KEY_HEIGHT}
+                  rx={3}
+                  fill="rgba(255,255,255,0.25)"
+                  style={{ pointerEvents: 'none' }}
+                />
+              )}
               {style.shared && (
                 <rect
                   x={x + 3}
@@ -199,6 +265,7 @@ export default function PianoDisplay({ chordNotes, previewNotes }) {
                   fontWeight="600"
                   fontFamily="Inter, sans-serif"
                   fill={style.textFill}
+                  style={{ pointerEvents: 'none' }}
                 >
                   {style.spelling}
                 </text>
