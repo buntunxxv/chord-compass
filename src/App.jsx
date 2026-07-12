@@ -9,7 +9,7 @@ import PianoDisplay from './components/PianoDisplay'
 import NextChordSuggestions from './components/NextChordSuggestions'
 import ProgressionStrip from './components/ProgressionStrip'
 import FeedbackPanel from './components/FeedbackPanel'
-import OnboardingModal from './components/OnboardingModal'
+import WalkthroughOverlay from './components/WalkthroughOverlay'
 import ThemeToggle from './components/ThemeToggle'
 import './App.css'
 
@@ -109,6 +109,35 @@ export default function App() {
 
   function clearProgression() {
     setProgression([])
+  }
+
+  function removeLast() {
+    setProgression(prev => prev.slice(0, -1))
+  }
+
+  // Parse a chord display name back into selector state (natural roots only)
+  function chordNameToSelection(name) {
+    const m = name.match(/^([A-G])(m7|maj7|m|add9|sus2|sus4|7|)$/)
+    if (!m) return null
+    const [, root, suffix] = m
+    const map = {
+      '': { quality: 'major', extension: 'none' },
+      'm': { quality: 'minor', extension: 'none' },
+      '7': { quality: 'major', extension: '7' },
+      'maj7': { quality: 'major', extension: 'maj7' },
+      'm7': { quality: 'minor', extension: '7' },
+      'add9': { quality: 'major', extension: 'add9' },
+      'sus2': { quality: 'sus2', extension: 'none' },
+      'sus4': { quality: 'sus4', extension: 'none' },
+    }
+    const qual = map[suffix]
+    if (!qual) return null
+    return { root, ...qual }
+  }
+
+  function handleSelectLastChord(chordName) {
+    const sel = chordNameToSelection(chordName)
+    if (sel) setSelection(sel)
   }
 
   const symbol = useMemo(() => buildChordSymbol(root, quality, extension), [root, quality, extension])
@@ -247,6 +276,8 @@ export default function App() {
         bpm={bpm}
         onBpmChange={setBpm}
         onClear={clearProgression}
+        onRemoveLast={removeLast}
+        onSelectLastChord={handleSelectLastChord}
         teaserMessage={progressionTeaser}
         onPlayingChordChange={setPlayingChordNotes}
       />
@@ -258,7 +289,7 @@ export default function App() {
         theme={resolvedTheme}
       />
 
-      <OnboardingModal
+      <WalkthroughOverlay
         isOpen={onboardingOpen}
         onClose={() => setOnboardingOpen(false)}
       />

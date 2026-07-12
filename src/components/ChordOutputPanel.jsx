@@ -62,12 +62,13 @@ export default function ChordOutputPanel({ chordName, notes, intervals, availabl
   const noteNames = formatNoteNames(notes)
 
   return (
-    <div className="chord-output">
+    <div className="chord-output" id="wt-chord-output">
       <h2 className="chord-output__title">Your Chord</h2>
       <div className="chord-output__top">
         <div className="chord-output__name">{chordName}</div>
         <div className="chord-output__actions">
           <button
+            id="wt-play-btn"
             className={`chord-output__play-btn ${playing ? 'chord-output__play-btn--playing' : ''}`}
             onClick={handlePlay}
             disabled={playing || !notes || notes.length === 0}
@@ -77,6 +78,7 @@ export default function ChordOutputPanel({ chordName, notes, intervals, availabl
             {playing ? 'Playing…' : 'Play Chord'}
           </button>
           <button
+            id="wt-add-btn"
             className="chord-output__add-btn"
             onClick={() => onAddToProgression(chordName, notes)}
             aria-label={`Add ${chordName} to progression`}

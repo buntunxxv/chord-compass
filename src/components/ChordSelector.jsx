@@ -85,7 +85,7 @@ export default function ChordSelector({ root, quality, extension, onChange }) {
     <div className="chord-selector">
       <h2 className="chord-selector__title">Build a Chord</h2>
       <div className="chord-selector__dropdowns">
-        <div className="chord-selector__field">
+        <div className="chord-selector__field" id="wt-root">
           <label className="chord-selector__label">Root</label>
           <span className="chord-selector__hint">The note the chord is named after</span>
           <select
@@ -110,7 +110,7 @@ export default function ChordSelector({ root, quality, extension, onChange }) {
           </Link>
         </div>
 
-        <div className="chord-selector__field">
+        <div className="chord-selector__field" id="wt-quality">
           <label className="chord-selector__label">Quality</label>
           <span className="chord-selector__hint">Major sounds bright, minor is darker</span>
           <select

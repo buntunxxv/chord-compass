@@ -67,6 +67,24 @@
   color: var(--on-accent);
 }
 
+.progression-strip__slot--tappable {
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-decoration-color: var(--teal);
+  text-underline-offset: 3px;
+  box-shadow: inset 0 0 0 1.5px var(--teal);
+}
+
+.progression-strip__slot--tappable:hover {
+  background: color-mix(in srgb, var(--teal) 10%, transparent);
+}
+
+.progression-strip__clear-group {
+  display: flex;
+  gap: 8px;
+}
+
 .progression-strip__bpm {
   display: flex;
   align-items: center;
@@ -210,7 +228,7 @@
     flex: 1;
   }
 
-  .progression-strip__clear-btn {
+  .progression-strip__clear-group {
     order: 4;
   }
 }
