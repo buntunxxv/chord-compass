@@ -50,7 +50,7 @@ export default function NextChordSuggestions({ suggestions, currentNotes, bpm, p
   }
 
   return (
-    <div className="next-chords">
+    <div className="next-chords" id="wt-next-chords">
       <h2 className="next-chords__title">Where could this chord go?</h2>
       <div className="next-chords__cards">
         {suggestions.map((s, i) => {

@@ -13,7 +13,7 @@ function snapBpm(val) {
   return Math.abs(val - BPM_MID) <= SNAP_THRESHOLD ? BPM_MID : val
 }
 
-export default function ProgressionStrip({ progression, bpm, onBpmChange, onClear, teaserMessage, onPlayingChordChange }) {
+export default function ProgressionStrip({ progression, bpm, onBpmChange, onClear, onRemoveLast, onSelectLastChord, teaserMessage, onPlayingChordChange }) {
   const [activeIndex, setActiveIndex] = useState(null)
   const [isPlaying, setIsPlaying] = useState(false)
   const synthRef = useRef(null)
@@ -54,7 +54,7 @@ export default function ProgressionStrip({ progression, bpm, onBpmChange, onClea
   }
 
   return (
-    <div className="progression-strip">
+    <div className="progression-strip" id="wt-progression">
       {teaserMessage && (
         <div className="progression-strip__teaser">🔒 {teaserMessage}</div>
       )}
@@ -66,14 +66,20 @@ export default function ProgressionStrip({ progression, bpm, onBpmChange, onClea
           <p className="progression-strip__empty">Add chords above to build a sequence</p>
         ) : (
           <div className="progression-strip__chart">
-            {progression.map((entry, i) => (
-              <span
-                key={i}
-                className={`progression-strip__slot ${activeIndex === i ? 'progression-strip__slot--active' : ''}`}
-              >
-                {entry.chord}
-              </span>
-            ))}
+            {progression.map((entry, i) => {
+              const isLast = i === progression.length - 1
+              const tappable = isLast && !isPlaying
+              return (
+                <span
+                  key={i}
+                  className={`progression-strip__slot ${activeIndex === i ? 'progression-strip__slot--active' : ''} ${tappable ? 'progression-strip__slot--tappable' : ''}`}
+                  onClick={tappable ? () => onSelectLastChord?.(entry.chord) : undefined}
+                  title={tappable ? `Set ${entry.chord} as active chord` : undefined}
+                >
+                  {entry.chord}
+                </span>
+              )
+            })}
           </div>
         )}
 
@@ -102,13 +108,22 @@ export default function ProgressionStrip({ progression, bpm, onBpmChange, onClea
         >
           {isPlaying ? '♪ Playing…' : '▶ Play'}
         </button>
-        <button
-          className="progression-strip__clear-btn"
-          onClick={onClear}
-          disabled={progression.length === 0}
-        >
-          Clear
-        </button>
+        <div className="progression-strip__clear-group">
+          <button
+            className="progression-strip__clear-btn"
+            onClick={onRemoveLast}
+            disabled={progression.length === 0}
+          >
+            Clear
+          </button>
+          <button
+            className="progression-strip__clear-btn"
+            onClick={onClear}
+            disabled={progression.length === 0}
+          >
+            Clear all
+          </button>
+        </div>
       </div>
     </div>
   )
