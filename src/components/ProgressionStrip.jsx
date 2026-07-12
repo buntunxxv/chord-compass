@@ -108,22 +108,22 @@ export default function ProgressionStrip({ progression, bpm, onBpmChange, onClea
         >
           {isPlaying ? '♪ Playing…' : '▶ Play'}
         </button>
-        <div className="progression-strip__clear-group">
-          <button
-            className="progression-strip__clear-btn"
-            onClick={onRemoveLast}
-            disabled={progression.length === 0}
-          >
-            Clear
-          </button>
-          <button
-            className="progression-strip__clear-btn"
-            onClick={onClear}
-            disabled={progression.length === 0}
-          >
-            Clear all
-          </button>
-        </div>
+        {progression.length > 0 && (
+          <div className="progression-strip__clear-group">
+            <button
+              className="progression-strip__clear-btn"
+              onClick={onRemoveLast}
+            >
+              Clear
+            </button>
+            <button
+              className="progression-strip__clear-btn"
+              onClick={onClear}
+            >
+              Clear all
+            </button>
+          </div>
+        )}
       </div>
     </div>
   )
