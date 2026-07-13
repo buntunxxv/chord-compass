@@ -63,7 +63,7 @@ export default function App() {
   const [onboardingOpen, setOnboardingOpen] = useState(false)
 
   useEffect(() => {
-    if (!localStorage.getItem('kcc_seen_intro')) {
+    if (!localStorage.getItem('kcc_seen_intro_v2')) {
       setOnboardingOpen(true)
     }
   }, [])

@@ -105,7 +105,7 @@ export default function WalkthroughOverlay({ isOpen, onClose }) {
   }
 
   function close() {
-    localStorage.setItem('kcc_seen_intro', '1')
+    localStorage.setItem('kcc_seen_intro_v2', '1')
     onClose()
   }
 
