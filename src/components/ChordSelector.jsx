@@ -2,6 +2,7 @@ import { Chord } from 'tonal'
 import { Link } from 'react-router-dom'
 import { CHORD_DATA } from '../chordData'
 import { logEvent } from '../analytics/events'
+import Dropdown from './Dropdown'
 import './ChordSelector.css'
 
 function toDataKey(root, quality, extension) {
@@ -88,17 +89,15 @@ export default function ChordSelector({ root, quality, extension, onChange }) {
         <div className="chord-selector__field" id="wt-root">
           <label className="chord-selector__label">Root</label>
           <span className="chord-selector__hint">The note the chord is named after</span>
-          <select
-            className="chord-selector__select"
+          <Dropdown
             value={root}
-            onChange={e => handleChange('root', e.target.value)}
-          >
-            {ROOTS.map((r, i) => (
-              <option key={r} value={r} disabled={!hasData(r, quality, extension)}>
-                {ROOT_DISPLAY[i]}
-              </option>
-            ))}
-          </select>
+            onChange={v => handleChange('root', v)}
+            options={ROOTS.map((r, i) => ({
+              value: r,
+              label: ROOT_DISPLAY[i],
+              disabled: !hasData(r, quality, extension),
+            }))}
+          />
           <Link
             to="/upgrade"
             className="chord-selector__pro-lock"
@@ -113,33 +112,29 @@ export default function ChordSelector({ root, quality, extension, onChange }) {
         <div className="chord-selector__field" id="wt-quality">
           <label className="chord-selector__label">Quality</label>
           <span className="chord-selector__hint">Major sounds bright, minor is darker</span>
-          <select
-            className="chord-selector__select"
+          <Dropdown
             value={quality}
-            onChange={e => handleChange('quality', e.target.value)}
-          >
-            {QUALITIES.map(q => (
-              <option key={q.value} value={q.value} disabled={!hasData(root, q.value, extension)}>
-                {q.label}
-              </option>
-            ))}
-          </select>
+            onChange={v => handleChange('quality', v)}
+            options={QUALITIES.map(q => ({
+              value: q.value,
+              label: q.label,
+              disabled: !hasData(root, q.value, extension),
+            }))}
+          />
         </div>
 
         <div className="chord-selector__field">
           <label className="chord-selector__label">Extension</label>
           <span className="chord-selector__hint">Extra notes that add colour — start with None</span>
-          <select
-            className="chord-selector__select"
+          <Dropdown
             value={extension}
-            onChange={e => handleChange('extension', e.target.value)}
-          >
-            {EXTENSIONS.map(e => (
-              <option key={e.value} value={e.value} disabled={!hasData(root, quality, e.value)}>
-                {e.label}
-              </option>
-            ))}
-          </select>
+            onChange={v => handleChange('extension', v)}
+            options={EXTENSIONS.map(e => ({
+              value: e.value,
+              label: e.label,
+              disabled: !hasData(root, quality, e.value),
+            }))}
+          />
         </div>
       </div>
     </div>
