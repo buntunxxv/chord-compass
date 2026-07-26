@@ -33,7 +33,7 @@ export default function InstrumentDock({ chordNotes, previewNotes, root, guitarS
           disabled={!guitarShape}
           title={!guitarShape ? 'No guitar shape for this chord yet' : undefined}
         >
-          Frets
+          Guitar
         </button>
       </div>
       <div className="instrument-dock__view">
