@@ -1,0 +1,52 @@
+.instrument-dock {
+  max-width: 860px;
+  margin: 0 auto 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.instrument-dock__tabs {
+  display: flex;
+  align-items: center;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 3px;
+  gap: 2px;
+  margin-bottom: 6px;
+}
+
+.instrument-dock__tab {
+  background: transparent;
+  border: none;
+  border-radius: 16px;
+  padding: 5px 16px;
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.instrument-dock__tab:hover:not(:disabled) {
+  color: var(--teal);
+}
+
+.instrument-dock__tab--active {
+  background: var(--teal);
+  color: var(--on-accent);
+}
+
+.instrument-dock__tab:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.instrument-dock__view {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}

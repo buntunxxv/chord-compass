@@ -49,64 +49,70 @@ export default function NextChordSuggestions({ suggestions, currentNotes, bpm, p
     return null
   }
 
+  const selected = previewIndex != null ? suggestions[previewIndex] : null
+
   return (
     <div className="next-chords" id="wt-next-chords">
-      <h2 className="next-chords__title">Where could this chord go?</h2>
-      <div className="next-chords__cards">
+      <h2 className="next-chords__title">Choose your next move</h2>
+      <div className="next-chords__tabs">
         {suggestions.map((s, i) => {
           const labelStyle = labelColors[s.label] || labelFallback
-          const explanation = LABEL_EXPLANATIONS[s.label] || ''
-          const isPlaying = playingIndex === i
           const isSelected = previewIndex === i
-          const noteNames = formatNoteNames(s.notes)
-
           return (
-            <div
-              className={`next-chords__card ${isSelected ? 'next-chords__card--selected' : ''}`}
+            <button
               key={i}
+              type="button"
+              className={`next-chords__tab ${isSelected ? 'next-chords__tab--selected' : ''}`}
               onClick={() => handleCardClick(i)}
-              role="button"
-              tabIndex={0}
               aria-pressed={isSelected}
-              onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && handleCardClick(i)}
             >
-              <div className="next-chords__card-top">
-                <span className="next-chords__chord-name">{s.chord}</span>
-                <span
-                  className="next-chords__label-badge"
-                  style={{ background: labelStyle.bg, color: labelStyle.text }}
-                >
-                  {s.label}
-                </span>
-              </div>
-
-              <p className="next-chords__notes">{noteNames.join(' · ')}</p>
-
-              {explanation && (
-                <p className="next-chords__explanation">{explanation}</p>
-              )}
-
-              <div className="next-chords__card-actions">
-                <button
-                  className={`next-chords__hear-btn ${isPlaying ? 'next-chords__hear-btn--playing' : ''}`}
-                  onClick={e => { e.stopPropagation(); handleHear(i, s.notes) }}
-                  disabled={playingIndex !== null}
-                  aria-label={`Hear movement to ${s.chord}`}
-                >
-                  {isPlaying ? '♪ Playing…' : 'Hear →'}
-                </button>
-                <button
-                  className="next-chords__add-btn"
-                  onClick={e => { e.stopPropagation(); onAddToProgression(s.chord, s.notes) }}
-                  aria-label={`Add ${s.chord} to progression`}
-                >
-                  + Add to progression
-                </button>
-              </div>
-            </div>
+              <span className="next-chords__chord-name">{s.chord}</span>
+              <span
+                className="next-chords__label-badge"
+                style={{ background: labelStyle.bg, color: labelStyle.text }}
+              >
+                {s.label}
+              </span>
+            </button>
           )
         })}
       </div>
+
+      {selected && (() => {
+        const i = previewIndex
+        const s = selected
+        const explanation = LABEL_EXPLANATIONS[s.label] || ''
+        const isPlaying = playingIndex === i
+        const noteNames = formatNoteNames(s.notes)
+
+        return (
+          <div className="next-chords__detail">
+            <p className="next-chords__notes">{noteNames.join(' · ')}</p>
+
+            {explanation && (
+              <p className="next-chords__explanation">{explanation}</p>
+            )}
+
+            <div className="next-chords__card-actions">
+              <button
+                className={`next-chords__hear-btn ${isPlaying ? 'next-chords__hear-btn--playing' : ''}`}
+                onClick={() => handleHear(i, s.notes)}
+                disabled={playingIndex !== null}
+                aria-label={`Hear movement to ${s.chord}`}
+              >
+                {isPlaying ? '♪ Playing…' : 'Hear →'}
+              </button>
+              <button
+                className="next-chords__add-btn"
+                onClick={() => onAddToProgression(s.chord, s.notes)}
+                aria-label={`Add ${s.chord} to progression`}
+              >
+                + Add to progression
+              </button>
+            </div>
+          </div>
+        )
+      })()}
 
       <Link
         to="/upgrade"

@@ -26,6 +26,17 @@
   filter: drop-shadow(0 2px 6px rgba(0,0,0,0.1));
 }
 
+.piano-display--compact {
+  background: none;
+  border-radius: 0;
+  padding: 0;
+  box-shadow: none;
+}
+
+.piano-display--compact .piano-display__svg {
+  max-width: 420px;
+}
+
 .piano-display__legend {
   display: flex;
   gap: 16px;

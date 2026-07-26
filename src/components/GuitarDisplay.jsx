@@ -28,7 +28,24 @@ function fretRowY(row) {
   return TOP_PAD + MARKER_AREA + row * FRET_HEIGHT
 }
 
-export default function GuitarDisplay({ root, shape }) {
+const PITCH_CLASS_BY_LETTER = { C: 0, 'C#': 1, Db: 1, D: 2, 'D#': 3, Eb: 3, E: 4, F: 5, 'F#': 6, Gb: 6, G: 7, 'G#': 8, Ab: 8, A: 9, 'A#': 10, Bb: 10, B: 11 }
+const FALLBACK_SHARP_NAMES = ['C', 'C♯', 'D', 'D♯', 'E', 'F', 'F♯', 'G', 'G♯', 'A', 'A♯', 'B']
+
+// Match the piano's approach: label a pitch class using whichever spelling
+// (sharp or flat) the chord's own notes array actually uses, rather than a
+// fixed sharp-only convention
+function findSpelling(pitchClass, notes) {
+  for (const note of notes || []) {
+    const m = note.match(/^([A-G][#b]?)/)
+    if (!m) continue
+    if (PITCH_CLASS_BY_LETTER[m[1]] === pitchClass) {
+      return m[1].replace('#', '♯').replace('b', '♭')
+    }
+  }
+  return FALLBACK_SHARP_NAMES[pitchClass]
+}
+
+export default function GuitarDisplay({ root, shape, notes, compact }) {
   if (!shape) return null
 
   const rootPc = ROOT_PITCH_CLASS[root]
@@ -41,8 +58,8 @@ export default function GuitarDisplay({ root, shape }) {
   const baseFret = maxFret <= WINDOW_SIZE ? 1 : minPositiveFret
 
   return (
-    <div className="guitar-display">
-      <h2 className="guitar-display__title">On the Fretboard</h2>
+    <div className={`guitar-display ${compact ? 'guitar-display--compact' : ''}`} id="wt-guitar">
+      {!compact && <h2 className="guitar-display__title">On the Fretboard</h2>}
       <svg
         viewBox={`0 0 ${SVG_WIDTH} ${SVG_HEIGHT}`}
         xmlns="http://www.w3.org/2000/svg"
@@ -148,16 +165,32 @@ export default function GuitarDisplay({ root, shape }) {
             )
           }
           if (f === 0) {
+            const pitchClass = OPEN_PITCH_CLASS[i]
+            const isRoot = rootPc !== undefined && pitchClass === rootPc
+            const color = isRoot ? '#F5B82E' : '#119392'
             return (
-              <circle
-                key={i}
-                cx={stringX(i)}
-                cy={TOP_PAD + MARKER_AREA * 0.5}
-                r={5.5}
-                fill="none"
-                stroke={rootPc !== undefined && OPEN_PITCH_CLASS[i] === rootPc ? '#F5B82E' : '#119392'}
-                strokeWidth={2}
-              />
+              <g key={i}>
+                <circle
+                  cx={stringX(i)}
+                  cy={TOP_PAD + MARKER_AREA * 0.5}
+                  r={8}
+                  fill="none"
+                  stroke={color}
+                  strokeWidth={2}
+                />
+                <text
+                  x={stringX(i)}
+                  y={TOP_PAD + MARKER_AREA * 0.5}
+                  textAnchor="middle"
+                  dominantBaseline="central"
+                  fontSize={7.5}
+                  fontWeight="700"
+                  fontFamily="Inter, sans-serif"
+                  fill={color}
+                >
+                  {findSpelling(pitchClass, notes)}
+                </text>
+              </g>
             )
           }
           return null
@@ -170,15 +203,28 @@ export default function GuitarDisplay({ root, shape }) {
           const pitchClass = (OPEN_PITCH_CLASS[i] + f) % 12
           const isRoot = pitchClass === rootPc
           return (
-            <circle
-              key={i}
-              cx={stringX(i)}
-              cy={fretRowY(row) - FRET_HEIGHT / 2}
-              r={DOT_RADIUS}
-              fill={isRoot ? '#F5B82E' : '#119392'}
-              stroke="#fff"
-              strokeWidth={1.5}
-            />
+            <g key={i}>
+              <circle
+                cx={stringX(i)}
+                cy={fretRowY(row) - FRET_HEIGHT / 2}
+                r={DOT_RADIUS}
+                fill={isRoot ? '#F5B82E' : '#119392'}
+                stroke="#fff"
+                strokeWidth={1.5}
+              />
+              <text
+                x={stringX(i)}
+                y={fretRowY(row) - FRET_HEIGHT / 2}
+                textAnchor="middle"
+                dominantBaseline="central"
+                fontSize={9}
+                fontWeight="700"
+                fontFamily="Inter, sans-serif"
+                fill={isRoot ? '#7a5500' : '#ffffff'}
+              >
+                {findSpelling(pitchClass, notes)}
+              </text>
+            </g>
           )
         })}
       </svg>
