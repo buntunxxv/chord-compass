@@ -1,11 +1,13 @@
 import { useState, useMemo, useEffect, useRef } from 'react'
 import { Chord } from 'tonal'
 import { CHORD_DATA } from './chordData'
+import { GUITAR_SHAPES } from './guitarData'
 import { buildChordSymbol } from './components/ChordSelector'
 import { useTheme } from './hooks/useTheme'
 import ChordSelector from './components/ChordSelector'
 import ChordOutputPanel from './components/ChordOutputPanel'
 import PianoDisplay from './components/PianoDisplay'
+import GuitarDisplay from './components/GuitarDisplay'
 import NextChordSuggestions from './components/NextChordSuggestions'
 import ProgressionStrip from './components/ProgressionStrip'
 import FeedbackPanel from './components/FeedbackPanel'
@@ -249,6 +251,12 @@ export default function App() {
             previewNotes={pianoPreviewNotes}
           />
         </section>
+
+        {available && (
+          <section className="app__section">
+            <GuitarDisplay root={root} shape={GUITAR_SHAPES[dataKey]} />
+          </section>
+        )}
 
         {available && chordEntry?.next && (
           <section className="app__section">
