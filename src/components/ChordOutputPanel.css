@@ -33,7 +33,6 @@
   justify-content: space-between;
   gap: 12px;
   flex-wrap: wrap;
-  margin-bottom: 16px;
 }
 
 .chord-output__name {
@@ -43,11 +42,11 @@
   letter-spacing: -0.02em;
 }
 
-.chord-output__actions {
+.chord-output__add-row {
   display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
+  justify-content: flex-end;
+  margin-top: 8px;
+  margin-bottom: 16px;
 }
 
 .chord-output__add-btn {
@@ -102,6 +101,7 @@
 .chord-output__row {
   display: flex;
   align-items: baseline;
+  flex-wrap: wrap;
   gap: 12px;
   padding: 8px 0;
   border-top: 1px solid var(--border);
@@ -118,6 +118,11 @@
   text-transform: uppercase;
   color: var(--text-muted);
   min-width: 68px;
+}
+
+.chord-output__row-label--inline {
+  min-width: auto;
+  margin-left: 8px;
 }
 
 .chord-output__row-value {

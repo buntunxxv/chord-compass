@@ -102,7 +102,7 @@ function resolveKeyStyle(note, notes, root, previewNotes, defaultFill) {
   return { fill: defaultFill, active: false, shared: false, textFill: '#aaaaaa', spelling: null }
 }
 
-export default function PianoDisplay({ chordNotes, previewNotes }) {
+export default function PianoDisplay({ chordNotes, previewNotes, compact }) {
   const notes = chordNotes || []
   // The first note in a chord's data is always its root (by convention)
   const root = notes.length > 0 ? notes[0] : null
@@ -131,8 +131,8 @@ export default function PianoDisplay({ chordNotes, previewNotes }) {
   }, [])
 
   return (
-    <div className="piano-display" id="wt-piano">
-      <h2 className="piano-display__title">On the Keys</h2>
+    <div className={`piano-display ${compact ? 'piano-display--compact' : ''}`} id="wt-piano">
+      {!compact && <h2 className="piano-display__title">On the Keys</h2>}
       <svg
         viewBox={`0 0 ${SVG_WIDTH} ${SVG_HEIGHT}`}
         xmlns="http://www.w3.org/2000/svg"
@@ -287,7 +287,7 @@ export default function PianoDisplay({ chordNotes, previewNotes }) {
         </text>
       </svg>
 
-      {hasPreview && (
+      {hasPreview && !compact && (
         <div className="piano-display__legend">
           <span className="piano-display__legend-item">
             <span className="piano-display__legend-dot piano-display__legend-dot--current" /> Current chord

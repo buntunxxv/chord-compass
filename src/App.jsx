@@ -6,8 +6,6 @@ import { buildChordSymbol } from './components/ChordSelector'
 import { useTheme } from './hooks/useTheme'
 import ChordSelector from './components/ChordSelector'
 import ChordOutputPanel from './components/ChordOutputPanel'
-import PianoDisplay from './components/PianoDisplay'
-import GuitarDisplay from './components/GuitarDisplay'
 import NextChordSuggestions from './components/NextChordSuggestions'
 import ProgressionStrip from './components/ProgressionStrip'
 import FeedbackPanel from './components/FeedbackPanel'
@@ -245,19 +243,6 @@ export default function App() {
           />
         </section>
 
-        <section className="app__section">
-          <PianoDisplay
-            chordNotes={pianoNotes}
-            previewNotes={pianoPreviewNotes}
-          />
-        </section>
-
-        {available && (
-          <section className="app__section">
-            <GuitarDisplay root={root} shape={GUITAR_SHAPES[dataKey]} />
-          </section>
-        )}
-
         {available && chordEntry?.next && (
           <section className="app__section">
             <NextChordSuggestions
@@ -288,6 +273,10 @@ export default function App() {
         onSelectLastChord={handleSelectLastChord}
         teaserMessage={progressionTeaser}
         onPlayingChordChange={setPlayingChordNotes}
+        chordNotes={pianoNotes}
+        previewNotes={pianoPreviewNotes}
+        root={root}
+        guitarShape={GUITAR_SHAPES[dataKey]}
       />
 
       {/* Feedback panel — state persists while closed */}

@@ -2,6 +2,7 @@ import { useState, useRef } from 'react'
 import * as Tone from 'tone'
 import { createKeysSynth } from '../audio/synth'
 import { voiceLeadProgression } from '../utils/voiceLeading'
+import InstrumentDock from './InstrumentDock'
 import './ProgressionStrip.css'
 
 const BPM_MIN = 60
@@ -13,7 +14,7 @@ function snapBpm(val) {
   return Math.abs(val - BPM_MID) <= SNAP_THRESHOLD ? BPM_MID : val
 }
 
-export default function ProgressionStrip({ progression, bpm, onBpmChange, onClear, onRemoveLast, onSelectLastChord, teaserMessage, onPlayingChordChange }) {
+export default function ProgressionStrip({ progression, bpm, onBpmChange, onClear, onRemoveLast, onSelectLastChord, teaserMessage, onPlayingChordChange, chordNotes, previewNotes, root, guitarShape }) {
   const [activeIndex, setActiveIndex] = useState(null)
   const [isPlaying, setIsPlaying] = useState(false)
   const synthRef = useRef(null)
@@ -55,6 +56,13 @@ export default function ProgressionStrip({ progression, bpm, onBpmChange, onClea
 
   return (
     <div className="progression-strip" id="wt-progression">
+      <InstrumentDock
+        chordNotes={chordNotes}
+        previewNotes={previewNotes}
+        root={root}
+        guitarShape={guitarShape}
+      />
+
       {teaserMessage && (
         <div className="progression-strip__teaser">🔒 {teaserMessage}</div>
       )}
