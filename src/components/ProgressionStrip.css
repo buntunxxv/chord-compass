@@ -35,13 +35,19 @@
   min-width: 140px;
 }
 
+.progression-strip__chart-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  min-width: 140px;
+}
+
 .progression-strip__chart {
   display: flex;
   flex-wrap: nowrap;
   border: 1.5px solid var(--border);
   border-radius: 8px;
-  flex: 1;
-  min-width: 140px;
 }
 
 .progression-strip__slot {
@@ -212,7 +218,7 @@
     display: none;
   }
 
-  .progression-strip__chart,
+  .progression-strip__chart-group,
   .progression-strip__empty {
     flex: 1 0 100%;
     order: 1;

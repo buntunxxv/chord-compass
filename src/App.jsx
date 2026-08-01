@@ -78,6 +78,11 @@ export default function App() {
   })
   const [progressionTeaser, setProgressionTeaser] = useState('')
   const teaserTimeoutRef = useRef(null)
+  const [isPro, setIsPro] = useState(false)
+
+  useEffect(() => {
+    setIsPro(localStorage.getItem('kcc_tier') === 'pro')
+  }, [])
   const [playingChordNotes, setPlayingChordNotes] = useState(null)
   const { preference: themePreference, resolvedTheme, setPreference: setThemePreference } = useTheme()
 
@@ -98,7 +103,7 @@ export default function App() {
   }, [progression])
 
   function addToProgression(chord, notes) {
-    if (progression.length >= PROGRESSION_LIMIT) {
+    if (!isPro && progression.length >= PROGRESSION_LIMIT) {
       setProgressionTeaser(PROGRESSION_TEASER)
       if (teaserTimeoutRef.current) clearTimeout(teaserTimeoutRef.current)
       teaserTimeoutRef.current = setTimeout(() => setProgressionTeaser(''), 4000)
