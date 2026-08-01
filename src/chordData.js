@@ -57,7 +57,33 @@ export const CHORD_DATA = {
   "Bm7": { notes: ["B3","D4","F#4","A4"], next: [{ chord: "Em7", notes: ["E4","G4","B4","D5"], label: "Darker" }, { chord: "Gmaj7", notes: ["G3","B3","D4","F#4"], label: "Opens out" }, { chord: "Dmaj7", notes: ["D4","F#4","A4","C#5"], label: "Familiar" }] },
   "Badd9": { notes: ["B3","D#4","F#4","C#5"], next: [{ chord: "F#", notes: ["F#4","A#4","C#5"], label: "Opens out" }, { chord: "G#m", notes: ["G#3","B3","D#4"], label: "Familiar" }, { chord: "Emaj7", notes: ["E3","G#3","B3","D#4"], label: "Lift" }] },
   "Bsus2": { notes: ["B3","C#4","F#4"], next: [{ chord: "B", notes: ["B3","D#4","F#4"], label: "Resolution" }, { chord: "F#", notes: ["F#4","A#4","C#5"], label: "Moves forward" }, { chord: "G#m", notes: ["G#3","B3","D#4"], label: "Familiar" }] },
-  "Bsus4": { notes: ["B3","E4","F#4"], next: [{ chord: "B", notes: ["B3","D#4","F#4"], label: "Resolution" }, { chord: "G#m", notes: ["G#3","B3","D#4"], label: "Familiar" }, { chord: "F#", notes: ["F#4","A#4","C#5"], label: "Moves forward" }] }
+  "Bsus4": { notes: ["B3","E4","F#4"], next: [{ chord: "B", notes: ["B3","D#4","F#4"], label: "Resolution" }, { chord: "G#m", notes: ["G#3","B3","D#4"], label: "Familiar" }, { chord: "F#", notes: ["F#4","A#4","C#5"], label: "Moves forward" }] },
+
+  // Accidental roots (Decision Log 2026-07-09): major/minor triads for all 10 sharps/flats,
+  // each spelled distinctly (not enharmonic-reused) — C#, Db, D#, Eb, F#, Gb, G#, Ab, A#, Bb.
+  // Free for all users, matching the same vi/IV/V and iv/bVI/bIII movement pattern as the
+  // natural roots above. Notes generated via Tonal.js with practical enharmonic spelling
+  // (e.g. B# shown as C) and verified against the Voicing Rule.
+  "C# major": { notes: ["C#4","F4","G#4"], next: [{ chord: "A#m", notes: ["A#3","C#4","F4"], label: "Familiar" }, { chord: "F#", notes: ["F#3","A#3","C#4"], label: "Opens out" }, { chord: "G#", notes: ["G#3","C4","D#4"], label: "Moves forward" }] },
+  "C# minor": { notes: ["C#4","E4","G#4"], next: [{ chord: "F#m", notes: ["F#3","A3","C#4"], label: "Darker" }, { chord: "A", notes: ["A3","C#4","E4"], label: "Opens out" }, { chord: "E", notes: ["E4","G#4","B4"], label: "Familiar" }] },
+  "Db major": { notes: ["Db4","F4","Ab4"], next: [{ chord: "Bbm", notes: ["Bb3","Db4","F4"], label: "Familiar" }, { chord: "Gb", notes: ["Gb3","Bb3","Db4"], label: "Opens out" }, { chord: "Ab", notes: ["Ab3","C4","Eb4"], label: "Moves forward" }] },
+  "Db minor": { notes: ["Db4","E4","Ab4"], next: [{ chord: "Gbm", notes: ["Gb3","A3","Db4"], label: "Darker" }, { chord: "A", notes: ["A3","C#4","E4"], label: "Opens out" }, { chord: "E", notes: ["E4","G#4","B4"], label: "Familiar" }] },
+  "D# major": { notes: ["D#4","G4","A#4"], next: [{ chord: "Cm", notes: ["C4","Eb4","G4"], label: "Familiar" }, { chord: "G#", notes: ["G#3","C4","D#4"], label: "Opens out" }, { chord: "A#", notes: ["A#3","D4","F4"], label: "Moves forward" }] },
+  "D# minor": { notes: ["D#4","F#4","A#4"], next: [{ chord: "G#m", notes: ["G#3","B3","D#4"], label: "Darker" }, { chord: "B", notes: ["B3","D#4","F#4"], label: "Opens out" }, { chord: "F#", notes: ["F#3","A#3","C#4"], label: "Familiar" }] },
+  "Eb major": { notes: ["Eb4","G4","Bb4"], next: [{ chord: "Cm", notes: ["C4","Eb4","G4"], label: "Familiar" }, { chord: "Ab", notes: ["Ab3","C4","Eb4"], label: "Opens out" }, { chord: "Bb", notes: ["Bb3","D4","F4"], label: "Moves forward" }] },
+  "Eb minor": { notes: ["Eb4","Gb4","Bb4"], next: [{ chord: "Abm", notes: ["Ab3","B3","Eb4"], label: "Darker" }, { chord: "B", notes: ["B3","D#4","F#4"], label: "Opens out" }, { chord: "Gb", notes: ["Gb3","Bb3","Db4"], label: "Familiar" }] },
+  "F# major": { notes: ["F#3","A#3","C#4"], next: [{ chord: "D#m", notes: ["D#4","F#4","A#4"], label: "Familiar" }, { chord: "B", notes: ["B3","D#4","F#4"], label: "Opens out" }, { chord: "C#", notes: ["C#4","F4","G#4"], label: "Moves forward" }] },
+  "F# minor": { notes: ["F#3","A3","C#4"], next: [{ chord: "Bm", notes: ["B3","D4","F#4"], label: "Darker" }, { chord: "D", notes: ["D4","F#4","A4"], label: "Opens out" }, { chord: "A", notes: ["A3","C#4","E4"], label: "Familiar" }] },
+  "Gb major": { notes: ["Gb3","Bb3","Db4"], next: [{ chord: "Ebm", notes: ["Eb4","Gb4","Bb4"], label: "Familiar" }, { chord: "B", notes: ["B3","D#4","F#4"], label: "Opens out" }, { chord: "Db", notes: ["Db4","F4","Ab4"], label: "Moves forward" }] },
+  "Gb minor": { notes: ["Gb3","A3","Db4"], next: [{ chord: "Bm", notes: ["B3","D4","F#4"], label: "Darker" }, { chord: "D", notes: ["D4","F#4","A4"], label: "Opens out" }, { chord: "A", notes: ["A3","C#4","E4"], label: "Familiar" }] },
+  "G# major": { notes: ["G#3","C4","D#4"], next: [{ chord: "Fm", notes: ["F3","Ab3","C4"], label: "Familiar" }, { chord: "C#", notes: ["C#4","F4","G#4"], label: "Opens out" }, { chord: "D#", notes: ["D#4","G4","A#4"], label: "Moves forward" }] },
+  "G# minor": { notes: ["G#3","B3","D#4"], next: [{ chord: "C#m", notes: ["C#4","E4","G#4"], label: "Darker" }, { chord: "E", notes: ["E4","G#4","B4"], label: "Opens out" }, { chord: "B", notes: ["B3","D#4","F#4"], label: "Familiar" }] },
+  "Ab major": { notes: ["Ab3","C4","Eb4"], next: [{ chord: "Fm", notes: ["F3","Ab3","C4"], label: "Familiar" }, { chord: "Db", notes: ["Db4","F4","Ab4"], label: "Opens out" }, { chord: "Eb", notes: ["Eb4","G4","Bb4"], label: "Moves forward" }] },
+  "Ab minor": { notes: ["Ab3","B3","Eb4"], next: [{ chord: "Dbm", notes: ["Db4","E4","Ab4"], label: "Darker" }, { chord: "E", notes: ["E4","G#4","B4"], label: "Opens out" }, { chord: "B", notes: ["B3","D#4","F#4"], label: "Familiar" }] },
+  "A# major": { notes: ["A#3","D4","F4"], next: [{ chord: "Gm", notes: ["G3","Bb3","D4"], label: "Familiar" }, { chord: "D#", notes: ["D#4","G4","A#4"], label: "Opens out" }, { chord: "F", notes: ["F3","A3","C4"], label: "Moves forward" }] },
+  "A# minor": { notes: ["A#3","C#4","F4"], next: [{ chord: "D#m", notes: ["D#4","F#4","A#4"], label: "Darker" }, { chord: "F#", notes: ["F#3","A#3","C#4"], label: "Opens out" }, { chord: "C#", notes: ["C#4","F4","G#4"], label: "Familiar" }] },
+  "Bb major": { notes: ["Bb3","D4","F4"], next: [{ chord: "Gm", notes: ["G3","Bb3","D4"], label: "Familiar" }, { chord: "Eb", notes: ["Eb4","G4","Bb4"], label: "Opens out" }, { chord: "F", notes: ["F3","A3","C4"], label: "Moves forward" }] },
+  "Bb minor": { notes: ["Bb3","Db4","F4"], next: [{ chord: "Ebm", notes: ["Eb4","Gb4","Bb4"], label: "Darker" }, { chord: "Gb", notes: ["Gb3","Bb3","Db4"], label: "Opens out" }, { chord: "Db", notes: ["Db4","F4","Ab4"], label: "Familiar" }] }
 };
 
 export const LABEL_COLORS = {

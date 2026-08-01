@@ -1,7 +1,5 @@
 import { Chord } from 'tonal'
-import { Link } from 'react-router-dom'
 import { CHORD_DATA } from '../chordData'
-import { logEvent } from '../analytics/events'
 import Dropdown from './Dropdown'
 import './ChordSelector.css'
 
@@ -22,8 +20,8 @@ function hasData(root, quality, extension) {
   return key !== null && key in CHORD_DATA
 }
 
-const ROOTS = ['C', 'D', 'E', 'F', 'G', 'A', 'B']
-const ROOT_DISPLAY = ['C', 'D', 'E', 'F', 'G', 'A', 'B']
+const ROOTS = ['C', 'C#', 'Db', 'D', 'D#', 'Eb', 'E', 'F', 'F#', 'Gb', 'G', 'G#', 'Ab', 'A', 'A#', 'Bb', 'B']
+const ROOT_DISPLAY = ['C', 'C#', 'Db', 'D', 'D#', 'Eb', 'E', 'F', 'F#', 'Gb', 'G', 'G#', 'Ab', 'A', 'A#', 'Bb', 'B']
 
 const QUALITIES = [
   { value: 'major', label: 'Major', tonal: 'M' },
@@ -98,15 +96,6 @@ export default function ChordSelector({ root, quality, extension, onChange }) {
               disabled: !hasData(r, quality, extension),
             }))}
           />
-          <Link
-            to="/upgrade"
-            className="chord-selector__pro-lock"
-            title="Sharp and flat root notes are available in Chord Compass Pro"
-            onClick={() => logEvent('upgrade_cta_click', { source: 'root_selector' })}
-          >
-            <span className="chord-selector__pro-lock-icon">🔒</span>
-            C♯ D♯ F♯ G♯ A♯ + flats — Pro
-          </Link>
         </div>
 
         <div className="chord-selector__field" id="wt-quality">
