@@ -65,9 +65,9 @@ export default function UpgradePage() {
           <div className="upgrade-page__plan upgrade-page__plan--highlight">
             <div className="upgrade-page__plan-badge">Founder Access</div>
             <div className="upgrade-page__plan-price">
-              <span className="upgrade-page__plan-amount">£9–£19</span>
+              <span className="upgrade-page__plan-amount">£9</span>
             </div>
-            <p className="upgrade-page__plan-note">One-time payment — final price TBD</p>
+            <p className="upgrade-page__plan-note">One-time payment — £9</p>
             <p className="upgrade-page__plan-blurb">You're backing the build, not paying for a finished product.</p>
             <button className="upgrade-page__cta-btn" disabled>
               Coming soon
