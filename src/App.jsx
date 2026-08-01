@@ -258,6 +258,7 @@ export default function App() {
               onPreviewChange={setPreviewIndex}
               onAddToProgression={addToProgression}
               theme={resolvedTheme}
+              isPro={isPro}
             />
           </section>
         )}

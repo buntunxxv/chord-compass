@@ -133,6 +133,13 @@
   color: var(--teal);
 }
 
+.next-chords__pro-teaser {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-style: italic;
+  margin-top: 10px;
+}
+
 .next-chords__upgrade-cta {
   display: flex;
   align-items: center;

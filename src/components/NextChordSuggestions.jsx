@@ -7,7 +7,7 @@ import { formatNoteNames } from '../utils/formatNotes'
 import { logEvent } from '../analytics/events'
 import './NextChordSuggestions.css'
 
-export default function NextChordSuggestions({ suggestions, currentNotes, bpm, previewIndex, onPreviewChange, onAddToProgression, theme }) {
+export default function NextChordSuggestions({ suggestions, currentNotes, bpm, previewIndex, onPreviewChange, onAddToProgression, theme, isPro }) {
   const labelColors = theme === 'dark' ? LABEL_COLORS_DARK : LABEL_COLORS
   const labelFallback = theme === 'dark' ? { bg: '#2a2a2a', text: '#bbb' } : { bg: '#f0f0f0', text: '#555' }
   const [playingIndex, setPlayingIndex] = useState(null)
@@ -49,13 +49,15 @@ export default function NextChordSuggestions({ suggestions, currentNotes, bpm, p
     return null
   }
 
-  const selected = previewIndex != null ? suggestions[previewIndex] : null
+  const visibleSuggestions = suggestions.slice(0, isPro ? 5 : 3)
+  const hasMoreForPro = !isPro && suggestions.length > visibleSuggestions.length
+  const selected = previewIndex != null ? visibleSuggestions[previewIndex] : null
 
   return (
     <div className="next-chords" id="wt-next-chords">
       <h2 className="next-chords__title">Choose your next move</h2>
       <div className="next-chords__tabs">
-        {suggestions.map((s, i) => {
+        {visibleSuggestions.map((s, i) => {
           const labelStyle = labelColors[s.label] || labelFallback
           const isSelected = previewIndex === i
           return (
@@ -77,6 +79,10 @@ export default function NextChordSuggestions({ suggestions, currentNotes, bpm, p
           )
         })}
       </div>
+
+      {hasMoreForPro && (
+        <p className="next-chords__pro-teaser">2 more directions available in Chord Compass Pro.</p>
+      )}
 
       {selected && (() => {
         const i = previewIndex
@@ -114,14 +120,16 @@ export default function NextChordSuggestions({ suggestions, currentNotes, bpm, p
         )
       })()}
 
-      <Link
-        to="/upgrade"
-        className="next-chords__upgrade-cta"
-        onClick={() => logEvent('upgrade_cta_click', { source: 'next_chords' })}
-      >
-        <span className="next-chords__upgrade-lock">🔒</span>
-        <span>Future Pro: unlock more chord directions</span>
-      </Link>
+      {!isPro && (
+        <Link
+          to="/upgrade"
+          className="next-chords__upgrade-cta"
+          onClick={() => logEvent('upgrade_cta_click', { source: 'next_chords' })}
+        >
+          <span className="next-chords__upgrade-lock">🔒</span>
+          <span>Future Pro: unlock more chord directions</span>
+        </Link>
+      )}
     </div>
   )
 }
