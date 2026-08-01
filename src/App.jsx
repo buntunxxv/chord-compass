@@ -120,9 +120,9 @@ export default function App() {
     setProgression(prev => prev.slice(0, -1))
   }
 
-  // Parse a chord display name back into selector state (natural roots only)
+  // Parse a chord display name back into selector state
   function chordNameToSelection(name) {
-    const m = name.match(/^([A-G])(m7|maj7|m|add9|sus2|sus4|7|)$/)
+    const m = name.match(/^([A-G][#b]?)(m7|maj7|m|add9|sus2|sus4|7|)$/)
     if (!m) return null
     const [, root, suffix] = m
     const map = {
