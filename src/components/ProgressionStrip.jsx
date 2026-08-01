@@ -9,9 +9,18 @@ const BPM_MIN = 60
 const BPM_MAX = 140
 const BPM_MID = 100
 const SNAP_THRESHOLD = 4
+const CHORDS_PER_ROW = 4
 
 function snapBpm(val) {
   return Math.abs(val - BPM_MID) <= SNAP_THRESHOLD ? BPM_MID : val
+}
+
+function chunkIntoRows(items, size) {
+  const rows = []
+  for (let i = 0; i < items.length; i += size) {
+    rows.push(items.slice(i, i + size))
+  }
+  return rows
 }
 
 export default function ProgressionStrip({ progression, bpm, onBpmChange, onClear, onRemoveLast, onSelectLastChord, teaserMessage, onPlayingChordChange, chordNotes, previewNotes, root, guitarShape }) {
@@ -73,21 +82,26 @@ export default function ProgressionStrip({ progression, bpm, onBpmChange, onClea
         {progression.length === 0 ? (
           <p className="progression-strip__empty">Add chords above to build a sequence</p>
         ) : (
-          <div className="progression-strip__chart">
-            {progression.map((entry, i) => {
-              const isLast = i === progression.length - 1
-              const tappable = isLast && !isPlaying
-              return (
-                <span
-                  key={i}
-                  className={`progression-strip__slot ${activeIndex === i ? 'progression-strip__slot--active' : ''} ${tappable ? 'progression-strip__slot--tappable' : ''}`}
-                  onClick={tappable ? () => onSelectLastChord?.(entry.chord) : undefined}
-                  title={tappable ? `Set ${entry.chord} as active chord` : undefined}
-                >
-                  {entry.chord}
-                </span>
-              )
-            })}
+          <div className="progression-strip__chart-group">
+            {chunkIntoRows(progression, CHORDS_PER_ROW).map((row, rowIndex) => (
+              <div className="progression-strip__chart" key={rowIndex}>
+                {row.map((entry, i) => {
+                  const globalIndex = rowIndex * CHORDS_PER_ROW + i
+                  const isLast = globalIndex === progression.length - 1
+                  const tappable = isLast && !isPlaying
+                  return (
+                    <span
+                      key={globalIndex}
+                      className={`progression-strip__slot ${activeIndex === globalIndex ? 'progression-strip__slot--active' : ''} ${tappable ? 'progression-strip__slot--tappable' : ''}`}
+                      onClick={tappable ? () => onSelectLastChord?.(entry.chord) : undefined}
+                      title={tappable ? `Set ${entry.chord} as active chord` : undefined}
+                    >
+                      {entry.chord}
+                    </span>
+                  )
+                })}
+              </div>
+            ))}
           </div>
         )}
 
