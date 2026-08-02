@@ -1,6 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
-import * as Tone from 'tone'
-import { createKeysSynth } from '../audio/synth'
+import { createKeysSynth, startAudioContext } from '../audio/synth'
 import './PianoDisplay.css'
 
 // Two octaves, C3–D5, so a chord's notes render at their real pitch
@@ -120,7 +119,7 @@ export default function PianoDisplay({ chordNotes, previewNotes, compact }) {
   }, [])
 
   const playNote = useCallback(async (note) => {
-    await Tone.start()
+    await startAudioContext()
     if (!synthRef.current) {
       synthRef.current = createKeysSynth()
     }

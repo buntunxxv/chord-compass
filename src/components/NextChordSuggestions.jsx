@@ -2,7 +2,7 @@ import { useState, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import * as Tone from 'tone'
 import { LABEL_COLORS, LABEL_COLORS_DARK, LABEL_EXPLANATIONS } from '../chordData'
-import { createKeysSynth } from '../audio/synth'
+import { createKeysSynth, startAudioContext } from '../audio/synth'
 import { formatNoteNames } from '../utils/formatNotes'
 import { logEvent } from '../analytics/events'
 import './NextChordSuggestions.css'
@@ -18,7 +18,7 @@ export default function NextChordSuggestions({ suggestions, currentNotes, bpm, p
     if (playingIndex !== null) return
     setPlayingIndex(index)
 
-    await Tone.start()
+    await startAudioContext()
     Tone.getTransport().bpm.value = bpm
 
     if (!synthRef.current) {
