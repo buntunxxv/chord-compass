@@ -7,6 +7,7 @@ import { useTheme } from './hooks/useTheme'
 import ChordSelector from './components/ChordSelector'
 import ChordOutputPanel from './components/ChordOutputPanel'
 import NextChordSuggestions from './components/NextChordSuggestions'
+import ProgressionTemplates from './components/ProgressionTemplates'
 import ProgressionStrip from './components/ProgressionStrip'
 import FeedbackPanel from './components/FeedbackPanel'
 import WalkthroughOverlay from './components/WalkthroughOverlay'
@@ -81,6 +82,9 @@ export default function App() {
   const [progressionTeaser, setProgressionTeaser] = useState('')
   const teaserTimeoutRef = useRef(null)
   const [isPro, setIsPro] = useState(false)
+  const [templateKeyRoot, setTemplateKeyRoot] = useState('C')
+  const [templateKeyMode, setTemplateKeyMode] = useState('major')
+  const [activeTemplate, setActiveTemplate] = useState(null)
 
   useEffect(() => {
     setIsPro(localStorage.getItem('kcc_tier') === 'pro')
@@ -111,15 +115,29 @@ export default function App() {
       teaserTimeoutRef.current = setTimeout(() => setProgressionTeaser(''), 4000)
       return
     }
+    setActiveTemplate(null)
     setProgression(prev => [...prev, { chord, notes }])
   }
 
   function clearProgression() {
+    setActiveTemplate(null)
     setProgression([])
   }
 
   function removeLast() {
+    setActiveTemplate(null)
     setProgression(prev => prev.slice(0, -1))
+  }
+
+  function loadTemplate(entries, template) {
+    if (!isPro && entries.length > PROGRESSION_LIMIT) {
+      setProgressionTeaser(PROGRESSION_TEASER)
+      if (teaserTimeoutRef.current) clearTimeout(teaserTimeoutRef.current)
+      teaserTimeoutRef.current = setTimeout(() => setProgressionTeaser(''), 4000)
+      return
+    }
+    setProgression(entries)
+    setActiveTemplate({ name: template.name, description: template.description })
   }
 
   // Parse a chord display name back into selector state
@@ -270,6 +288,16 @@ export default function App() {
             <p>This chord combination is not available in Stage 1. Select one of the 12 seed chords to explore suggestions.</p>
           </section>
         )}
+
+        <section className="app__section">
+          <ProgressionTemplates
+            keyRoot={templateKeyRoot}
+            keyMode={templateKeyMode}
+            onKeyRootChange={setTemplateKeyRoot}
+            onKeyModeChange={setTemplateKeyMode}
+            onLoad={loadTemplate}
+          />
+        </section>
       </main>
 
       <ProgressionStrip
@@ -279,6 +307,7 @@ export default function App() {
         onClear={clearProgression}
         onRemoveLast={removeLast}
         onSelectLastChord={handleSelectLastChord}
+        templateInfo={activeTemplate}
         teaserMessage={progressionTeaser}
         onPlayingChordChange={setPlayingChordNotes}
         chordNotes={pianoNotes}

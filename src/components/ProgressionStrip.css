@@ -213,6 +213,21 @@
   padding: 8px 14px;
 }
 
+.progression-strip__template-banner {
+  max-width: 860px;
+  margin: 0 auto 8px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--text-muted);
+  background: var(--suggest-tint);
+  border-radius: 8px;
+  padding: 8px 14px;
+}
+
+.progression-strip__template-banner strong {
+  color: var(--suggest);
+}
+
 @media (max-width: 700px) {
   .progression-strip__label {
     display: none;
