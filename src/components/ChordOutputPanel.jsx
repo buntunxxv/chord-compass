@@ -1,6 +1,5 @@
 import { useState, useRef } from 'react'
-import * as Tone from 'tone'
-import { createKeysSynth } from '../audio/synth'
+import { createKeysSynth, startAudioContext } from '../audio/synth'
 import { formatNoteNames } from '../utils/formatNotes'
 import './ChordOutputPanel.css'
 
@@ -33,12 +32,7 @@ export default function ChordOutputPanel({ chordName, notes, intervals, availabl
     if (playing || !notes || notes.length === 0) return
     setPlaying(true)
 
-    // Use playback audio session on iOS so sound follows device volume
-    // rather than the ringer/silent switch (requires iOS 16.4+)
-    if (navigator.audioSession) {
-      navigator.audioSession.type = 'playback'
-    }
-    await Tone.start()
+    await startAudioContext()
 
     if (!synthRef.current) {
       synthRef.current = createKeysSynth()

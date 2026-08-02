@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react'
 import * as Tone from 'tone'
-import { createKeysSynth } from '../audio/synth'
+import { createKeysSynth, startAudioContext } from '../audio/synth'
 import { voiceLeadProgression } from '../utils/voiceLeading'
 import InstrumentDock from './InstrumentDock'
 import './ProgressionStrip.css'
@@ -32,7 +32,7 @@ export default function ProgressionStrip({ progression, bpm, onBpmChange, onClea
     if (isPlaying || progression.length === 0) return
     setIsPlaying(true)
 
-    await Tone.start()
+    await startAudioContext()
     Tone.getTransport().bpm.value = bpm
 
     if (!synthRef.current) {
