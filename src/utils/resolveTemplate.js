@@ -2,9 +2,9 @@ import { CHORD_DATA } from '../chordData'
 import { DIATONIC_CHORDS } from '../diatonicChords'
 
 // Resolve a progression template (a Roman-numeral degree sequence from
-// progressionTemplates.js) into an actual { chord, notes } sequence for one
-// key, by looking up each degree in DIATONIC_CHORDS. Returns null if the
-// template's mode doesn't match the requested key mode, or if any degree
+// progressionTemplates.js) into an actual { chord, notes, degree } sequence
+// for one key, by looking up each degree in DIATONIC_CHORDS. Returns null if
+// the template's mode doesn't match the requested key mode, or if any degree
 // fails to resolve.
 export function resolveTemplate(template, root, mode) {
   if (!template || template.mode !== mode) return null
@@ -20,6 +20,8 @@ export function resolveTemplate(template, root, mode) {
     // Cadence" use an uppercase "V" that DIATONIC_CHORDS doesn't store --
     // natural minor only has a lowercase "v" (minor 7). Its root always
     // matches that "v" degree; only the quality changes, m7 -> dominant 7.
+    // The returned entry still labels this "V" (the template's own degree
+    // symbol), not the internal "v" used to look up its root.
     if (!chordKey && mode === 'minor' && degree === 'V') {
       const vChord = degreeTable['v']
       const rootMatch = vChord?.match(/^([A-G][#b]?)/)
@@ -28,7 +30,7 @@ export function resolveTemplate(template, root, mode) {
 
     const entry = chordKey ? CHORD_DATA[chordKey] : null
     if (!entry) return null
-    entries.push({ chord: chordKey, notes: entry.notes })
+    entries.push({ chord: chordKey, notes: entry.notes, degree })
   }
 
   return entries
