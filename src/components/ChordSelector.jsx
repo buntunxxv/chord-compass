@@ -11,6 +11,7 @@ function toDataKey(root, quality, extension) {
   if (quality === 'major'     && extension === '7')     return `${root}7`
   if (quality === 'major'     && extension === 'maj7')  return `${root}maj7`
   if (quality === 'minor'     && extension === '7')     return `${root}m7`
+  if (quality === 'diminished' && extension === '7')    return `${root}m7b5`
   if (quality === 'major'     && extension === 'add9')  return `${root}add9`
   if (quality === 'sus2'      && extension === 'none')  return `${root}sus2`
   if (quality === 'sus4'      && extension === 'none')  return `${root}sus4`
@@ -61,7 +62,7 @@ function buildChordSymbol(root, quality, extension) {
   }
   if (quality === 'diminished') {
     if (extension === 'none') return root + 'dim'
-    if (extension === '7') return root + 'dim7'
+    if (extension === '7') return root + 'm7b5'
     return root + 'dim'
   }
   if (quality === 'augmented') {
