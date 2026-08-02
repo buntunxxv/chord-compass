@@ -6,6 +6,8 @@ import './ChordSelector.css'
 function toDataKey(root, quality, extension) {
   if (quality === 'major'     && extension === 'none')  return `${root} major`
   if (quality === 'minor'     && extension === 'none')  return `${root} minor`
+  if (quality === 'diminished' && extension === 'none') return `${root} diminished`
+  if (quality === 'augmented' && extension === 'none') return `${root} augmented`
   if (quality === 'major'     && extension === '7')     return `${root}7`
   if (quality === 'major'     && extension === 'maj7')  return `${root}maj7`
   if (quality === 'minor'     && extension === '7')     return `${root}m7`
