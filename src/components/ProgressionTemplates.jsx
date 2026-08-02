@@ -14,8 +14,7 @@ export default function ProgressionTemplates({ keyRoot, keyMode, onKeyRootChange
     ? PROGRESSION_TEMPLATES
     : PROGRESSION_TEMPLATES.filter(t => t.mood === moodFilter)
 
-  function handleLoad(template) {
-    const entries = resolveTemplate(template, keyRoot, keyMode)
+  function handleLoad(template, entries) {
     if (entries) onLoad(entries, template)
   }
 
@@ -67,18 +66,30 @@ export default function ProgressionTemplates({ keyRoot, keyMode, onKeyRootChange
       <div className="progression-templates__list">
         {visibleTemplates.map(template => {
           const modeMatches = template.mode === keyMode
+          const resolved = modeMatches ? resolveTemplate(template, keyRoot, keyMode) : null
           return (
             <div key={template.name} className="progression-templates__card">
               <div className="progression-templates__card-header">
                 <span className="progression-templates__card-name">{template.name}</span>
                 <span className="progression-templates__mood-badge">{template.mood}</span>
               </div>
-              <span className="progression-templates__degrees">{template.degrees.join(' – ')}</span>
+              {resolved ? (
+                <div className="progression-templates__degrees">
+                  {resolved.map((entry, i) => (
+                    <span key={i} className="progression-templates__resolved-chord">
+                      <span className="progression-templates__resolved-chord-name">{entry.chord}</span>
+                      <span className="progression-templates__degree-pill">{entry.degree}</span>
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <span className="progression-templates__degrees progression-templates__degrees--plain">{template.degrees.join(' – ')}</span>
+              )}
               <p className="progression-templates__description">{template.description}</p>
               <button
                 type="button"
                 className="progression-templates__load-btn"
-                onClick={() => handleLoad(template)}
+                onClick={() => handleLoad(template, resolved)}
                 disabled={!modeMatches}
                 title={modeMatches ? undefined : `Switch to a ${template.mode} key to load this progression`}
               >
