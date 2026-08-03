@@ -2,8 +2,9 @@ import { useState, useMemo, useEffect, useRef } from 'react'
 import { Chord, Note } from 'tonal'
 import { CHORD_DATA } from './chordData'
 import { GUITAR_SHAPES } from './guitarData'
+import { GUITAR_INVERSION_SHAPES } from './guitarInversions'
 import { buildChordSymbol } from './components/ChordSelector'
-import { isSlashEligible, computeSlashNotes, appendSlashSymbol } from './utils/slashChord'
+import { isSlashEligible, computeSlashNotes, appendSlashSymbol, isInChordTone } from './utils/slashChord'
 import { useTheme } from './hooks/useTheme'
 import ChordSelector from './components/ChordSelector'
 import ChordOutputPanel from './components/ChordOutputPanel'
@@ -108,6 +109,16 @@ export default function App() {
   const bassEligible = useMemo(() => isSlashEligible(quality, extension), [quality, extension])
   const effectiveBassNote = isPro && bassEligible ? bassNote : 'none'
   const hasSlashBass = effectiveBassNote !== 'none' && Note.chroma(effectiveBassNote) !== Note.chroma(root)
+
+  // Guitar shapes only exist for true inversions (bass = an existing chord
+  // tone) -- a foreign-bass slash chord changes the chord's actual pitch-
+  // class set and has no fixed fingering template, so it keeps showing the
+  // "coming soon" notice. When an inversion shape wasn't generated either
+  // (see src/guitarInversions.js's skip list), the notice covers that too.
+  const isInversion = hasSlashBass && isInChordTone(chordEntry?.notes, effectiveBassNote)
+  const inversionGuitarShape = isInversion ? GUITAR_INVERSION_SHAPES[dataKey]?.[effectiveBassNote] : null
+  const guitarShapeToShow = hasSlashBass ? inversionGuitarShape : GUITAR_SHAPES[dataKey]
+  const guitarSlashNotice = hasSlashBass && !inversionGuitarShape
 
   // Suggested-chord preview only makes sense for the chord it was shown under
   useEffect(() => {
@@ -342,8 +353,8 @@ export default function App() {
         chordNotes={pianoNotes}
         previewNotes={pianoPreviewNotes}
         root={root}
-        guitarShape={GUITAR_SHAPES[dataKey]}
-        guitarSlashNotice={hasSlashBass}
+        guitarShape={guitarShapeToShow}
+        guitarSlashNotice={guitarSlashNotice}
         isPro={isPro}
       />
 

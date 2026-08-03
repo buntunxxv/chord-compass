@@ -24,6 +24,17 @@ function isRootBass(bassPitchClass, rootPitchClass) {
   return rootPitchClass != null && Note.chroma(bassPitchClass) === Note.chroma(rootPitchClass)
 }
 
+// True chord inversion (bass = one of the chord's own tones) vs a foreign-
+// bass slash chord (bass added on top, not otherwise in the chord) --
+// GUITAR_INVERSION_SHAPES only covers the former, since a foreign bass
+// changes the chord's actual pitch-class set and has no fixed fingering
+// template the way an inversion of the SAME chord tones does.
+export function isInChordTone(baseNotes, bassPitchClass) {
+  if (!baseNotes || baseNotes.length === 0 || !bassPitchClass || bassPitchClass === 'none') return false
+  const bassChroma = Note.chroma(bassPitchClass)
+  return baseNotes.some(n => Note.chroma(n) === bassChroma)
+}
+
 function shiftOctaveUp(note) {
   const n = Note.get(note)
   return `${n.pc}${n.oct + 1}`
