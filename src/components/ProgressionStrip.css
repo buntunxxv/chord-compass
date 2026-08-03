@@ -164,6 +164,7 @@
   font-size: 13px;
   font-weight: 700;
   white-space: nowrap;
+  text-align: center;
   transition: background 0.2s;
 }
 
@@ -189,6 +190,7 @@
   font-size: 13px;
   font-weight: 600;
   white-space: nowrap;
+  text-align: center;
   transition: border-color 0.15s, color 0.15s;
 }
 
@@ -212,6 +214,7 @@
 .progression-strip__pro-btn {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
   background: transparent;
   border: 1.5px solid var(--border);
@@ -221,6 +224,7 @@
   font-size: 13px;
   font-weight: 600;
   white-space: nowrap;
+  text-align: center;
   transition: border-color 0.15s, color 0.15s;
 }
 
@@ -279,6 +283,7 @@
   font-size: 13px;
   font-weight: 700;
   line-height: 1;
+  text-align: center;
 }
 
 .progression-strip__save-confirm-btn {
@@ -310,6 +315,7 @@
   font-weight: 600;
   padding: 4px 2px;
   white-space: nowrap;
+  text-align: center;
 }
 
 .progression-strip__saved-toggle:hover {
@@ -375,6 +381,7 @@
   padding: 7px 14px;
   font-size: 12.5px;
   font-weight: 600;
+  text-align: center;
   transition: background 0.15s, color 0.15s;
 }
 
