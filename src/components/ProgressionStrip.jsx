@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import * as Tone from 'tone'
 import { createKeysSynth, startAudioContext } from '../audio/synth'
 import { voiceLeadProgression } from '../utils/voiceLeading'
@@ -10,6 +10,14 @@ const BPM_MAX = 140
 const BPM_MID = 100
 const SNAP_THRESHOLD = 4
 const CHORDS_PER_ROW = 4
+const SAVED_STORAGE_KEY = 'chordCompassSavedProgressions'
+const CONFIRMATION_MS = 1500
+
+function formatProgressionText(progression) {
+  return progression
+    .map(entry => (entry.degree ? `${entry.chord} (${entry.degree})` : entry.chord))
+    .join(' – ')
+}
 
 function snapBpm(val) {
   return Math.abs(val - BPM_MID) <= SNAP_THRESHOLD ? BPM_MID : val
@@ -23,10 +31,76 @@ function chunkIntoRows(items, size) {
   return rows
 }
 
-export default function ProgressionStrip({ progression, bpm, onBpmChange, onClear, onRemoveLast, onSelectLastChord, teaserMessage, onPlayingChordChange, chordNotes, previewNotes, root, guitarShape, templateInfo }) {
+export default function ProgressionStrip({ progression, bpm, onBpmChange, onClear, onRemoveLast, onSelectLastChord, onLoadSaved, teaserMessage, onPlayingChordChange, chordNotes, previewNotes, root, guitarShape, templateInfo, isPro }) {
   const [activeIndex, setActiveIndex] = useState(null)
   const [isPlaying, setIsPlaying] = useState(false)
   const synthRef = useRef(null)
+
+  const [savedProgressions, setSavedProgressions] = useState(() => {
+    try {
+      const stored = localStorage.getItem(SAVED_STORAGE_KEY)
+      return stored ? JSON.parse(stored) : []
+    } catch {
+      return []
+    }
+  })
+  const [showSaveInput, setShowSaveInput] = useState(false)
+  const [saveName, setSaveName] = useState('')
+  const [justSaved, setJustSaved] = useState(false)
+  const [justCopied, setJustCopied] = useState(false)
+  const [showSavedPanel, setShowSavedPanel] = useState(false)
+  const saveInputRef = useRef(null)
+
+  useEffect(() => {
+    localStorage.setItem(SAVED_STORAGE_KEY, JSON.stringify(savedProgressions))
+  }, [savedProgressions])
+
+  useEffect(() => {
+    if (showSaveInput) saveInputRef.current?.focus()
+  }, [showSaveInput])
+
+  function handleSaveClick() {
+    if (!isPro || progression.length === 0) return
+    setSaveName('')
+    setShowSaveInput(true)
+  }
+
+  function handleConfirmSave() {
+    const name = saveName.trim()
+    if (!name) return
+    setSavedProgressions(prev => [...prev, { name, chords: progression, savedAt: Date.now() }])
+    setShowSaveInput(false)
+    setSaveName('')
+    setJustSaved(true)
+    setTimeout(() => setJustSaved(false), CONFIRMATION_MS)
+  }
+
+  function handleCancelSave() {
+    setShowSaveInput(false)
+    setSaveName('')
+  }
+
+  function handleSaveKeyDown(e) {
+    if (e.key === 'Enter') handleConfirmSave()
+    if (e.key === 'Escape') handleCancelSave()
+  }
+
+  async function handleExportClick() {
+    if (!isPro || progression.length === 0) return
+    const text = formatProgressionText(progression)
+    try {
+      await navigator.clipboard.writeText(text)
+      setJustCopied(true)
+      setTimeout(() => setJustCopied(false), CONFIRMATION_MS)
+    } catch {
+      // Clipboard access denied or unavailable — nothing more we can do here
+    }
+  }
+
+  function handleLoadSaved(chords) {
+    onLoadSaved?.(chords)
+    setShowSavedPanel(false)
+  }
 
   async function handlePlay() {
     if (isPlaying || progression.length === 0) return
@@ -136,6 +210,74 @@ export default function ProgressionStrip({ progression, bpm, onBpmChange, onClea
         >
           {isPlaying ? '♪ Playing…' : '▶ Play'}
         </button>
+
+        <div className="progression-strip__pro-group">
+          {showSaveInput ? (
+            <div className="progression-strip__save-inline">
+              <input
+                ref={saveInputRef}
+                type="text"
+                className="progression-strip__save-input"
+                placeholder="Name this progression"
+                value={saveName}
+                onChange={e => setSaveName(e.target.value)}
+                onKeyDown={handleSaveKeyDown}
+                maxLength={60}
+              />
+              <button
+                className="progression-strip__save-confirm-btn"
+                onClick={handleConfirmSave}
+                disabled={!saveName.trim()}
+                aria-label="Confirm save"
+              >
+                ✓
+              </button>
+              <button
+                className="progression-strip__save-cancel-btn"
+                onClick={handleCancelSave}
+                aria-label="Cancel save"
+              >
+                ✕
+              </button>
+            </div>
+          ) : isPro ? (
+            <button
+              className="progression-strip__pro-btn"
+              onClick={handleSaveClick}
+              disabled={progression.length === 0}
+            >
+              {justSaved ? 'Saved!' : 'Save'}
+            </button>
+          ) : (
+            <button className="progression-strip__pro-btn progression-strip__pro-btn--locked" disabled>
+              Save <span className="progression-strip__pro-badge">PRO</span>
+            </button>
+          )}
+
+          {isPro ? (
+            <button
+              className="progression-strip__pro-btn"
+              onClick={handleExportClick}
+              disabled={progression.length === 0}
+            >
+              {justCopied ? 'Copied!' : 'Export'}
+            </button>
+          ) : (
+            <button className="progression-strip__pro-btn progression-strip__pro-btn--locked" disabled>
+              Export <span className="progression-strip__pro-badge">PRO</span>
+            </button>
+          )}
+
+          {isPro && savedProgressions.length > 0 && (
+            <button
+              className="progression-strip__saved-toggle"
+              onClick={() => setShowSavedPanel(o => !o)}
+            >
+              Saved ({savedProgressions.length}) {showSavedPanel ? '▲' : '▼'}
+            </button>
+          )}
+        </div>
+
         {progression.length > 0 && (
           <div className="progression-strip__clear-group">
             <button
@@ -153,6 +295,27 @@ export default function ProgressionStrip({ progression, bpm, onBpmChange, onClea
           </div>
         )}
       </div>
+
+      {isPro && showSavedPanel && savedProgressions.length > 0 && (
+        <div className="progression-strip__saved-panel">
+          <ul className="progression-strip__saved-list">
+            {savedProgressions.map((saved, i) => (
+              <li key={i} className="progression-strip__saved-item">
+                <div className="progression-strip__saved-info">
+                  <span className="progression-strip__saved-name">{saved.name}</span>
+                  <span className="progression-strip__saved-chords">{formatProgressionText(saved.chords)}</span>
+                </div>
+                <button
+                  className="progression-strip__saved-load-btn"
+                  onClick={() => handleLoadSaved(saved.chords)}
+                >
+                  Load
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   )
 }

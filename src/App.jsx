@@ -142,6 +142,11 @@ export default function App() {
     setActiveTemplate({ name: template.name, description: template.description })
   }
 
+  function loadSavedProgression(chords) {
+    setActiveTemplate(null)
+    setProgression(chords)
+  }
+
   // Parse a chord display name back into selector state
   function chordNameToSelection(name) {
     const m = name.match(/^([A-G][#b]?)(m7|maj7|m|add9|sus2|sus4|7|)$/)
@@ -309,6 +314,7 @@ export default function App() {
         onClear={clearProgression}
         onRemoveLast={removeLast}
         onSelectLastChord={handleSelectLastChord}
+        onLoadSaved={loadSavedProgression}
         templateInfo={activeTemplate}
         teaserMessage={progressionTeaser}
         onPlayingChordChange={setPlayingChordNotes}
@@ -316,6 +322,7 @@ export default function App() {
         previewNotes={pianoPreviewNotes}
         root={root}
         guitarShape={GUITAR_SHAPES[dataKey]}
+        isPro={isPro}
       />
 
       {/* Feedback panel — state persists while closed */}
