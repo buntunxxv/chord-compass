@@ -1,5 +1,6 @@
 import { Chord } from 'tonal'
 import { CHORD_DATA } from '../chordData'
+import { BASS_NOTE_PITCH_CLASSES, isSlashEligible } from '../utils/slashChord'
 import Dropdown from './Dropdown'
 import './ChordSelector.css'
 
@@ -44,6 +45,11 @@ const EXTENSIONS = [
   { value: 'dim7', label: 'dim7', tonal: 'dim7' },
 ]
 
+const BASS_NOTE_OPTIONS = [
+  { value: 'none', label: 'None' },
+  ...BASS_NOTE_PITCH_CLASSES.map(n => ({ value: n, label: n })),
+]
+
 // Map our selection to a Tonal chord symbol
 function buildChordSymbol(root, quality, extension) {
   const q = QUALITIES.find(q => q.value === quality)
@@ -78,12 +84,13 @@ function buildChordSymbol(root, quality, extension) {
   return root
 }
 
-export default function ChordSelector({ root, quality, extension, onChange }) {
+export default function ChordSelector({ root, quality, extension, bassNote, isPro, onChange }) {
   const symbol = buildChordSymbol(root, quality, extension)
   const chord = symbol ? Chord.get(symbol) : null
+  const bassEligible = isSlashEligible(quality, extension)
 
   function handleChange(field, value) {
-    onChange({ root, quality, extension, [field]: value })
+    onChange({ root, quality, extension, bassNote, [field]: value })
   }
 
   return (
@@ -131,9 +138,27 @@ export default function ChordSelector({ root, quality, extension, onChange }) {
             }))}
           />
         </div>
+
+        {bassEligible && (
+          <div className="chord-selector__field" id="wt-bass-note">
+            <label className="chord-selector__label">Bass note</label>
+            <span className="chord-selector__hint">
+              {isPro ? 'Play this chord over a different bass note (slash chord)' : 'Slash chords and inversions are a Pro feature'}
+            </span>
+            <div className="chord-selector__bass-row">
+              <Dropdown
+                value={bassNote}
+                onChange={v => handleChange('bassNote', v)}
+                disabled={!isPro}
+                options={BASS_NOTE_OPTIONS}
+              />
+              {!isPro && <span className="chord-selector__pro-badge">PRO</span>}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
 }
 
-export { buildChordSymbol, ROOTS, ROOT_DISPLAY, QUALITIES, EXTENSIONS }
+export { buildChordSymbol, ROOTS, ROOT_DISPLAY, QUALITIES, EXTENSIONS, BASS_NOTE_OPTIONS }

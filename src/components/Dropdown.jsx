@@ -1,9 +1,13 @@
 import { useState, useRef, useEffect } from 'react'
 import './Dropdown.css'
 
-export default function Dropdown({ id, value, options, onChange }) {
+export default function Dropdown({ id, value, options, onChange, disabled }) {
   const [open, setOpen] = useState(false)
   const rootRef = useRef(null)
+
+  useEffect(() => {
+    if (disabled) setOpen(false)
+  }, [disabled])
 
   useEffect(() => {
     if (!open) return
@@ -30,6 +34,7 @@ export default function Dropdown({ id, value, options, onChange }) {
         type="button"
         className={`dropdown__trigger ${open ? 'dropdown__trigger--open' : ''}`}
         onClick={() => setOpen(o => !o)}
+        disabled={disabled}
         aria-haspopup="listbox"
         aria-expanded={open}
       >

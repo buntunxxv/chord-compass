@@ -25,6 +25,15 @@
   border-color: var(--teal);
 }
 
+.dropdown__trigger:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.dropdown__trigger:disabled:hover {
+  border-color: var(--border);
+}
+
 .dropdown__trigger--open {
   border-color: var(--teal);
   box-shadow: 0 0 0 3px rgba(17, 147, 146, 0.15);

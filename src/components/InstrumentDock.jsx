@@ -3,12 +3,13 @@ import PianoDisplay from './PianoDisplay'
 import GuitarDisplay from './GuitarDisplay'
 import './InstrumentDock.css'
 
-export default function InstrumentDock({ chordNotes, previewNotes, root, guitarShape }) {
+export default function InstrumentDock({ chordNotes, previewNotes, root, guitarShape, guitarSlashNotice }) {
   const [tab, setTab] = useState('keys')
+  const canShowFrets = !!guitarShape || guitarSlashNotice
 
   useEffect(() => {
-    if (!guitarShape && tab === 'frets') setTab('keys')
-  }, [guitarShape, tab])
+    if (!canShowFrets && tab === 'frets') setTab('keys')
+  }, [canShowFrets, tab])
 
   return (
     <div className="instrument-dock">
@@ -30,8 +31,8 @@ export default function InstrumentDock({ chordNotes, previewNotes, root, guitarS
           aria-selected={tab === 'frets'}
           className={`instrument-dock__tab ${tab === 'frets' ? 'instrument-dock__tab--active' : ''}`}
           onClick={() => setTab('frets')}
-          disabled={!guitarShape}
-          title={!guitarShape ? 'No guitar shape for this chord yet' : undefined}
+          disabled={!canShowFrets}
+          title={guitarSlashNotice ? 'Guitar shapes for slash chords coming soon' : (!guitarShape ? 'No guitar shape for this chord yet' : undefined)}
         >
           Guitar
         </button>
@@ -39,6 +40,8 @@ export default function InstrumentDock({ chordNotes, previewNotes, root, guitarS
       <div className="instrument-dock__view">
         {tab === 'keys' ? (
           <PianoDisplay chordNotes={chordNotes} previewNotes={previewNotes} compact />
+        ) : guitarSlashNotice ? (
+          <p className="instrument-dock__guitar-notice">Guitar shapes for slash chords coming soon</p>
         ) : (
           <GuitarDisplay root={root} shape={guitarShape} notes={chordNotes} compact />
         )}

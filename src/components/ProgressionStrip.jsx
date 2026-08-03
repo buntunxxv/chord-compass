@@ -31,7 +31,7 @@ function chunkIntoRows(items, size) {
   return rows
 }
 
-export default function ProgressionStrip({ progression, bpm, onBpmChange, onClear, onRemoveLast, onSelectLastChord, onLoadSaved, teaserMessage, onPlayingChordChange, chordNotes, previewNotes, root, guitarShape, templateInfo, isPro }) {
+export default function ProgressionStrip({ progression, bpm, onBpmChange, onClear, onRemoveLast, onSelectLastChord, onLoadSaved, teaserMessage, onPlayingChordChange, chordNotes, previewNotes, root, guitarShape, guitarSlashNotice, templateInfo, isPro }) {
   const [activeIndex, setActiveIndex] = useState(null)
   const [isPlaying, setIsPlaying] = useState(false)
   const synthRef = useRef(null)
@@ -144,6 +144,7 @@ export default function ProgressionStrip({ progression, bpm, onBpmChange, onClea
         previewNotes={previewNotes}
         root={root}
         guitarShape={guitarShape}
+        guitarSlashNotice={guitarSlashNotice}
       />
 
       {teaserMessage && (

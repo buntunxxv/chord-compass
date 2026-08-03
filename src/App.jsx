@@ -1,8 +1,9 @@
 import { useState, useMemo, useEffect, useRef } from 'react'
-import { Chord } from 'tonal'
+import { Chord, Note } from 'tonal'
 import { CHORD_DATA } from './chordData'
 import { GUITAR_SHAPES } from './guitarData'
 import { buildChordSymbol } from './components/ChordSelector'
+import { isSlashEligible, computeSlashNotes, appendSlashSymbol } from './utils/slashChord'
 import { useTheme } from './hooks/useTheme'
 import ChordSelector from './components/ChordSelector'
 import ChordOutputPanel from './components/ChordOutputPanel'
@@ -61,7 +62,7 @@ function getDisplayName(root, quality, extension) {
 }
 
 export default function App() {
-  const [selection, setSelection] = useState({ root: 'C', quality: 'major', extension: 'none' })
+  const [selection, setSelection] = useState({ root: 'C', quality: 'major', extension: 'none', bassNote: 'none' })
   const [bpm, setBpm] = useState(90)
   const [feedbackOpen, setFeedbackOpen] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
@@ -94,15 +95,32 @@ export default function App() {
   const [playingChordNotes, setPlayingChordNotes] = useState(null)
   const { preference: themePreference, resolvedTheme, setPreference: setThemePreference } = useTheme()
 
-  const { root, quality, extension } = selection
+  const { root, quality, extension, bassNote } = selection
 
   const dataKey = useMemo(() => toDataKey(root, quality, extension), [root, quality, extension])
   const chordEntry = dataKey ? CHORD_DATA[dataKey] : null
+
+  // Slash chords/inversions are Pro-gated and don't apply to the symmetric
+  // diminished/augmented/dim7 chord types (see src/utils/slashChord.js) --
+  // effectiveBassNote is the single source of truth actually used to build
+  // notes/symbol, so a free user or an ineligible quality has zero effect
+  // even if selection.bassNote somehow held a stale non-"none" value.
+  const bassEligible = useMemo(() => isSlashEligible(quality, extension), [quality, extension])
+  const effectiveBassNote = isPro && bassEligible ? bassNote : 'none'
+  const hasSlashBass = effectiveBassNote !== 'none' && Note.chroma(effectiveBassNote) !== Note.chroma(root)
 
   // Suggested-chord preview only makes sense for the chord it was shown under
   useEffect(() => {
     setPreviewIndex(null)
   }, [dataKey])
+
+  // Reset the bass note whenever it stops being selectable, so switching
+  // back to an eligible quality later doesn't resurrect a stale slash choice
+  useEffect(() => {
+    if (!bassEligible && bassNote !== 'none') {
+      setSelection(sel => ({ ...sel, bassNote: 'none' }))
+    }
+  }, [bassEligible]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const previewNotes = previewIndex != null ? chordEntry?.next?.[previewIndex]?.notes : null
 
@@ -169,21 +187,22 @@ export default function App() {
 
   function handleSelectLastChord(chordName) {
     const sel = chordNameToSelection(chordName)
-    if (sel) setSelection(sel)
+    if (sel) setSelection({ ...sel, bassNote: 'none' })
   }
 
   const symbol = useMemo(() => buildChordSymbol(root, quality, extension), [root, quality, extension])
   const tonalChord = useMemo(() => (symbol ? Chord.get(symbol) : null), [symbol])
 
   const displayName = useMemo(() => {
-    if (!tonalChord || !tonalChord.tonic) return symbol || '—'
-    return tonalChord.symbol || symbol
-  }, [tonalChord, symbol])
+    const base = (!tonalChord || !tonalChord.tonic) ? (symbol || '—') : (tonalChord.symbol || symbol)
+    return appendSlashSymbol(base, effectiveBassNote, root)
+  }, [tonalChord, symbol, effectiveBassNote, root])
 
   const intervals = tonalChord?.intervals || []
 
-  // Notes to highlight: use CHORD_DATA notes if available, else derive from tonal at octave 4
-  const chordNotes = chordEntry?.notes || []
+  // Notes to highlight: use CHORD_DATA notes if available, else derive from tonal at octave 4,
+  // re-voiced for the selected bass note (Pro-gated slash chords) -- see computeSlashNotes
+  const chordNotes = computeSlashNotes(chordEntry?.notes || [], effectiveBassNote, root)
 
   const available = !!chordEntry
 
@@ -261,6 +280,8 @@ export default function App() {
             root={root}
             quality={quality}
             extension={extension}
+            bassNote={bassNote}
+            isPro={isPro}
             onChange={setSelection}
           />
         </section>
@@ -322,6 +343,7 @@ export default function App() {
         previewNotes={pianoPreviewNotes}
         root={root}
         guitarShape={GUITAR_SHAPES[dataKey]}
+        guitarSlashNotice={hasSlashBass}
         isPro={isPro}
       />
 
