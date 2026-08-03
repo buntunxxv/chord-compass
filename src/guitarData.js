@@ -8,10 +8,11 @@
 // tones before inclusion — not auto-generated.
 //
 // The first 56 entries (7 natural roots x 8 types) are the original set.
-// The remaining 131 (10 accidental roots' 8-type set, plus diminished/
+// The next 131 (10 accidental roots' 8-type set, plus diminished/
 // augmented/m7b5 for all 17 roots) were added in a later pass, entirely via
 // movable-barre transposition of the natural roots' own already-verified
-// "E ..."/"A ..." shapes -- see the section comments below.
+// "E ..."/"A ..." shapes. The final 17 (fully-diminished dim7 for all 17
+// roots) were added last -- see the section comments below.
 
 export const GUITAR_SHAPES = {
   "C major": { frets: ['x', 3, 2, 0, 1, 0] },
@@ -238,4 +239,35 @@ export const GUITAR_SHAPES = {
   "B diminished": { frets: ['x', 2, 3, 'x', 3, 'x'] },
   "B augmented": { frets: ['x', 2, 5, 'x', 4, 'x'] },
   "Bm7b5": { frets: ['x', 2, 3, 2, 3, 'x'], barre: { fret: 2, from: 1, to: 4 } },
+
+  // Fully-diminished 7th (dim7) chords for all 17 roots. Unlike every other
+  // quality in this file, dim7 is symmetric -- it's built from stacked minor
+  // thirds, so it repeats every 3 semitones and there are only 3 distinct
+  // pitch-class sets across all 12 roots (same idea the augmented triad's
+  // suggestion-table symmetry used elsewhere in this app). Every one of the
+  // 17 roots' dim7 chord falls into one of those 3 sets, so a single low-
+  // position shape per set covers every root that lands on it -- e.g. the
+  // literal "Cdim7" shape below sounds exactly the right notes for Cdim7,
+  // Adim7, D#dim7, Ebdim7, F#dim7, and Gbdim7 alike, since they're all the
+  // same four physical pitches. No new shapes were guessed per root; each
+  // of the 3 base shapes was solved for and checked against its pitch-class
+  // set before being reused. All 3 are compact, mostly-open, non-barre
+  // voicings (max fret span of 2).
+  "Cdim7": { frets: ['x', 0, 1, 'x', 1, 2] },
+  "C#dim7": { frets: [0, 1, 'x', 0, 2, 'x'] },
+  "Dbdim7": { frets: [0, 1, 'x', 0, 2, 'x'] },
+  "Ddim7": { frets: [1, 'x', 0, 1, 0, 'x'] },
+  "D#dim7": { frets: ['x', 0, 1, 'x', 1, 2] },
+  "Ebdim7": { frets: ['x', 0, 1, 'x', 1, 2] },
+  "Edim7": { frets: [0, 1, 'x', 0, 2, 'x'] },
+  "Fdim7": { frets: [1, 'x', 0, 1, 0, 'x'] },
+  "F#dim7": { frets: ['x', 0, 1, 'x', 1, 2] },
+  "Gbdim7": { frets: ['x', 0, 1, 'x', 1, 2] },
+  "Gdim7": { frets: [0, 1, 'x', 0, 2, 'x'] },
+  "G#dim7": { frets: [1, 'x', 0, 1, 0, 'x'] },
+  "Abdim7": { frets: [1, 'x', 0, 1, 0, 'x'] },
+  "Adim7": { frets: ['x', 0, 1, 'x', 1, 2] },
+  "A#dim7": { frets: [0, 1, 'x', 0, 2, 'x'] },
+  "Bbdim7": { frets: [0, 1, 'x', 0, 2, 'x'] },
+  "Bdim7": { frets: [1, 'x', 0, 1, 0, 'x'] },
 }
