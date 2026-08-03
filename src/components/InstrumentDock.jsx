@@ -3,9 +3,9 @@ import PianoDisplay from './PianoDisplay'
 import GuitarDisplay from './GuitarDisplay'
 import './InstrumentDock.css'
 
-export default function InstrumentDock({ chordNotes, previewNotes, root, guitarShape, guitarSlashNotice }) {
+export default function InstrumentDock({ chordNotes, previewNotes, root, guitarShape, guitarSlashNotice, guitarInversionUnavailable }) {
   const [tab, setTab] = useState('keys')
-  const canShowFrets = !!guitarShape || guitarSlashNotice
+  const canShowFrets = !guitarInversionUnavailable && (!!guitarShape || guitarSlashNotice)
 
   useEffect(() => {
     if (!canShowFrets && tab === 'frets') setTab('keys')
@@ -32,7 +32,11 @@ export default function InstrumentDock({ chordNotes, previewNotes, root, guitarS
           className={`instrument-dock__tab ${tab === 'frets' ? 'instrument-dock__tab--active' : ''}`}
           onClick={() => setTab('frets')}
           disabled={!canShowFrets}
-          title={guitarSlashNotice ? 'Guitar shapes for slash chords coming soon' : (!guitarShape ? 'No guitar shape for this chord yet' : undefined)}
+          title={
+            guitarInversionUnavailable ? 'No clean guitar fingering exists for this inversion'
+              : guitarSlashNotice ? 'Guitar shapes for slash chords coming soon'
+                : (!guitarShape ? 'No guitar shape for this chord yet' : undefined)
+          }
         >
           Guitar
         </button>

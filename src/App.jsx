@@ -112,13 +112,19 @@ export default function App() {
 
   // Guitar shapes only exist for true inversions (bass = an existing chord
   // tone) -- a foreign-bass slash chord changes the chord's actual pitch-
-  // class set and has no fixed fingering template, so it keeps showing the
-  // "coming soon" notice. When an inversion shape wasn't generated either
-  // (see src/guitarInversions.js's skip list), the notice covers that too.
+  // class set and has no fixed fingering template at all yet, so it keeps
+  // showing the honest "coming soon" notice (the tab stays clickable). A
+  // true in-chord inversion with no generated shape is a different case:
+  // guitarInversions.js's search already tried and documented (in its
+  // skip-list comment) that no clean fingering exists within a reasonable
+  // fret span for that specific chord/bass combination -- there's nothing
+  // "coming," so the Guitar tab is disabled entirely instead, same as any
+  // other structurally-unavailable control in this app.
   const isInversion = hasSlashBass && isInChordTone(chordEntry?.notes, effectiveBassNote)
   const inversionGuitarShape = isInversion ? GUITAR_INVERSION_SHAPES[dataKey]?.[effectiveBassNote] : null
   const guitarShapeToShow = hasSlashBass ? inversionGuitarShape : GUITAR_SHAPES[dataKey]
-  const guitarSlashNotice = hasSlashBass && !inversionGuitarShape
+  const guitarInversionUnavailable = isInversion && !inversionGuitarShape
+  const guitarSlashNotice = hasSlashBass && !isInversion
 
   // Suggested-chord preview only makes sense for the chord it was shown under
   useEffect(() => {
@@ -355,6 +361,7 @@ export default function App() {
         root={root}
         guitarShape={guitarShapeToShow}
         guitarSlashNotice={guitarSlashNotice}
+        guitarInversionUnavailable={guitarInversionUnavailable}
         isPro={isPro}
       />
 
