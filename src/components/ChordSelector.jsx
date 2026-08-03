@@ -17,12 +17,37 @@ function toDataKey(root, quality, extension) {
   if (quality === 'major'     && extension === 'add9')  return `${root}add9`
   if (quality === 'sus2'      && extension === 'none')  return `${root}sus2`
   if (quality === 'sus4'      && extension === 'none')  return `${root}sus4`
+  if (quality === 'major'     && extension === '9')     return `${root}9`
+  if (quality === 'major'     && extension === 'maj9')  return `${root}maj9`
+  if (quality === 'minor'     && extension === '9')     return `${root}m9`
+  if (quality === 'major'     && extension === '11')    return `${root}11`
+  if (quality === 'minor'     && extension === '11')    return `${root}m11`
+  if (quality === 'major'     && extension === '13')    return `${root}13`
+  if (quality === 'major'     && extension === 'maj13') return `${root}maj13`
+  if (quality === 'minor'     && extension === '13')    return `${root}m13`
+  if (quality === 'major'     && extension === '7#9')   return `${root}7#9`
+  if (quality === 'major'     && extension === '7b9')   return `${root}7b9`
+  if (quality === 'major'     && extension === '7#5')   return `${root}7#5`
+  if (quality === 'major'     && extension === '7b5')   return `${root}7b5`
+  if (quality === 'major'     && extension === '7#11')  return `${root}7#11`
   return null
 }
 
-function hasData(root, quality, extension) {
+// Extended and altered chord types (9, 11, 13, and altered dominants) are a
+// Pro feature -- gated the same way slash chords/inversions are (see
+// effectiveBassNote in App.jsx): hasData is the single source of truth every
+// disabled-state calculation in this file goes through, so a free user (or a
+// downgraded session that still holds one of these in state) sees the same
+// disabled/false result everywhere, not just at the Extension dropdown.
+const PRO_ONLY_EXTENSIONS = new Set([
+  '9', 'maj9', '11', '13', 'maj13', '7#9', '7b9', '7#5', '7b5', '7#11',
+])
+
+function hasData(root, quality, extension, isPro) {
   const key = toDataKey(root, quality, extension)
-  return key !== null && key in CHORD_DATA
+  if (key === null || !(key in CHORD_DATA)) return false
+  if (PRO_ONLY_EXTENSIONS.has(extension) && !isPro) return false
+  return true
 }
 
 const ROOTS = ['C', 'C#', 'Db', 'D', 'D#', 'Eb', 'E', 'F', 'F#', 'Gb', 'G', 'G#', 'Ab', 'A', 'A#', 'Bb', 'B']
@@ -43,6 +68,16 @@ const EXTENSIONS = [
   { value: 'maj7', label: 'maj7', tonal: 'maj7' },
   { value: 'add9', label: 'add9', tonal: 'add9' },
   { value: 'dim7', label: 'dim7', tonal: 'dim7' },
+  { value: '9', label: '9', tonal: '9', proOnly: true },
+  { value: 'maj9', label: 'maj9', tonal: 'maj9', proOnly: true },
+  { value: '11', label: '11', tonal: '11', proOnly: true },
+  { value: '13', label: '13', tonal: '13', proOnly: true },
+  { value: 'maj13', label: 'maj13', tonal: 'maj13', proOnly: true },
+  { value: '7#9', label: '7#9', tonal: '7#9', proOnly: true },
+  { value: '7b9', label: '7b9', tonal: '7b9', proOnly: true },
+  { value: '7#5', label: '7#5', tonal: '7#5', proOnly: true },
+  { value: '7b5', label: '7b5', tonal: '7b5', proOnly: true },
+  { value: '7#11', label: '7#11', tonal: '7#11', proOnly: true },
 ]
 
 const BASS_NOTE_OPTIONS = [
@@ -61,12 +96,25 @@ function buildChordSymbol(root, quality, extension) {
     if (extension === '7') return root + '7'
     if (extension === 'maj7') return root + 'maj7'
     if (extension === 'add9') return root + 'add9'
+    if (extension === '9') return root + '9'
+    if (extension === 'maj9') return root + 'maj9'
+    if (extension === '11') return root + '11'
+    if (extension === '13') return root + '13'
+    if (extension === 'maj13') return root + 'maj13'
+    if (extension === '7#9') return root + '7#9'
+    if (extension === '7b9') return root + '7b9'
+    if (extension === '7#5') return root + '7#5'
+    if (extension === '7b5') return root + '7b5'
+    if (extension === '7#11') return root + '7#11'
   }
   if (quality === 'minor') {
     if (extension === 'none') return root + 'm'
     if (extension === '7') return root + 'm7'
     if (extension === 'maj7') return root + 'mM7'
     if (extension === 'add9') return root + 'madd9'
+    if (extension === '9') return root + 'm9'
+    if (extension === '11') return root + 'm11'
+    if (extension === '13') return root + 'm13'
   }
   if (quality === 'diminished') {
     if (extension === 'none') return root + 'dim'
@@ -106,7 +154,7 @@ export default function ChordSelector({ root, quality, extension, bassNote, isPr
             options={ROOTS.map((r, i) => ({
               value: r,
               label: ROOT_DISPLAY[i],
-              disabled: !hasData(r, quality, extension),
+              disabled: !hasData(r, quality, extension, isPro),
             }))}
           />
         </div>
@@ -120,7 +168,7 @@ export default function ChordSelector({ root, quality, extension, bassNote, isPr
             options={QUALITIES.map(q => ({
               value: q.value,
               label: q.label,
-              disabled: !hasData(root, q.value, extension),
+              disabled: !hasData(root, q.value, extension, isPro),
             }))}
           />
         </div>
@@ -134,7 +182,8 @@ export default function ChordSelector({ root, quality, extension, bassNote, isPr
             options={EXTENSIONS.map(e => ({
               value: e.value,
               label: e.label,
-              disabled: !hasData(root, quality, e.value),
+              disabled: !hasData(root, quality, e.value, isPro),
+              badge: e.proOnly && !isPro ? 'PRO' : undefined,
             }))}
           />
         </div>

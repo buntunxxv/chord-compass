@@ -51,6 +51,19 @@ function toDataKey(root, quality, extension) {
   if (quality === 'major' && extension === 'add9') return `${root}add9`
   if (quality === 'sus2' && extension === 'none') return `${root}sus2`
   if (quality === 'sus4' && extension === 'none') return `${root}sus4`
+  if (quality === 'major' && extension === '9') return `${root}9`
+  if (quality === 'major' && extension === 'maj9') return `${root}maj9`
+  if (quality === 'minor' && extension === '9') return `${root}m9`
+  if (quality === 'major' && extension === '11') return `${root}11`
+  if (quality === 'minor' && extension === '11') return `${root}m11`
+  if (quality === 'major' && extension === '13') return `${root}13`
+  if (quality === 'major' && extension === 'maj13') return `${root}maj13`
+  if (quality === 'minor' && extension === '13') return `${root}m13`
+  if (quality === 'major' && extension === '7#9') return `${root}7#9`
+  if (quality === 'major' && extension === '7b9') return `${root}7b9`
+  if (quality === 'major' && extension === '7#5') return `${root}7#5`
+  if (quality === 'major' && extension === '7b5') return `${root}7b5`
+  if (quality === 'major' && extension === '7#11') return `${root}7#11`
   return null
 }
 

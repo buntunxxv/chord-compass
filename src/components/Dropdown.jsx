@@ -58,7 +58,10 @@ export default function Dropdown({ id, value, options, onChange, disabled }) {
                 setOpen(false)
               }}
             >
-              <span>{opt.label}</span>
+              <span className="dropdown__option-label">
+                {opt.label}
+                {opt.badge && <span className="dropdown__pro-badge">{opt.badge}</span>}
+              </span>
               {opt.value === value && (
                 <svg className="dropdown__check" width="13" height="10" viewBox="0 0 14 10" aria-hidden="true">
                   <path d="M1 5l4 4 8-8" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
