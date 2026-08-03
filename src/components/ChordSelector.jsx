@@ -12,6 +12,7 @@ function toDataKey(root, quality, extension) {
   if (quality === 'major'     && extension === 'maj7')  return `${root}maj7`
   if (quality === 'minor'     && extension === '7')     return `${root}m7`
   if (quality === 'diminished' && extension === '7')    return `${root}m7b5`
+  if (quality === 'diminished' && extension === 'dim7') return `${root}dim7`
   if (quality === 'major'     && extension === 'add9')  return `${root}add9`
   if (quality === 'sus2'      && extension === 'none')  return `${root}sus2`
   if (quality === 'sus4'      && extension === 'none')  return `${root}sus4`
@@ -40,6 +41,7 @@ const EXTENSIONS = [
   { value: '7', label: '7', tonal: '7' },
   { value: 'maj7', label: 'maj7', tonal: 'maj7' },
   { value: 'add9', label: 'add9', tonal: 'add9' },
+  { value: 'dim7', label: 'dim7', tonal: 'dim7' },
 ]
 
 // Map our selection to a Tonal chord symbol
@@ -63,6 +65,7 @@ function buildChordSymbol(root, quality, extension) {
   if (quality === 'diminished') {
     if (extension === 'none') return root + 'dim'
     if (extension === '7') return root + 'm7b5'
+    if (extension === 'dim7') return root + 'dim7'
     return root + 'dim'
   }
   if (quality === 'augmented') {
