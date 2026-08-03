@@ -4,6 +4,7 @@ import { CHORD_DATA } from './chordData'
 import { GUITAR_SHAPES } from './guitarData'
 import { GUITAR_INVERSION_SHAPES } from './guitarInversions'
 import { GUITAR_ALT_POSITIONS } from './guitarPositions'
+import { GUITAR_INVERSION_ALT_POSITIONS } from './guitarInversionPositions'
 import { buildChordSymbol } from './components/ChordSelector'
 import { isSlashEligible, computeSlashNotes, appendSlashSymbol, isInChordTone } from './utils/slashChord'
 import { useTheme } from './hooks/useTheme'
@@ -127,17 +128,26 @@ export default function App() {
   const guitarInversionUnavailable = isInversion && !inversionGuitarShape
   const guitarSlashNotice = hasSlashBass && !isInversion
 
-  // Alternate neck positions (guitarPositions.js) only apply to root-position
-  // chords -- slash chords/inversions keep their existing single-shape (or
-  // notice/disabled) behavior entirely unchanged. Position 1 is always
-  // GUITAR_SHAPES' existing shape; any additional positions get appended
-  // after it, so the array's own length (1-3) already reflects how many of
-  // the 2 alternates actually exist for this specific chord.
+  // Alternate neck positions: root-position chords use guitarPositions.js,
+  // true inversions use guitarInversionPositions.js (same idea, but every
+  // position keeps the selected BASS TONE lowest, not the root). Foreign-
+  // bass slash chords and inversions with no position-1 shape at all
+  // (guitarInversionUnavailable) get no selector -- there's nothing to
+  // page through. Position 1 is always whatever guitarShapeToShow already
+  // resolved to; any additional positions get appended after it, so the
+  // array's own length (1-3) already reflects how many of the 2 alternates
+  // actually exist for this specific chord (+ bass, for inversions).
   const guitarPositions = useMemo(() => {
-    if (hasSlashBass || !dataKey || !GUITAR_SHAPES[dataKey]) return null
+    if (!dataKey) return null
+    if (hasSlashBass) {
+      if (!isInversion || !inversionGuitarShape) return null
+      const alt = GUITAR_INVERSION_ALT_POSITIONS[dataKey]?.[effectiveBassNote] || []
+      return [inversionGuitarShape, ...alt.filter(Boolean)]
+    }
+    if (!GUITAR_SHAPES[dataKey]) return null
     const alt = GUITAR_ALT_POSITIONS[dataKey] || []
     return [GUITAR_SHAPES[dataKey], ...alt.filter(Boolean)]
-  }, [hasSlashBass, dataKey])
+  }, [hasSlashBass, dataKey, isInversion, inversionGuitarShape, effectiveBassNote])
 
   // Suggested-chord preview only makes sense for the chord it was shown under
   useEffect(() => {
