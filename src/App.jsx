@@ -3,6 +3,7 @@ import { Chord, Note } from 'tonal'
 import { CHORD_DATA } from './chordData'
 import { GUITAR_SHAPES } from './guitarData'
 import { GUITAR_INVERSION_SHAPES } from './guitarInversions'
+import { GUITAR_ALT_POSITIONS } from './guitarPositions'
 import { buildChordSymbol } from './components/ChordSelector'
 import { isSlashEligible, computeSlashNotes, appendSlashSymbol, isInChordTone } from './utils/slashChord'
 import { useTheme } from './hooks/useTheme'
@@ -125,6 +126,18 @@ export default function App() {
   const guitarShapeToShow = hasSlashBass ? inversionGuitarShape : GUITAR_SHAPES[dataKey]
   const guitarInversionUnavailable = isInversion && !inversionGuitarShape
   const guitarSlashNotice = hasSlashBass && !isInversion
+
+  // Alternate neck positions (guitarPositions.js) only apply to root-position
+  // chords -- slash chords/inversions keep their existing single-shape (or
+  // notice/disabled) behavior entirely unchanged. Position 1 is always
+  // GUITAR_SHAPES' existing shape; any additional positions get appended
+  // after it, so the array's own length (1-3) already reflects how many of
+  // the 2 alternates actually exist for this specific chord.
+  const guitarPositions = useMemo(() => {
+    if (hasSlashBass || !dataKey || !GUITAR_SHAPES[dataKey]) return null
+    const alt = GUITAR_ALT_POSITIONS[dataKey] || []
+    return [GUITAR_SHAPES[dataKey], ...alt.filter(Boolean)]
+  }, [hasSlashBass, dataKey])
 
   // Suggested-chord preview only makes sense for the chord it was shown under
   useEffect(() => {
@@ -362,6 +375,7 @@ export default function App() {
         guitarShape={guitarShapeToShow}
         guitarSlashNotice={guitarSlashNotice}
         guitarInversionUnavailable={guitarInversionUnavailable}
+        guitarPositions={guitarPositions}
         isPro={isPro}
       />
 
