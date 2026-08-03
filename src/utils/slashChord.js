@@ -15,10 +15,18 @@ export function isSlashEligible(quality, extension) {
   return true
 }
 
-const MIN_BASS_OCTAVE = 2
+// PianoDisplay only ever renders C3-D5, and low-register tones below C3 sit
+// in the ~65-110Hz band most phone speakers reproduce poorly -- so octave 3
+// is the actual floor for a re-voiced bass note, not just a safety margin.
+const MIN_BASS_OCTAVE = 3
 
 function isRootBass(bassPitchClass, rootPitchClass) {
   return rootPitchClass != null && Note.chroma(bassPitchClass) === Note.chroma(rootPitchClass)
+}
+
+function shiftOctaveUp(note) {
+  const n = Note.get(note)
+  return `${n.pc}${n.oct + 1}`
 }
 
 // Re-voice `baseNotes` (as defined in CHORD_DATA, root position) so the
@@ -38,17 +46,37 @@ export function computeSlashNotes(baseNotes, bassPitchClass, rootPitchClass) {
   const bassChroma = Note.chroma(bassPitchClass)
   const parsed = baseNotes.map(n => Note.get(n))
   const lowest = parsed.reduce((min, n) => (n.height < min.height ? n : min), parsed[0])
-  const targetOctave = Math.max(lowest.oct - 1, MIN_BASS_OCTAVE)
+  const naiveTargetOctave = lowest.oct - 1
+  const targetOctave = Math.max(naiveTargetOctave, MIN_BASS_OCTAVE)
+  const bassHeight = bassChroma + (targetOctave + 1) * 12
 
   const matchIndex = parsed.findIndex(n => n.chroma === bassChroma)
 
+  // Many CHORD_DATA entries have their root (the current lowest note) at
+  // octave 3, so "one octave below" naively lands at octave 2 -- below the
+  // keyboard's floor and in a register phone speakers barely reproduce.
+  // Simply clamping the bass note up to the floor isn't enough on its own:
+  // it can leave the bass no longer the lowest note (e.g. F major/A -- a
+  // bass clamped to A3 sits *above* the root's F3). So when the floor is
+  // hit, lift just the chord tones that would now sit at or below the
+  // clamped bass, by a single octave: that's always enough to clear it
+  // (octave number alone decides ordering, regardless of pitch class), and
+  // it never pushes anything past the keyboard's D5 ceiling -- a tone at
+  // or below the floor-octave bass has height <= 59, so +12 lands <= 71.
+  const needsLift = naiveTargetOctave < MIN_BASS_OCTAVE
+  const adjust = (note, index) => {
+    if (!needsLift || index === matchIndex) return note
+    return Note.get(note).height <= bassHeight ? shiftOctaveUp(note) : note
+  }
+
   if (matchIndex !== -1) {
     const bassNote = `${parsed[matchIndex].pc}${targetOctave}`
-    return [bassNote, ...baseNotes.filter((_, i) => i !== matchIndex)]
+    const rest = baseNotes.map(adjust).filter((_, i) => i !== matchIndex)
+    return [bassNote, ...rest]
   }
 
   const bassNote = `${bassPitchClass}${targetOctave}`
-  return [bassNote, ...baseNotes]
+  return [bassNote, ...baseNotes.map(adjust)]
 }
 
 // Appends "/BassNote" to a chord symbol when the selected bass differs from
