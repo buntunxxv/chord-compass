@@ -84,6 +84,8 @@ export default function App() {
   const [feedbackOpen, setFeedbackOpen] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [onboardingOpen, setOnboardingOpen] = useState(false)
+  // Push-swipe Templates drawer -- not persisted, always starts closed
+  const [templatesDrawerOpen, setTemplatesDrawerOpen] = useState(false)
 
   useEffect(() => {
     if (!localStorage.getItem('kcc_seen_intro_v2')) {
@@ -363,59 +365,88 @@ export default function App() {
         )}
       </header>
 
-      <main className="app__main">
-        <section className="app__section">
-          <ChordSelector
-            root={root}
-            quality={quality}
-            extension={extension}
-            bassNote={bassNote}
-            isPro={isPro}
-            onChange={setSelection}
-          />
-        </section>
+      <div className="app__drawer-wrapper">
+        <main className={`app__panel app__builder-panel ${templatesDrawerOpen ? 'app__builder-panel--hidden' : ''}`}>
+          <div className="app__panel-inner">
+            <section className="app__section">
+              <ChordSelector
+                root={root}
+                quality={quality}
+                extension={extension}
+                bassNote={bassNote}
+                isPro={isPro}
+                onChange={setSelection}
+              />
+            </section>
 
-        <section className="app__section">
-          <ChordOutputPanel
-            chordName={displayName}
-            notes={displayedPianoNotes}
-            intervals={intervals}
-            available={available}
-            onAddToProgression={addToProgression}
-          />
-        </section>
+            <section className="app__section">
+              <ChordOutputPanel
+                chordName={displayName}
+                notes={displayedPianoNotes}
+                intervals={intervals}
+                available={available}
+                onAddToProgression={addToProgression}
+              />
+            </section>
 
-        {available && chordEntry?.next && (
-          <section className="app__section">
-            <NextChordSuggestions
-              suggestions={chordEntry.next}
-              currentNotes={chordNotes}
-              bpm={bpm}
-              previewIndex={previewIndex}
-              onPreviewChange={setPreviewIndex}
-              onAddToProgression={addToProgression}
-              theme={resolvedTheme}
-              isPro={isPro}
-            />
-          </section>
+            {available && chordEntry?.next && (
+              <section className="app__section">
+                <NextChordSuggestions
+                  suggestions={chordEntry.next}
+                  currentNotes={chordNotes}
+                  bpm={bpm}
+                  previewIndex={previewIndex}
+                  onPreviewChange={setPreviewIndex}
+                  onAddToProgression={addToProgression}
+                  theme={resolvedTheme}
+                  isPro={isPro}
+                />
+              </section>
+            )}
+
+            {!available && (
+              <section className="app__section app__unavailable">
+                <p>This chord combination is not available in Stage 1. Select one of the 12 seed chords to explore suggestions.</p>
+              </section>
+            )}
+          </div>
+        </main>
+
+        <div className={`app__panel app__templates-panel ${templatesDrawerOpen ? 'app__templates-panel--open' : ''}`}>
+          <div className="app__panel-inner">
+            <section className="app__section">
+              <ProgressionTemplates
+                keyRoot={templateKeyRoot}
+                keyMode={templateKeyMode}
+                onKeyRootChange={setTemplateKeyRoot}
+                onKeyModeChange={setTemplateKeyMode}
+                onLoad={loadTemplate}
+              />
+            </section>
+          </div>
+        </div>
+
+        {!templatesDrawerOpen && (
+          <button
+            type="button"
+            className="app__drawer-tab app__drawer-tab--open"
+            onClick={() => setTemplatesDrawerOpen(true)}
+            aria-label="Open progression templates"
+          >
+            Templates
+          </button>
         )}
-
-        {!available && (
-          <section className="app__section app__unavailable">
-            <p>This chord combination is not available in Stage 1. Select one of the 12 seed chords to explore suggestions.</p>
-          </section>
+        {templatesDrawerOpen && (
+          <button
+            type="button"
+            className="app__drawer-tab app__drawer-tab--close"
+            onClick={() => setTemplatesDrawerOpen(false)}
+            aria-label="Back to chord builder"
+          >
+            Chords
+          </button>
         )}
-
-        <section className="app__section">
-          <ProgressionTemplates
-            keyRoot={templateKeyRoot}
-            keyMode={templateKeyMode}
-            onKeyRootChange={setTemplateKeyRoot}
-            onKeyModeChange={setTemplateKeyMode}
-            onLoad={loadTemplate}
-          />
-        </section>
-      </main>
+      </div>
 
       <ProgressionStrip
         progression={progression}
