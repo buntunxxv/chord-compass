@@ -106,3 +106,23 @@
   opacity: 0.4;
   cursor: not-allowed;
 }
+
+.dropdown__option-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dropdown__pro-badge {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 1px 6px;
+  border-radius: 20px;
+  background: var(--suggest-tint);
+  color: var(--suggest);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
