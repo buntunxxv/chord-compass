@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import GuitarDisplay from './GuitarDisplay'
 import NotePicker from './NotePicker'
-import { findVoicings, PITCH_CLASS_NAMES } from '../utils/reverseVoicingLookup'
+import { findVoicings, soundingNotes, voicingLabel, PITCH_CLASS_NAMES } from '../utils/reverseVoicingLookup'
 import './ReverseVoicingFinder.css'
 
 const STRING_COUNT = 6
@@ -17,7 +17,7 @@ function statsLine({ muted, span, avgFret }) {
 // MIDI import (Phase 2/3). Free for every user for now -- there's no
 // Pro gate here yet, same way the rest of this app gates a feature only
 // once it actually needs to (this one has no reason to yet).
-export default function ReverseVoicingFinder() {
+export default function ReverseVoicingFinder({ onAddToProgression }) {
   const [selected, setSelected] = useState([])
 
   const results = useMemo(() => {
@@ -68,6 +68,14 @@ export default function ReverseVoicingFinder() {
                 <div className="reverse-finder__result-label">{RESULT_LABELS[i] || `#${i + 1}`}</div>
                 <GuitarDisplay shape={{ frets: result.frets }} notes={selectedNoteNames} compact />
                 <div className="reverse-finder__result-stats">{statsLine(result)}</div>
+                <button
+                  type="button"
+                  className="reverse-finder__add-btn"
+                  onClick={() => onAddToProgression?.(voicingLabel(result.frets), soundingNotes(result.frets))}
+                  aria-label={`Add this shape to progression`}
+                >
+                  + Add to progression
+                </button>
               </div>
             ))
           )}

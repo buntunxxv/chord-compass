@@ -5,11 +5,16 @@
 // chord and produce one shape. Ranking here is ease/playability only
 // (fewer muted strings, smaller fret span, lower average fret); ranking
 // against a progression's voice-leading is Phase 2, not this module.
+import { Note, Interval } from 'tonal'
 
 // Standard tuning, low string to high: E A D G B e -- same open-string
 // pitch classes and (open + fret) % 12 formula GuitarDisplay.jsx already
 // uses to place its dots, not a new music-theory approach.
 const OPEN_PITCH_CLASS = [4, 9, 2, 7, 11, 4]
+// Same strings, but as real note names + octave -- standard guitar tuning's
+// actual sounding pitches, needed to add a found shape to the progression
+// (which plays/displays real notes, not bare pitch classes).
+const OPEN_STRING_NOTE = ['E2', 'A2', 'D3', 'G3', 'B3', 'E4']
 const STRING_COUNT = 6
 const MAX_FRET = 15
 
@@ -105,4 +110,30 @@ export function findVoicings(targetPitchClasses, { maxResults = 3 } = {}) {
     .map(f => ({ frets: f, ...scoreShape(f) }))
     .sort(compareShapes)
     .slice(0, maxResults)
+}
+
+// The real note+octave a fret array sounds, low string to high, for adding
+// a found shape to the progression -- muted strings simply don't contribute
+// a note, same convention as everywhere else notes are collected.
+export function soundingNotes(frets) {
+  return frets
+    .map((f, i) => (f === 'x' ? null : Note.transpose(OPEN_STRING_NOTE[i], Interval.fromSemitones(Number(f)))))
+    .filter(Boolean)
+}
+
+// A plain, honest label for a found shape -- the pitch classes it actually
+// sounds, bass to treble, deduped by first occurrence. Deliberately not a
+// guessed chord name (tonal's Chord.detect is ambiguous/order-sensitive and
+// a wrong guess would be worse than no guess) -- just what's really there.
+export function voicingLabel(frets) {
+  const seen = new Set()
+  const names = []
+  frets.forEach((f, i) => {
+    if (f === 'x') return
+    const pc = (OPEN_PITCH_CLASS[i] + Number(f)) % 12
+    if (seen.has(pc)) return
+    seen.add(pc)
+    names.push(PITCH_CLASS_NAMES[pc])
+  })
+  return names.join(' · ')
 }

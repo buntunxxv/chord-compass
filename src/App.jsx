@@ -109,6 +109,14 @@ export default function App() {
   })
   const [progressionTeaser, setProgressionTeaser] = useState('')
   const teaserTimeoutRef = useRef(null)
+  // Which progression chip was last tapped (drives the chord builder/piano/
+  // guitar views, and is where the next add-to-progression call inserts --
+  // null means "no chip tapped yet," which falls back to appending at the
+  // end, same as before any chip but the last was tappable at all. Kept as
+  // a plain index rather than an id because every mutation that could move
+  // or invalidate it (insert, remove, reorder) is a function right here in
+  // this component that can just adjust it in the same breath.
+  const [tappedChordIndex, setTappedChordIndex] = useState(null)
   const [isPro, setIsPro] = useState(false)
   const [templateKeyRoot, setTemplateKeyRoot] = useState('C')
   const [templateKeyMode, setTemplateKeyMode] = useState('major')
@@ -208,6 +216,11 @@ export default function App() {
     localStorage.setItem(PROGRESSION_STORAGE_KEY, JSON.stringify(progression))
   }, [progression])
 
+  // Adds after the currently tapped chip (whichever chord is driving the
+  // builder right now), not always at the end -- if the last chip is what's
+  // tapped (the default, e.g. nothing's been tapped yet) that's the same
+  // position as appending, so this is a strict generalization of the old
+  // always-append behavior, not a different one.
   function addToProgression(chord, notes) {
     if (!isPro && progression.length >= PROGRESSION_LIMIT) {
       setProgressionTeaser(PROGRESSION_TEASER)
@@ -216,17 +229,26 @@ export default function App() {
       return
     }
     setActiveTemplate(null)
-    setProgression(prev => [...prev, { chord, notes }])
+    const insertAt = (tappedChordIndex != null && tappedChordIndex < progression.length)
+      ? tappedChordIndex + 1
+      : progression.length
+    setProgression(prev => [...prev.slice(0, insertAt), { chord, notes }, ...prev.slice(insertAt)])
+    // The freshly-inserted chord becomes the new tapped position, so adding
+    // several suggestions in a row while exploring from a middle chip keeps
+    // extending forward from there instead of stacking in reverse order.
+    setTappedChordIndex(insertAt)
   }
 
   function clearProgression() {
     setActiveTemplate(null)
     setProgression([])
+    setTappedChordIndex(null)
   }
 
   function removeLast() {
     setActiveTemplate(null)
     setProgression(prev => prev.slice(0, -1))
+    setTappedChordIndex(prev => (prev === progression.length - 1 ? null : prev))
   }
 
   function loadTemplate(entries, template) {
@@ -238,11 +260,39 @@ export default function App() {
     }
     setProgression(entries)
     setActiveTemplate({ name: template.name, description: template.description })
+    setTappedChordIndex(null)
   }
 
   function loadSavedProgression(chords) {
     setActiveTemplate(null)
     setProgression(chords)
+    setTappedChordIndex(null)
+  }
+
+  // Drag-to-reorder: splice the moved chord into its new position, and slide
+  // tappedChordIndex along with whatever it was pointing at (itself, if that
+  // chord is what moved; otherwise shifted by one only if it sat between the
+  // old and new position) so a reorder never silently detaches the tapped
+  // chip from the chord it was actually tapped on.
+  function moveChord(fromIndex, toIndex) {
+    if (fromIndex === toIndex) return
+    setActiveTemplate(null)
+    setProgression(prev => {
+      const next = [...prev]
+      const [moved] = next.splice(fromIndex, 1)
+      next.splice(toIndex, 0, moved)
+      return next
+    })
+    setTappedChordIndex(prev => {
+      if (prev == null) return prev
+      if (prev === fromIndex) return toIndex
+      if (fromIndex < toIndex) {
+        if (prev > fromIndex && prev <= toIndex) return prev - 1
+      } else if (prev >= toIndex && prev < fromIndex) {
+        return prev + 1
+      }
+      return prev
+    })
   }
 
   // Parse a chord display name back into selector state
@@ -265,7 +315,13 @@ export default function App() {
     return { root, ...qual }
   }
 
-  function handleSelectLastChord(chordName) {
+  // Generalized from "tap the last chip" (Session 11) to any chip -- tapping
+  // always records the tapped position (so the next add-to-progression
+  // inserts after it) even if the name doesn't parse into a selector state
+  // for some reason; the two are independent, position tracking shouldn't
+  // depend on display-parsing succeeding.
+  function handleSelectChord(index, chordName) {
+    setTappedChordIndex(index)
     const sel = chordNameToSelection(chordName)
     if (sel) setSelection({ ...sel, bassNote: 'none' })
   }
@@ -413,7 +469,7 @@ export default function App() {
 
             {mode === 'find' ? (
               <section className="app__section">
-                <ReverseVoicingFinder />
+                <ReverseVoicingFinder onAddToProgression={addToProgression} />
               </section>
             ) : (
               <>
@@ -505,7 +561,8 @@ export default function App() {
         onBpmChange={setBpm}
         onClear={clearProgression}
         onRemoveLast={removeLast}
-        onSelectLastChord={handleSelectLastChord}
+        onSelectChord={handleSelectChord}
+        onReorder={moveChord}
         onLoadSaved={loadSavedProgression}
         templateInfo={activeTemplate}
         teaserMessage={progressionTeaser}
