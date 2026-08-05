@@ -1,5 +1,5 @@
 .app {
-  min-height: 100vh;
+  height: 100vh;
   display: flex;
   flex-direction: column;
   background: var(--bg);
@@ -193,7 +193,50 @@
   text-transform: uppercase;
 }
 
-.app__main {
+/* ─── Push-swipe Templates drawer ──────────────────────────────────────────── */
+/* .app__drawer-wrapper holds two full-width panels side by side, slid in and
+   out via transform so ProgressionStrip (a fixed-position sibling outside
+   this wrapper entirely) never moves and stays fully interactive in either
+   state. flex:1 + min-height:0 lets it fill the remaining space below the
+   header without growing .app past 100vh -- each panel scrolls internally
+   instead of the whole page scrolling, which is what makes two independently
+   scrollable panels possible in the first place. */
+
+.app__drawer-wrapper {
+  position: relative;
+  overflow: hidden;
+  flex: 1;
+  min-height: 0;
+}
+
+.app__panel {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  transition: transform 0.3s ease;
+  box-sizing: border-box;
+}
+
+.app__builder-panel {
+  transform: translateX(0);
+}
+
+.app__builder-panel--hidden {
+  transform: translateX(-100%);
+}
+
+.app__templates-panel {
+  transform: translateX(100%);
+}
+
+.app__templates-panel--open {
+  transform: translateX(0);
+}
+
+.app__panel-inner {
   max-width: 860px;
   margin: 0 auto;
   width: 100%;
@@ -205,6 +248,50 @@
 
 .app__section {
   width: 100%;
+}
+
+/* Fixed-size edge tabs -- same base class for both, mirrored via the
+   --open/--close modifiers for which edge they sit on and which corners
+   round. Always position:fixed (viewport-relative) so they stay put
+   regardless of which panel is scrolled, same as ProgressionStrip. */
+
+.app__drawer-tab {
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 56px;
+  z-index: 95;
+  background: var(--teal);
+  color: var(--on-accent);
+  border: none;
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  font-family: var(--font);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  transition: background 0.15s;
+}
+
+.app__drawer-tab:hover {
+  background: var(--teal-dark);
+}
+
+.app__drawer-tab--open {
+  right: 0;
+  border-radius: 8px 0 0 8px;
+}
+
+.app__drawer-tab--close {
+  left: 0;
+  border-radius: 0 8px 8px 0;
 }
 
 .app__unavailable {
@@ -251,7 +338,7 @@
   .app__hamburger {
     display: flex;
   }
-  .app__main {
+  .app__panel-inner {
     padding-bottom: calc(370px + env(safe-area-inset-bottom));
   }
 }

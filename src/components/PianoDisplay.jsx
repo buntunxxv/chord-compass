@@ -79,19 +79,30 @@ function findSpelling(keyNote, chordNotes) {
 }
 
 const SUGGEST_FILL = '#8B5CF6'
+// Left-hand/right-hand split's isolated bass note gets its own color --
+// distinct from root gold (#F5B82E), chord-tone teal (#119392), and the
+// suggestion-preview purple (#8B5CF6) above, so the hand-split reads at a
+// glance instead of just looking like an ordinary root highlight sitting an
+// octave low. A deep rose sits far enough from all three on the color wheel
+// to stay unambiguous, and (like every other key fill here) is a fixed hex
+// value rather than a theme CSS variable -- consistent with how root/teal/
+// suggest already render identically in light and dark mode, since the
+// piano's white/black keys themselves never re-theme.
+const BASS_SPLIT_FILL = '#D6336C'
 
 // Work out fill + whether the key gets a "shared" ring for a single key
-function resolveKeyStyle(note, notes, root, previewNotes, defaultFill) {
+function resolveKeyStyle(note, notes, root, previewNotes, defaultFill, bassHighlightNote) {
   const inCurrent = noteMatches(note, notes)
   const inPreview = previewNotes && previewNotes.length > 0 && noteMatches(note, previewNotes)
   const isCurrentRoot = isRoot(note, root)
+  const isBassSplit = !!bassHighlightNote && isRoot(note, bassHighlightNote)
 
   if (inCurrent) {
     return {
-      fill: isCurrentRoot ? '#F5B82E' : '#119392',
+      fill: isBassSplit ? BASS_SPLIT_FILL : isCurrentRoot ? '#F5B82E' : '#119392',
       active: true,
       shared: inPreview,
-      textFill: isCurrentRoot ? '#7a5500' : '#ffffff',
+      textFill: isBassSplit ? '#ffffff' : isCurrentRoot ? '#7a5500' : '#ffffff',
       spelling: findSpelling(note, notes),
     }
   }
@@ -101,10 +112,16 @@ function resolveKeyStyle(note, notes, root, previewNotes, defaultFill) {
   return { fill: defaultFill, active: false, shared: false, textFill: '#aaaaaa', spelling: null }
 }
 
-export default function PianoDisplay({ chordNotes, previewNotes, compact }) {
+export default function PianoDisplay({ chordNotes, previewNotes, bassHighlightNote, rootNote, compact }) {
   const notes = chordNotes || []
-  // The first note in a chord's data is always its root (by convention)
-  const root = notes.length > 0 ? notes[0] : null
+  // The first note in a chord's data is always its root, by convention --
+  // but Drop-2 deliberately re-sorts by pitch height, so whichever note
+  // ends up at notes[0] after that isn't reliably the actual root anymore
+  // (it's just whatever's lowest). Callers that apply a voicing transform
+  // pass the true root/bass explicitly via rootNote; anything that doesn't
+  // (e.g. progression playback, whose notes are never reordered) falls
+  // back to the original notes[0] convention unchanged.
+  const root = rootNote ?? (notes.length > 0 ? notes[0] : null)
   const hasPreview = !!(previewNotes && previewNotes.length > 0)
 
   const synthRef = useRef(null)
@@ -142,7 +159,7 @@ export default function PianoDisplay({ chordNotes, previewNotes, compact }) {
         {/* White keys */}
         {WHITE_KEYS.map((note, i) => {
           const x = i * WHITE_KEY_WIDTH
-          const style = resolveKeyStyle(note, notes, root, previewNotes, '#ffffff')
+          const style = resolveKeyStyle(note, notes, root, previewNotes, '#ffffff', bassHighlightNote)
           const isPressed = pressedNote === note
 
           return (
@@ -208,7 +225,7 @@ export default function PianoDisplay({ chordNotes, previewNotes, compact }) {
         {/* Black keys — rendered on top */}
         {BLACK_KEYS.map(({ note, whiteIndex }) => {
           const x = whiteIndex * WHITE_KEY_WIDTH + WHITE_KEY_WIDTH - BLACK_KEY_WIDTH / 2 - 1
-          const style = resolveKeyStyle(note, notes, root, previewNotes, '#1a1a1a')
+          const style = resolveKeyStyle(note, notes, root, previewNotes, '#1a1a1a', bassHighlightNote)
           const isPressed = pressedNote === note
 
           return (

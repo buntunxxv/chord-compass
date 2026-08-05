@@ -3,10 +3,30 @@ import PianoDisplay from './PianoDisplay'
 import GuitarDisplay from './GuitarDisplay'
 import './InstrumentDock.css'
 
-export default function InstrumentDock({ chordNotes, previewNotes, root, guitarShape, guitarSlashNotice, guitarInversionUnavailable, guitarPositions, isPro }) {
+const KEYS_POSITION_LABELS = ['Close', 'Drop-2', 'Split']
+
+export default function InstrumentDock({ chordNotes, previewNotes, bassHighlightNote, keysRootNote, keysPositionIndex, onKeysPositionChange, root, guitarShape, guitarSlashNotice, guitarInversionUnavailable, guitarPositions, isPro }) {
   const [tab, setTab] = useState('keys')
   const [positionIndex, setPositionIndex] = useState(0)
   const canShowFrets = !guitarInversionUnavailable && (!!guitarShape || guitarSlashNotice)
+
+  // Structurally parallel to the guitar position selector below, but with
+  // its own independent state (keysPositionIndex lives in App.jsx, not
+  // here, since the "Play Chord" button outside this component needs to
+  // hear whichever voicing is currently selected too) -- same three-way
+  // defensive Pro-gating pattern: disabled attribute on the locked tabs,
+  // an early-return in the click handler, and a clamped max index. This
+  // clamp is independent of (and redundant with) App.jsx's own clamp on
+  // the same raw keysPositionIndex + isPro, so a free user can never
+  // actually be shown position 2/3 here even if App.jsx's clamp were ever
+  // bypassed some other way.
+  const maxAllowedKeysIndex = isPro ? KEYS_POSITION_LABELS.length - 1 : 0
+  const activeKeysIndex = Math.min(keysPositionIndex, maxAllowedKeysIndex)
+
+  function selectKeysPosition(idx) {
+    if (idx > 0 && !isPro) return
+    onKeysPositionChange(idx)
+  }
 
   useEffect(() => {
     if (!canShowFrets && tab === 'frets') setTab('keys')
@@ -71,7 +91,25 @@ export default function InstrumentDock({ chordNotes, previewNotes, root, guitarS
       </div>
       <div className="instrument-dock__view">
         {tab === 'keys' ? (
-          <PianoDisplay chordNotes={chordNotes} previewNotes={previewNotes} compact />
+          <div className="instrument-dock__keys-view">
+            <PianoDisplay chordNotes={chordNotes} previewNotes={previewNotes} bassHighlightNote={bassHighlightNote} rootNote={keysRootNote} compact />
+            <div className="instrument-dock__keys-position-selector" role="tablist" aria-label="Piano voicing">
+              {KEYS_POSITION_LABELS.map((label, idx) => (
+                <button
+                  key={label}
+                  type="button"
+                  role="tab"
+                  aria-selected={activeKeysIndex === idx}
+                  className={`instrument-dock__keys-tab ${activeKeysIndex === idx ? 'instrument-dock__keys-tab--active' : ''}`}
+                  onClick={() => selectKeysPosition(idx)}
+                  disabled={idx > 0 && !isPro}
+                >
+                  {label}
+                  {idx > 0 && !isPro && <span className="instrument-dock__position-badge">PRO</span>}
+                </button>
+              ))}
+            </div>
+          </div>
         ) : guitarSlashNotice ? (
           <p className="instrument-dock__guitar-notice">Guitar shapes for slash chords coming soon</p>
         ) : (

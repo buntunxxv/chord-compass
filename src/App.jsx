@@ -7,6 +7,7 @@ import { GUITAR_ALT_POSITIONS } from './guitarPositions'
 import { GUITAR_INVERSION_ALT_POSITIONS } from './guitarInversionPositions'
 import { buildChordSymbol } from './components/ChordSelector'
 import { isSlashEligible, computeSlashNotes, appendSlashSymbol, isInChordTone } from './utils/slashChord'
+import { applyDrop2, applyLeftHandSplit } from './utils/pianoVoicings'
 import { useTheme } from './hooks/useTheme'
 import ChordSelector from './components/ChordSelector'
 import ChordOutputPanel from './components/ChordOutputPanel'
@@ -83,6 +84,8 @@ export default function App() {
   const [feedbackOpen, setFeedbackOpen] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [onboardingOpen, setOnboardingOpen] = useState(false)
+  // Push-swipe Templates drawer -- not persisted, always starts closed
+  const [templatesDrawerOpen, setTemplatesDrawerOpen] = useState(false)
 
   useEffect(() => {
     if (!localStorage.getItem('kcc_seen_intro_v2')) {
@@ -109,6 +112,7 @@ export default function App() {
     setIsPro(localStorage.getItem('kcc_tier') === 'pro')
   }, [])
   const [playingChordNotes, setPlayingChordNotes] = useState(null)
+  const [keysPositionIndex, setKeysPositionIndex] = useState(0)
   const { preference: themePreference, resolvedTheme, setPreference: setThemePreference } = useTheme()
 
   const { root, quality, extension, bassNote } = selection
@@ -166,6 +170,13 @@ export default function App() {
   useEffect(() => {
     setPreviewIndex(null)
   }, [dataKey])
+
+  // A new chord (or a new slash/inversion bass) always starts back at Close
+  // position -- same "always reset to position 1" rule Session 29 used for
+  // the guitar neck-position selector.
+  useEffect(() => {
+    setKeysPositionIndex(0)
+  }, [dataKey, effectiveBassNote])
 
   // Reset the bass note whenever it stops being selectable, so switching
   // back to an eligible quality later doesn't resurrect a stale slash choice
@@ -259,9 +270,36 @@ export default function App() {
 
   const available = !!chordEntry
 
-  // While a progression plays, the piano should track whatever's actually sounding
-  const pianoNotes = playingChordNotes || chordNotes
+  // Keys-tab voicing positions: Close (whatever chordNotes already is --
+  // works correctly for slash/inversion chords with zero extra handling,
+  // since it's the same array), Drop-2, and a left-hand/right-hand split.
+  // Position 1 is always free; 2-3 are Pro-gated. Clamping here (not just
+  // disabling the tab buttons in InstrumentDock) means a free user can
+  // never actually hear/see position 2/3 even if keysPositionIndex state
+  // somehow held a stale non-zero value -- same defense-in-depth pattern
+  // already used for effectiveBassNote and the guitar position selector.
+  const keysPositions = [chordNotes, applyDrop2(chordNotes), applyLeftHandSplit(chordNotes)]
+  const maxAllowedKeysIndex = isPro ? keysPositions.length - 1 : 0
+  const activeKeysIndex = Math.min(keysPositionIndex, maxAllowedKeysIndex)
+  const displayedPianoNotes = keysPositions[activeKeysIndex]
+  // Only the LH/RH split gets its own bass highlight color -- Close and
+  // Drop-2 keep the ordinary root/chord-tone convention.
+  const keysBassHighlight = activeKeysIndex === 2 ? displayedPianoNotes[0] : null
+
+  // While a progression plays, the piano should track whatever's actually
+  // sounding (captured at add-time, independent of the live builder's
+  // current voicing-position choice).
+  const pianoNotes = playingChordNotes || displayedPianoNotes
+  const pianoBassHighlight = playingChordNotes ? null : keysBassHighlight
   const pianoPreviewNotes = playingChordNotes ? null : previewNotes
+  // Drop-2 deliberately re-sorts by pitch height, so notes[0] of the
+  // transformed array isn't reliably the actual root anymore -- pass the
+  // true root/bass (chordNotes[0], before any voicing transform) explicitly
+  // so PianoDisplay's gold highlight always lands on the real root, not
+  // whichever note happened to end up lowest. Left null during progression
+  // playback so PianoDisplay falls back to its own notes[0] on
+  // playingChordNotes, matching this app's existing (unrelated) behavior.
+  const pianoRootNote = playingChordNotes ? null : (chordNotes[0] ?? null)
 
   return (
     <div className="app">
@@ -327,59 +365,88 @@ export default function App() {
         )}
       </header>
 
-      <main className="app__main">
-        <section className="app__section">
-          <ChordSelector
-            root={root}
-            quality={quality}
-            extension={extension}
-            bassNote={bassNote}
-            isPro={isPro}
-            onChange={setSelection}
-          />
-        </section>
+      <div className="app__drawer-wrapper">
+        <main className={`app__panel app__builder-panel ${templatesDrawerOpen ? 'app__builder-panel--hidden' : ''}`}>
+          <div className="app__panel-inner">
+            <section className="app__section">
+              <ChordSelector
+                root={root}
+                quality={quality}
+                extension={extension}
+                bassNote={bassNote}
+                isPro={isPro}
+                onChange={setSelection}
+              />
+            </section>
 
-        <section className="app__section">
-          <ChordOutputPanel
-            chordName={displayName}
-            notes={chordNotes}
-            intervals={intervals}
-            available={available}
-            onAddToProgression={addToProgression}
-          />
-        </section>
+            <section className="app__section">
+              <ChordOutputPanel
+                chordName={displayName}
+                notes={displayedPianoNotes}
+                intervals={intervals}
+                available={available}
+                onAddToProgression={addToProgression}
+              />
+            </section>
 
-        {available && chordEntry?.next && (
-          <section className="app__section">
-            <NextChordSuggestions
-              suggestions={chordEntry.next}
-              currentNotes={chordNotes}
-              bpm={bpm}
-              previewIndex={previewIndex}
-              onPreviewChange={setPreviewIndex}
-              onAddToProgression={addToProgression}
-              theme={resolvedTheme}
-              isPro={isPro}
-            />
-          </section>
+            {available && chordEntry?.next && (
+              <section className="app__section">
+                <NextChordSuggestions
+                  suggestions={chordEntry.next}
+                  currentNotes={chordNotes}
+                  bpm={bpm}
+                  previewIndex={previewIndex}
+                  onPreviewChange={setPreviewIndex}
+                  onAddToProgression={addToProgression}
+                  theme={resolvedTheme}
+                  isPro={isPro}
+                />
+              </section>
+            )}
+
+            {!available && (
+              <section className="app__section app__unavailable">
+                <p>This chord combination is not available in Stage 1. Select one of the 12 seed chords to explore suggestions.</p>
+              </section>
+            )}
+          </div>
+        </main>
+
+        <div className={`app__panel app__templates-panel ${templatesDrawerOpen ? 'app__templates-panel--open' : ''}`}>
+          <div className="app__panel-inner">
+            <section className="app__section">
+              <ProgressionTemplates
+                keyRoot={templateKeyRoot}
+                keyMode={templateKeyMode}
+                onKeyRootChange={setTemplateKeyRoot}
+                onKeyModeChange={setTemplateKeyMode}
+                onLoad={loadTemplate}
+              />
+            </section>
+          </div>
+        </div>
+
+        {!templatesDrawerOpen && (
+          <button
+            type="button"
+            className="app__drawer-tab app__drawer-tab--open"
+            onClick={() => setTemplatesDrawerOpen(true)}
+            aria-label="Open progression templates"
+          >
+            Templates
+          </button>
         )}
-
-        {!available && (
-          <section className="app__section app__unavailable">
-            <p>This chord combination is not available in Stage 1. Select one of the 12 seed chords to explore suggestions.</p>
-          </section>
+        {templatesDrawerOpen && (
+          <button
+            type="button"
+            className="app__drawer-tab app__drawer-tab--close"
+            onClick={() => setTemplatesDrawerOpen(false)}
+            aria-label="Back to chord builder"
+          >
+            Chords
+          </button>
         )}
-
-        <section className="app__section">
-          <ProgressionTemplates
-            keyRoot={templateKeyRoot}
-            keyMode={templateKeyMode}
-            onKeyRootChange={setTemplateKeyRoot}
-            onKeyModeChange={setTemplateKeyMode}
-            onLoad={loadTemplate}
-          />
-        </section>
-      </main>
+      </div>
 
       <ProgressionStrip
         progression={progression}
@@ -394,6 +461,10 @@ export default function App() {
         onPlayingChordChange={setPlayingChordNotes}
         chordNotes={pianoNotes}
         previewNotes={pianoPreviewNotes}
+        bassHighlightNote={pianoBassHighlight}
+        keysRootNote={pianoRootNote}
+        keysPositionIndex={keysPositionIndex}
+        onKeysPositionChange={setKeysPositionIndex}
         root={root}
         guitarShape={guitarShapeToShow}
         guitarSlashNotice={guitarSlashNotice}
