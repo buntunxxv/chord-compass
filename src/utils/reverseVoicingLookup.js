@@ -5,7 +5,7 @@
 // chord and produce one shape. Ranking here is ease/playability only
 // (fewer muted strings, smaller fret span, lower average fret); ranking
 // against a progression's voice-leading is Phase 2, not this module.
-import { Note, Interval } from 'tonal'
+import { Note, Interval, Chord } from 'tonal'
 
 // Standard tuning, low string to high: E A D G B e -- same open-string
 // pitch classes and (open + fret) % 12 formula GuitarDisplay.jsx already
@@ -121,11 +121,14 @@ export function soundingNotes(frets) {
     .filter(Boolean)
 }
 
-// A plain, honest label for a found shape -- the pitch classes it actually
-// sounds, bass to treble, deduped by first occurrence. Deliberately not a
-// guessed chord name (tonal's Chord.detect is ambiguous/order-sensitive and
-// a wrong guess would be worse than no guess) -- just what's really there.
-export function voicingLabel(frets) {
+// A shape's actual sounding note names, bass to treble, deduped by first
+// occurrence -- the real, specific pitch-class set THIS fingering sounds
+// (which can differ shape-to-shape even for the same picked notes, per
+// Phase 1's "superset of picked notes" matching rule: a doubled or extra
+// tone on one shape and not another). Used for the plain fallback label
+// and for the alternates list; NOT for detectChordName's input order --
+// see that function's own comment for why.
+function soundingNoteNames(frets) {
   const seen = new Set()
   const names = []
   frets.forEach((f, i) => {
@@ -135,5 +138,42 @@ export function voicingLabel(frets) {
     seen.add(pc)
     names.push(PITCH_CLASS_NAMES[pc])
   })
-  return names.join(' · ')
+  return names
+}
+
+// A plain, honest fallback label for a found shape -- just the pitch
+// classes it actually sounds. Used on its own when chord detection has no
+// confident match, so there's always something sensible to show/add.
+export function voicingLabel(frets) {
+  return soundingNoteNames(frets).join(' · ')
+}
+
+// Best-effort chord name for one specific shape's actual sounding notes --
+// call this per result, not once for the whole picked set, since two
+// ranked shapes can genuinely sound a different pitch-class SET from each
+// other (see soundingNoteNames above) and deserve different names for
+// that reason.
+//
+// Notes go into Chord.detect in plain pitch-class-ascending order (C first
+// upward), not this shape's actual bass-to-treble string order: tonal's
+// detector treats whichever note is listed FIRST as the preferred root to
+// try, even when that "chord" is an obscure type -- e.g. a plain C major
+// triad voiced with E as the lowest string detects as "Em#5" if E leads
+// the input, versus the far more useful "CM" if C leads it. A fixed
+// pitch-class order keeps the name about what the shape's pitch content
+// actually IS (a chord's identity), not which string happens to ring
+// lowest for this particular fingering -- that's a voicing/inversion
+// detail the guitar diagram itself already shows.
+//
+// Falls back to the plain note list (voicingLabel) when detection returns
+// nothing -- a genuinely ambiguous cluster (e.g. a bare 2nd, or three
+// adjacent semitones) has no chord name worth fabricating.
+export function detectChordName(frets) {
+  const names = soundingPitchClasses(frets).map(pc => PITCH_CLASS_NAMES[pc])
+  const matches = Chord.detect(names)
+  return {
+    name: matches[0] || soundingNoteNames(frets).join(' · '),
+    isDetected: matches.length > 0,
+    alternates: matches.slice(1),
+  }
 }

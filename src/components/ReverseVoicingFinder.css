@@ -90,6 +90,32 @@
   color: var(--teal);
 }
 
+.reverse-finder__result-name {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--teal);
+  letter-spacing: -0.01em;
+  text-align: center;
+  line-height: 1.2;
+}
+
+/* No confident chord.detect match -- this is just the raw note list, not a
+   real chord name, so it reads visibly differently from a detected one
+   rather than looking like an equally-confident guess. */
+.reverse-finder__result-name--fallback {
+  font-size: 15px;
+  font-weight: 600;
+  font-style: italic;
+  color: var(--text-muted);
+}
+
+.reverse-finder__result-alt {
+  margin-top: -6px;
+  font-size: 11px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
 .reverse-finder__result-stats {
   font-size: 12px;
   color: var(--text-muted);
