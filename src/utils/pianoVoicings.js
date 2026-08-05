@@ -23,12 +23,37 @@ function byHeight(a, b) {
 // re-sort. A pure function over whatever notes are currently active (already
 // slash/inversion-aware), so it works identically on a triad, a 7th chord,
 // or the 5-6 note extended/altered chords -- no per-chord data needed.
-export function applyDrop2(notes) {
+//
+// For a plain root-position chord, the drop inverting which note ends up
+// lowest is intended -- that's what makes Drop-2 characterful, and the true
+// root stays correctly highlighted elsewhere via a separate rootNote prop
+// that doesn't depend on array order. So this stays a no-op-safe, unaware
+// transform by default.
+//
+// protectBass exists for the one case where inverting IS a bug: a
+// deliberately selected slash/inversion bass (Sessions 26-28's "selected
+// bass is always the lowest sounding note" invariant). Callers that know a
+// genuine slash bass is active (vs. just the chord's default root) should
+// pass protectBass=true, which reuses the exact "lift the colliding note,
+// never push the bass down" pattern from computeSlashNotes (slashChord.js)
+// and applyLeftHandSplit below: if the drop leaves anything at or below
+// notes[0] (the bass), lift that note back up an octave instead.
+export function applyDrop2(notes, protectBass = false) {
   if (!notes || notes.length < 3) return notes
   const sorted = [...notes].sort(byHeight)
   const idx = sorted.length - 2
   sorted[idx] = shiftOctaveDown(sorted[idx])
-  return sorted.sort(byHeight)
+  const dropped = sorted.sort(byHeight)
+
+  if (!protectBass) return dropped
+
+  const bassNote = notes[0]
+  const bassHeight = Note.get(bassNote).height
+  const fixed = dropped.map(note => {
+    if (note === bassNote) return note
+    return Note.get(note).height <= bassHeight ? shiftOctaveUp(note) : note
+  })
+  return fixed.sort(byHeight)
 }
 
 // Lift `note` by whole octaves until it's at least a full octave (>=12

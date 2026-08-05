@@ -112,7 +112,17 @@ export default function App() {
     setIsPro(localStorage.getItem('kcc_tier') === 'pro')
   }, [])
   const [playingChordNotes, setPlayingChordNotes] = useState(null)
+  const [playingRootNote, setPlayingRootNote] = useState(null)
   const [keysPositionIndex, setKeysPositionIndex] = useState(0)
+
+  // ProgressionStrip now applies the selected Keys voicing (Drop-2/Split)
+  // during playback too, so playingChordNotes[0] is no longer reliably the
+  // true root the way it was when playback only ever voice-led the chord
+  // as-stored -- it needs its own untouched root passed alongside the notes.
+  function handlePlayingChordChange(notes, rootNote) {
+    setPlayingChordNotes(notes)
+    setPlayingRootNote(rootNote ?? null)
+  }
   const { preference: themePreference, resolvedTheme, setPreference: setThemePreference } = useTheme()
 
   const { root, quality, extension, bassNote } = selection
@@ -278,28 +288,34 @@ export default function App() {
   // never actually hear/see position 2/3 even if keysPositionIndex state
   // somehow held a stale non-zero value -- same defense-in-depth pattern
   // already used for effectiveBassNote and the guitar position selector.
-  const keysPositions = [chordNotes, applyDrop2(chordNotes), applyLeftHandSplit(chordNotes)]
+  // applyDrop2 only needs to protect the bass from inversion when there's a
+  // genuinely selected slash/inversion bass active -- for a plain root-
+  // position chord, inverting which note ends up lowest is Drop-2's
+  // intended, characterful behavior (the true root still gets highlighted
+  // correctly below via the separate rootNote prop).
+  const keysPositions = [chordNotes, applyDrop2(chordNotes, hasSlashBass), applyLeftHandSplit(chordNotes)]
   const maxAllowedKeysIndex = isPro ? keysPositions.length - 1 : 0
   const activeKeysIndex = Math.min(keysPositionIndex, maxAllowedKeysIndex)
   const displayedPianoNotes = keysPositions[activeKeysIndex]
-  // Only the LH/RH split gets its own bass highlight color -- Close and
-  // Drop-2 keep the ordinary root/chord-tone convention.
-  const keysBassHighlight = activeKeysIndex === 2 ? displayedPianoNotes[0] : null
 
   // While a progression plays, the piano should track whatever's actually
-  // sounding (captured at add-time, independent of the live builder's
-  // current voicing-position choice).
+  // sounding (ProgressionStrip applies the same selected voicing transform
+  // per-chord before it ever reaches here).
   const pianoNotes = playingChordNotes || displayedPianoNotes
-  const pianoBassHighlight = playingChordNotes ? null : keysBassHighlight
+  // Only the LH/RH split gets its own bass highlight color -- Close and
+  // Drop-2 keep the ordinary root/chord-tone convention. Split always places
+  // the isolated bass at notes[0], live or during playback alike, so this
+  // reads pianoNotes[0] directly instead of nulling out during playback.
+  const pianoBassHighlight = activeKeysIndex === 2 ? pianoNotes[0] : null
   const pianoPreviewNotes = playingChordNotes ? null : previewNotes
   // Drop-2 deliberately re-sorts by pitch height, so notes[0] of the
   // transformed array isn't reliably the actual root anymore -- pass the
-  // true root/bass (chordNotes[0], before any voicing transform) explicitly
-  // so PianoDisplay's gold highlight always lands on the real root, not
-  // whichever note happened to end up lowest. Left null during progression
-  // playback so PianoDisplay falls back to its own notes[0] on
-  // playingChordNotes, matching this app's existing (unrelated) behavior.
-  const pianoRootNote = playingChordNotes ? null : (chordNotes[0] ?? null)
+  // true root/bass explicitly so PianoDisplay's gold highlight always lands
+  // on the real root, not whichever note happened to end up lowest. During
+  // playback that's playingRootNote (captured alongside playingChordNotes,
+  // see handlePlayingChordChange); live, it's chordNotes[0] before any
+  // voicing transform.
+  const pianoRootNote = playingChordNotes ? playingRootNote : (chordNotes[0] ?? null)
 
   return (
     <div className="app">
@@ -458,7 +474,7 @@ export default function App() {
         onLoadSaved={loadSavedProgression}
         templateInfo={activeTemplate}
         teaserMessage={progressionTeaser}
-        onPlayingChordChange={setPlayingChordNotes}
+        onPlayingChordChange={handlePlayingChordChange}
         chordNotes={pianoNotes}
         previewNotes={pianoPreviewNotes}
         bassHighlightNote={pianoBassHighlight}

@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import * as Tone from 'tone'
 import { createKeysSynth, startAudioContext } from '../audio/synth'
 import { voiceLeadProgression } from '../utils/voiceLeading'
+import { applyDrop2, applyLeftHandSplit } from '../utils/pianoVoicings'
 import InstrumentDock from './InstrumentDock'
 import './ProgressionStrip.css'
 
@@ -29,6 +30,19 @@ function chunkIntoRows(items, size) {
     rows.push(items.slice(i, i + size))
   }
   return rows
+}
+
+// Layers the selected Keys voicing (Close/Drop-2/Split) on top of whatever
+// voice-leading already produced for this chord -- Close is a no-op (voice
+// leading is already correct on its own), Drop-2 only protects the bass from
+// inversion for entries that are genuinely slash/inversion chords (same
+// isSlashChord signal App.jsx derives from hasSlashBass, here read off the
+// entry's own display chord name), and Split isolates the bass exactly as it
+// does in the live builder.
+function applySelectedVoicing(notes, activeKeysIndex, isSlashChord) {
+  if (activeKeysIndex === 1) return applyDrop2(notes, isSlashChord)
+  if (activeKeysIndex === 2) return applyLeftHandSplit(notes)
+  return notes
 }
 
 export default function ProgressionStrip({ progression, bpm, onBpmChange, onClear, onRemoveLast, onSelectLastChord, onLoadSaved, teaserMessage, onPlayingChordChange, chordNotes, previewNotes, bassHighlightNote, keysRootNote, keysPositionIndex, onKeysPositionChange, root, guitarShape, guitarSlashNotice, guitarInversionUnavailable, guitarPositions, templateInfo, isPro }) {
@@ -118,14 +132,28 @@ export default function ProgressionStrip({ progression, bpm, onBpmChange, onClea
 
     // Root of each chord stays exactly as stored — only the upper notes are
     // re-voiced to the closest octave to the previous chord, so playback
-    // doesn't jump registers every chord without ever using an inversion
-    const voicedProgression = voiceLeadProgression(progression)
+    // doesn't jump registers every chord without ever using an inversion.
+    // The selected Keys voicing (Close/Drop-2/Split) is then layered on top
+    // of each already-voice-led chord as a separate step, same clamp as the
+    // live builder uses so a free user can't hear a Pro-gated position here
+    // either -- this doesn't replace or redesign voice-leading, it's purely
+    // post-processing applied per chord.
+    const activeKeysIndex = Math.min(keysPositionIndex, isPro ? 2 : 0)
+    // rootNote is captured before the voicing transform runs -- Drop-2 can
+    // re-sort notes so index 0 is no longer the true root, so callers that
+    // need the real root (PianoDisplay's gold highlight) need it passed
+    // separately rather than read back off the transformed array.
+    const voicedProgression = voiceLeadProgression(progression).map(entry => ({
+      ...entry,
+      rootNote: entry.notes[0],
+      notes: applySelectedVoicing(entry.notes, activeKeysIndex, entry.chord.includes('/')),
+    }))
 
     voicedProgression.forEach((entry, i) => {
       synth.triggerAttackRelease(entry.notes, '1m', now + i * barDuration)
       setTimeout(() => {
         setActiveIndex(i)
-        onPlayingChordChange?.(entry.notes)
+        onPlayingChordChange?.(entry.notes, entry.rootNote)
       }, i * barDuration * 1000)
     })
 
@@ -133,7 +161,7 @@ export default function ProgressionStrip({ progression, bpm, onBpmChange, onClea
     setTimeout(() => {
       setActiveIndex(null)
       setIsPlaying(false)
-      onPlayingChordChange?.(null)
+      onPlayingChordChange?.(null, null)
     }, totalMs)
   }
 
