@@ -13,6 +13,10 @@ const SNAP_THRESHOLD = 4
 const CHORDS_PER_ROW = 4
 const SAVED_STORAGE_KEY = 'chordCompassSavedProgressions'
 const CONFIRMATION_MS = 1500
+// Below this many pixels of pointer travel, a press-and-release on a chip is
+// treated as a tap (select), not a drag (reorder) -- keeps an ordinary tap
+// from being misread as a zero-distance "drag" that does nothing.
+const DRAG_THRESHOLD_PX = 6
 
 function formatProgressionText(progression) {
   return progression
@@ -45,10 +49,67 @@ function applySelectedVoicing(notes, activeKeysIndex, isSlashChord) {
   return notes
 }
 
-export default function ProgressionStrip({ progression, bpm, onBpmChange, onClear, onRemoveLast, onSelectLastChord, onLoadSaved, teaserMessage, onPlayingChordChange, chordNotes, previewNotes, bassHighlightNote, keysRootNote, keysPositionIndex, onKeysPositionChange, root, guitarShape, guitarSlashNotice, guitarInversionUnavailable, guitarPositions, templateInfo, isPro }) {
+export default function ProgressionStrip({ progression, bpm, onBpmChange, onClear, onRemoveLast, onSelectChord, onReorder, onLoadSaved, teaserMessage, onPlayingChordChange, chordNotes, previewNotes, bassHighlightNote, keysRootNote, keysPositionIndex, onKeysPositionChange, root, guitarShape, guitarSlashNotice, guitarInversionUnavailable, guitarPositions, templateInfo, isPro }) {
   const [activeIndex, setActiveIndex] = useState(null)
   const [isPlaying, setIsPlaying] = useState(false)
   const synthRef = useRef(null)
+
+  // Drag-to-reorder (Pointer Events, not HTML5 DnD -- consistent, reliable
+  // touch support is the whole reason for that choice on a mobile-first
+  // app). dragFromIndex/dragOverIndex are transient UI state local to this
+  // component; the actual reorder is committed to the real progression
+  // array (owned by App.jsx) only on pointer-up, via onReorder.
+  const [dragFromIndex, setDragFromIndex] = useState(null)
+  const [dragOverIndex, setDragOverIndex] = useState(null)
+  const dragStartRef = useRef(null)
+  const chipRefs = useRef([])
+
+  function nearestChipIndex(x, y) {
+    let best = null
+    let bestDist = Infinity
+    chipRefs.current.forEach((el, idx) => {
+      if (!el) return
+      const rect = el.getBoundingClientRect()
+      const cx = rect.left + rect.width / 2
+      const cy = rect.top + rect.height / 2
+      const dist = (cx - x) ** 2 + (cy - y) ** 2
+      if (dist < bestDist) {
+        bestDist = dist
+        best = idx
+      }
+    })
+    return best
+  }
+
+  function handleChipPointerDown(e, index) {
+    if (isPlaying) return
+    e.currentTarget.setPointerCapture(e.pointerId)
+    dragStartRef.current = { x: e.clientX, y: e.clientY }
+    setDragFromIndex(index)
+    setDragOverIndex(index)
+  }
+
+  function handleChipPointerMove(e) {
+    if (dragFromIndex === null) return
+    const idx = nearestChipIndex(e.clientX, e.clientY)
+    if (idx !== null) setDragOverIndex(idx)
+  }
+
+  function endDrag(e, index, chordName, commit) {
+    if (dragFromIndex === null) return
+    if (commit) {
+      const start = dragStartRef.current
+      const moved = start ? Math.hypot(e.clientX - start.x, e.clientY - start.y) : 0
+      if (moved < DRAG_THRESHOLD_PX) {
+        onSelectChord?.(index, chordName)
+      } else if (dragOverIndex !== null && dragOverIndex !== dragFromIndex) {
+        onReorder?.(dragFromIndex, dragOverIndex)
+      }
+    }
+    setDragFromIndex(null)
+    setDragOverIndex(null)
+    dragStartRef.current = null
+  }
 
   const [savedProgressions, setSavedProgressions] = useState(() => {
     try {
@@ -203,14 +264,26 @@ export default function ProgressionStrip({ progression, bpm, onBpmChange, onClea
               <div className="progression-strip__chart" key={rowIndex}>
                 {row.map((entry, i) => {
                   const globalIndex = rowIndex * CHORDS_PER_ROW + i
-                  const isLast = globalIndex === progression.length - 1
-                  const tappable = isLast && !isPlaying
+                  // Every chip is tappable (and draggable) now, not just the
+                  // last one -- Session 11's "last chip only" restriction is
+                  // lifted here; the same generalization also makes chords
+                  // with accidental roots (e.g. F#m7) fully tappable, since
+                  // the exclusion was never really about accidentals, just
+                  // about position, and chordNameToSelection already parses
+                  // sharps/flats correctly (Session 18).
+                  const tappable = !isPlaying
+                  const isDragSource = dragFromIndex === globalIndex
+                  const isDropTarget = dragOverIndex === globalIndex && dragFromIndex !== null && dragOverIndex !== dragFromIndex
                   return (
                     <span
                       key={globalIndex}
-                      className={`progression-strip__slot ${activeIndex === globalIndex ? 'progression-strip__slot--active' : ''} ${tappable ? 'progression-strip__slot--tappable' : ''}`}
-                      onClick={tappable ? () => onSelectLastChord?.(entry.chord) : undefined}
-                      title={tappable ? `Set ${entry.chord} as active chord` : undefined}
+                      ref={el => { chipRefs.current[globalIndex] = el }}
+                      className={`progression-strip__slot ${activeIndex === globalIndex ? 'progression-strip__slot--active' : ''} ${tappable ? 'progression-strip__slot--tappable' : ''} ${isDragSource ? 'progression-strip__slot--dragging' : ''} ${isDropTarget ? 'progression-strip__slot--drag-over' : ''}`}
+                      onPointerDown={tappable ? e => handleChipPointerDown(e, globalIndex) : undefined}
+                      onPointerMove={tappable ? handleChipPointerMove : undefined}
+                      onPointerUp={tappable ? e => endDrag(e, globalIndex, entry.chord, true) : undefined}
+                      onPointerCancel={tappable ? e => endDrag(e, globalIndex, entry.chord, false) : undefined}
+                      title={tappable ? `${entry.chord} — tap to select, drag to reorder` : undefined}
                     >
                       {entry.chord}
                     </span>

@@ -80,10 +80,24 @@
   text-decoration-color: var(--teal);
   text-underline-offset: 3px;
   box-shadow: inset 0 0 0 1.5px var(--teal);
+  /* Pointer Events drive dragging here, not the browser's own touch-scroll
+     gesture -- without this, a touch-drag on a chip scrolls the page
+     instead of reordering it. */
+  touch-action: none;
+  user-select: none;
 }
 
 .progression-strip__slot--tappable:hover {
   background: color-mix(in srgb, var(--teal) 10%, transparent);
+}
+
+.progression-strip__slot--dragging {
+  opacity: 0.45;
+}
+
+.progression-strip__slot--drag-over {
+  background: color-mix(in srgb, var(--teal) 18%, transparent);
+  box-shadow: inset 0 0 0 2px var(--teal);
 }
 
 .progression-strip__clear-group {
