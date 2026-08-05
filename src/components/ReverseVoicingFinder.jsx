@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import GuitarDisplay from './GuitarDisplay'
 import NotePicker from './NotePicker'
-import { findVoicings, soundingNotes, voicingLabel, PITCH_CLASS_NAMES } from '../utils/reverseVoicingLookup'
+import { findVoicings, soundingNotes, detectChordName, PITCH_CLASS_NAMES } from '../utils/reverseVoicingLookup'
 import './ReverseVoicingFinder.css'
 
 const STRING_COUNT = 6
@@ -63,21 +63,34 @@ export default function ReverseVoicingFinder({ onAddToProgression }) {
               No playable shape found for these notes within a 15-fret range.
             </p>
           ) : (
-            results.map((result, i) => (
-              <div className="reverse-finder__result" key={result.frets.join('-')}>
-                <div className="reverse-finder__result-label">{RESULT_LABELS[i] || `#${i + 1}`}</div>
-                <GuitarDisplay shape={{ frets: result.frets }} notes={selectedNoteNames} compact />
-                <div className="reverse-finder__result-stats">{statsLine(result)}</div>
-                <button
-                  type="button"
-                  className="reverse-finder__add-btn"
-                  onClick={() => onAddToProgression?.(voicingLabel(result.frets), soundingNotes(result.frets))}
-                  aria-label={`Add this shape to progression`}
-                >
-                  + Add to progression
-                </button>
-              </div>
-            ))
+            results.map((result, i) => {
+              // Detected per-result, not once for the whole picked set --
+              // this specific shape's actual sounding notes (doublings/an
+              // extra tone) can genuinely differ from another ranked
+              // shape's, so they can legitimately deserve different names.
+              const detected = detectChordName(result.frets)
+              return (
+                <div className="reverse-finder__result" key={result.frets.join('-')}>
+                  <div className="reverse-finder__result-label">{RESULT_LABELS[i] || `#${i + 1}`}</div>
+                  <div className={`reverse-finder__result-name ${detected.isDetected ? '' : 'reverse-finder__result-name--fallback'}`}>
+                    {detected.name}
+                  </div>
+                  {detected.isDetected && detected.alternates.length > 0 && (
+                    <div className="reverse-finder__result-alt">also: {detected.alternates.join(', ')}</div>
+                  )}
+                  <GuitarDisplay shape={{ frets: result.frets }} notes={selectedNoteNames} compact />
+                  <div className="reverse-finder__result-stats">{statsLine(result)}</div>
+                  <button
+                    type="button"
+                    className="reverse-finder__add-btn"
+                    onClick={() => onAddToProgression?.(detected.name, soundingNotes(result.frets))}
+                    aria-label={`Add ${detected.name} to progression`}
+                  >
+                    + Add to progression
+                  </button>
+                </div>
+              )
+            })
           )}
         </div>
       )}
