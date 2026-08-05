@@ -1,0 +1,38 @@
+.note-picker {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+}
+
+.note-picker__key {
+  background: var(--bg);
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 0;
+  font-family: var(--font);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.note-picker__key:hover {
+  border-color: var(--teal);
+  color: var(--teal);
+}
+
+.note-picker__key--active {
+  background: var(--teal);
+  border-color: var(--teal);
+  color: var(--on-accent);
+}
+
+.note-picker__key--active:hover {
+  color: var(--on-accent);
+}
+
+@media (max-width: 480px) {
+  .note-picker {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}

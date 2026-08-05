@@ -14,6 +14,7 @@ import ChordOutputPanel from './components/ChordOutputPanel'
 import NextChordSuggestions from './components/NextChordSuggestions'
 import ProgressionTemplates from './components/ProgressionTemplates'
 import ProgressionStrip from './components/ProgressionStrip'
+import ReverseVoicingFinder from './components/ReverseVoicingFinder'
 import FeedbackPanel from './components/FeedbackPanel'
 import WalkthroughOverlay from './components/WalkthroughOverlay'
 import ThemeToggle from './components/ThemeToggle'
@@ -86,6 +87,11 @@ export default function App() {
   const [onboardingOpen, setOnboardingOpen] = useState(false)
   // Push-swipe Templates drawer -- not persisted, always starts closed
   const [templatesDrawerOpen, setTemplatesDrawerOpen] = useState(false)
+  // Builder-panel mode toggle: the normal forward chord builder, or the new
+  // reverse voicing lookup (Phase 1 -- pick notes, get ranked guitar shapes
+  // that contain them). A tab inside the existing panel, not a separate
+  // route or modal, and not persisted -- always starts back on the builder.
+  const [mode, setMode] = useState('build')
 
   useEffect(() => {
     if (!localStorage.getItem('kcc_seen_intro_v2')) {
@@ -384,46 +390,75 @@ export default function App() {
       <div className="app__drawer-wrapper">
         <main className={`app__panel app__builder-panel ${templatesDrawerOpen ? 'app__builder-panel--hidden' : ''}`}>
           <div className="app__panel-inner">
-            <section className="app__section">
-              <ChordSelector
-                root={root}
-                quality={quality}
-                extension={extension}
-                bassNote={bassNote}
-                isPro={isPro}
-                onChange={setSelection}
-              />
-            </section>
+            <div className="app__mode-tabs" role="tablist" aria-label="Chord tool mode">
+              <button
+                type="button"
+                role="tab"
+                aria-selected={mode === 'build'}
+                className={`app__mode-tab ${mode === 'build' ? 'app__mode-tab--active' : ''}`}
+                onClick={() => setMode('build')}
+              >
+                Build a Chord
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={mode === 'find'}
+                className={`app__mode-tab ${mode === 'find' ? 'app__mode-tab--active' : ''}`}
+                onClick={() => setMode('find')}
+              >
+                Find Shapes by Notes
+              </button>
+            </div>
 
-            <section className="app__section">
-              <ChordOutputPanel
-                chordName={displayName}
-                notes={displayedPianoNotes}
-                intervals={intervals}
-                available={available}
-                onAddToProgression={addToProgression}
-              />
-            </section>
-
-            {available && chordEntry?.next && (
+            {mode === 'find' ? (
               <section className="app__section">
-                <NextChordSuggestions
-                  suggestions={chordEntry.next}
-                  currentNotes={chordNotes}
-                  bpm={bpm}
-                  previewIndex={previewIndex}
-                  onPreviewChange={setPreviewIndex}
-                  onAddToProgression={addToProgression}
-                  theme={resolvedTheme}
-                  isPro={isPro}
-                />
+                <ReverseVoicingFinder />
               </section>
-            )}
+            ) : (
+              <>
+                <section className="app__section">
+                  <ChordSelector
+                    root={root}
+                    quality={quality}
+                    extension={extension}
+                    bassNote={bassNote}
+                    isPro={isPro}
+                    onChange={setSelection}
+                  />
+                </section>
 
-            {!available && (
-              <section className="app__section app__unavailable">
-                <p>This chord combination is not available in Stage 1. Select one of the 12 seed chords to explore suggestions.</p>
-              </section>
+                <section className="app__section">
+                  <ChordOutputPanel
+                    chordName={displayName}
+                    notes={displayedPianoNotes}
+                    intervals={intervals}
+                    available={available}
+                    onAddToProgression={addToProgression}
+                  />
+                </section>
+
+                {available && chordEntry?.next && (
+                  <section className="app__section">
+                    <NextChordSuggestions
+                      suggestions={chordEntry.next}
+                      currentNotes={chordNotes}
+                      bpm={bpm}
+                      previewIndex={previewIndex}
+                      onPreviewChange={setPreviewIndex}
+                      onAddToProgression={addToProgression}
+                      theme={resolvedTheme}
+                      isPro={isPro}
+                    />
+                  </section>
+                )}
+
+                {!available && (
+                  <section className="app__section app__unavailable">
+                    <p>This chord combination is not available in Stage 1. Select one of the 12 seed chords to explore suggestions.</p>
+                  </section>
+                )}
+              </>
             )}
           </div>
         </main>
