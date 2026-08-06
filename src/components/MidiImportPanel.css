@@ -1,0 +1,138 @@
+.midi-import {
+  margin-top: 12px;
+}
+
+.midi-import__file-btn {
+  display: inline-flex;
+  align-items: center;
+  background: transparent;
+  border: 1.5px solid var(--teal);
+  color: var(--teal);
+  border-radius: 6px;
+  padding: 8px 14px;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.midi-import__file-btn:hover {
+  background: var(--teal);
+  color: var(--on-accent);
+}
+
+.midi-import__file-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  opacity: 0;
+}
+
+.midi-import__filename {
+  margin-left: 10px;
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+.midi-import__notice {
+  font-size: 13px;
+  color: var(--warn-text);
+  background: var(--warn-bg);
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-top: 14px;
+  line-height: 1.4;
+}
+
+.midi-import__hint {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  line-height: 1.4;
+  margin-top: 14px;
+}
+
+.midi-import__list {
+  list-style: none;
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.midi-import__row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.midi-import__checkbox {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  accent-color: var(--teal);
+  cursor: pointer;
+}
+
+.midi-import__moment-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  text-align: left;
+  transition: border-color 0.15s;
+}
+
+.midi-import__moment-btn:hover {
+  border-color: var(--teal);
+}
+
+.midi-import__moment-index {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-faint);
+  min-width: 20px;
+}
+
+.midi-import__moment-name {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--teal);
+}
+
+.midi-import__moment-name--fallback {
+  font-size: 12.5px;
+  font-weight: 600;
+  font-style: italic;
+  color: var(--text-muted);
+}
+
+.midi-import__moment-time {
+  font-size: 11px;
+  color: var(--text-faint);
+  white-space: nowrap;
+}
+
+.midi-import__import-btn {
+  margin-top: 12px;
+  background: transparent;
+  border: 1.5px solid var(--teal);
+  color: var(--teal);
+  border-radius: 6px;
+  padding: 8px 14px;
+  font-size: 12.5px;
+  font-weight: 600;
+  transition: background 0.15s, color 0.15s;
+}
+
+.midi-import__import-btn:hover {
+  background: var(--teal);
+  color: var(--on-accent);
+}

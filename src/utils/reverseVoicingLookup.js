@@ -221,3 +221,23 @@ export function detectChordName(frets) {
     alternates: matches.slice(1),
   }
 }
+
+// Same best-effort naming as detectChordName above, but for an arbitrary
+// raw pitch-class set (0-11 integers) instead of a guitar fret array --
+// MIDI import's "chord moments" are just the notes sounding at some point
+// in a file, not a fingering, so there's no frets array to derive them
+// from. Same fixed-ascending-pitch-class-order-into-Chord.detect approach
+// and the same reasoning applies (see detectChordName's comment): a fixed
+// order keeps the name about the pitch content's identity, not whichever
+// note happened to sound first/lowest in the source data. Falls back to
+// the plain sorted pitch-class list when detection returns nothing.
+export function detectChordNameFromPitchClasses(pitchClasses) {
+  const sorted = [...new Set(pitchClasses)].sort((a, b) => a - b)
+  const names = sorted.map(pc => PITCH_CLASS_NAMES[pc])
+  const matches = Chord.detect(names)
+  return {
+    name: matches[0] || names.join(' · '),
+    isDetected: matches.length > 0,
+    alternates: matches.slice(1),
+  }
+}
