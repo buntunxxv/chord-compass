@@ -594,6 +594,7 @@ export default function App() {
                     intervals={intervals}
                     available={available}
                     onAddToProgression={addToProgression}
+                    isPro={isPro}
                   />
                 </section>
 

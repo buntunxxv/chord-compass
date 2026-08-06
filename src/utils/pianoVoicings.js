@@ -87,3 +87,16 @@ export function applyLeftHandSplit(notes) {
   const newUpper = upper.map(note => liftClearOfBass(note, bassHeight))
   return [`${bass.pc}${targetOctave}`, ...newUpper]
 }
+
+// Layers the selected Keys voicing (Close/Drop-2/Split) on top of whatever
+// voice-leading already produced for a chord -- Close is a no-op (voice
+// leading is already correct on its own), Drop-2 only protects the bass
+// from inversion for entries that are genuinely slash/inversion chords, and
+// Split isolates the bass exactly as it does in the live builder. Shared by
+// ProgressionStrip's playback and MIDI export so both always agree on what
+// "the currently active voicing" actually sounds like.
+export function applySelectedVoicing(notes, activeKeysIndex, isSlashChord) {
+  if (activeKeysIndex === 1) return applyDrop2(notes, isSlashChord)
+  if (activeKeysIndex === 2) return applyLeftHandSplit(notes)
+  return notes
+}

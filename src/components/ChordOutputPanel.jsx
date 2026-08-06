@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react'
 import { createKeysSynth, startAudioContext } from '../audio/synth'
 import { formatNoteNames } from '../utils/formatNotes'
+import { buildChordMidiBytes, downloadMidiFile, sanitizeFilename } from '../utils/midiExport'
 import './ChordOutputPanel.css'
 
 const INTERVAL_NAMES = {
@@ -24,9 +25,11 @@ function formatInterval(interval) {
 
 // A single chord preview doesn't need a tempo — just hold it long enough to hear
 const HOLD_SECONDS = 1.5
+const CONFIRMATION_MS = 1500
 
-export default function ChordOutputPanel({ chordName, notes, intervals, available, onAddToProgression }) {
+export default function ChordOutputPanel({ chordName, notes, intervals, available, onAddToProgression, isPro }) {
   const [playing, setPlaying] = useState(false)
+  const [justExported, setJustExported] = useState(false)
   const synthRef = useRef(null)
 
   async function handlePlay() {
@@ -41,6 +44,19 @@ export default function ChordOutputPanel({ chordName, notes, intervals, availabl
 
     synthRef.current.triggerAttackRelease(notes, HOLD_SECONDS)
     setTimeout(() => setPlaying(false), HOLD_SECONDS * 1000 + 200)
+  }
+
+  // Exports the currently displayed voicing (already Close/Drop-2/Split and
+  // slash/inversion-aware -- `notes` is the exact array Play itself sounds,
+  // App.jsx resolves it once for both) as one simultaneous note-on group in
+  // a real playable .mid file, held for the same duration the live preview
+  // plays.
+  function handleExportMidi() {
+    if (!isPro || !notes || notes.length === 0) return
+    const bytes = buildChordMidiBytes(notes, HOLD_SECONDS)
+    downloadMidiFile(bytes, `${sanitizeFilename(chordName)}.mid`)
+    setJustExported(true)
+    setTimeout(() => setJustExported(false), CONFIRMATION_MS)
   }
 
   if (!available) {
@@ -81,6 +97,20 @@ export default function ChordOutputPanel({ chordName, notes, intervals, availabl
         >
           + Add current chord
         </button>
+        {isPro ? (
+          <button
+            type="button"
+            className="chord-output__export-btn"
+            onClick={handleExportMidi}
+            disabled={!notes || notes.length === 0}
+          >
+            {justExported ? 'Exported!' : 'Export MIDI'}
+          </button>
+        ) : (
+          <button type="button" className="chord-output__export-btn chord-output__export-btn--locked" disabled>
+            Export MIDI <span className="chord-output__pro-badge">PRO</span>
+          </button>
+        )}
       </div>
       <div className="chord-output__row">
         <span className="chord-output__row-label">Notes</span>
