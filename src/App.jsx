@@ -106,6 +106,14 @@ export default function App() {
   const [onboardingOpen, setOnboardingOpen] = useState(false)
   // Push-swipe Templates drawer -- not persisted, always starts closed
   const [templatesDrawerOpen, setTemplatesDrawerOpen] = useState(false)
+  // Progression/instrument bottom sheet -- collapsed by default so the
+  // chord builder gets the vast majority of a mobile viewport. Lives here
+  // (not inside ProgressionStrip) only because App.css's bottom-padding
+  // reservation for the fixed-position sheet needs to know its height too;
+  // otherwise this is pure UI state, not persisted, and nothing but the
+  // user's own tap/swipe on the sheet ever changes it -- selecting a chord,
+  // playing, switching Build/Templates/Find modes, none of that touches it.
+  const [sheetExpanded, setSheetExpanded] = useState(false)
   // Builder-panel mode toggle: the normal forward chord builder, or the new
   // reverse voicing lookup (Phase 1 -- pick notes, get ranked guitar shapes
   // that contain them). A tab inside the existing panel, not a separate
@@ -498,7 +506,7 @@ export default function App() {
 
       <div className="app__drawer-wrapper">
         <main className={`app__panel app__builder-panel ${templatesDrawerOpen ? 'app__builder-panel--hidden' : ''}`}>
-          <div className="app__panel-inner">
+          <div className={`app__panel-inner ${sheetExpanded ? '' : 'app__panel-inner--sheet-collapsed'}`}>
             <div className="app__mode-tabs" role="tablist" aria-label="Chord tool mode">
               <button
                 type="button"
@@ -577,7 +585,7 @@ export default function App() {
         </main>
 
         <div className={`app__panel app__templates-panel ${templatesDrawerOpen ? 'app__templates-panel--open' : ''}`}>
-          <div className="app__panel-inner">
+          <div className={`app__panel-inner ${sheetExpanded ? '' : 'app__panel-inner--sheet-collapsed'}`}>
             <section className="app__section">
               <ProgressionTemplates
                 keyRoot={templateKeyRoot}
@@ -613,6 +621,9 @@ export default function App() {
       </div>
 
       <ProgressionStrip
+        expanded={sheetExpanded}
+        onExpandedChange={setSheetExpanded}
+        activeChordName={displayName}
         progression={progression}
         bpm={bpm}
         onBpmChange={setBpm}

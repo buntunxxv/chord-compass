@@ -389,3 +389,14 @@
     padding-bottom: calc(370px + env(safe-area-inset-bottom));
   }
 }
+
+/* ─── Progression sheet collapsed: much less space needs reserving ────────── */
+/* .progression-strip is position:fixed, so this padding exists purely to
+   keep it from visually covering the builder/templates content beneath it
+   -- when the sheet is collapsed to its thin bar, that reservation should
+   shrink to match, not keep holding space for content that isn't showing.
+   Placed last so it wins the specificity tie against both the base rule
+   above and the 700px media query rule, regardless of viewport width. */
+.app__panel-inner--sheet-collapsed {
+  padding-bottom: calc(104px + env(safe-area-inset-bottom));
+}
