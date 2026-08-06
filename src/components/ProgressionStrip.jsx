@@ -49,7 +49,7 @@ function applySelectedVoicing(notes, activeKeysIndex, isSlashChord) {
   return notes
 }
 
-export default function ProgressionStrip({ progression, bpm, onBpmChange, onClear, onRemoveLast, onSelectChord, onReorder, onLoadSaved, teaserMessage, onPlayingChordChange, chordNotes, previewNotes, bassHighlightNote, keysRootNote, keysPositionIndex, onKeysPositionChange, root, guitarShape, guitarSlashNotice, guitarInversionUnavailable, guitarPositions, templateInfo, isPro }) {
+export default function ProgressionStrip({ progression, bpm, onBpmChange, onClear, onRemoveLast, onSelectChord, onReorder, onLoadSaved, teaserMessage, onPlayingChordChange, chordNotes, previewNotes, bassHighlightNote, keysRootNote, keysPositionIndex, onKeysPositionChange, guitarPositionIndex, onGuitarPositionChange, root, guitarShape, guitarSlashNotice, guitarInversionUnavailable, guitarPositions, templateInfo, isPro }) {
   const [activeIndex, setActiveIndex] = useState(null)
   const [isPlaying, setIsPlaying] = useState(false)
   const synthRef = useRef(null)
@@ -235,6 +235,8 @@ export default function ProgressionStrip({ progression, bpm, onBpmChange, onClea
         keysRootNote={keysRootNote}
         keysPositionIndex={keysPositionIndex}
         onKeysPositionChange={onKeysPositionChange}
+        guitarPositionIndex={guitarPositionIndex}
+        onGuitarPositionChange={onGuitarPositionChange}
         root={root}
         guitarShape={guitarShape}
         guitarSlashNotice={guitarSlashNotice}

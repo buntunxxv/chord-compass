@@ -5,9 +5,8 @@ import './InstrumentDock.css'
 
 const KEYS_POSITION_LABELS = ['Close', 'Drop-2', 'Split']
 
-export default function InstrumentDock({ chordNotes, previewNotes, bassHighlightNote, keysRootNote, keysPositionIndex, onKeysPositionChange, root, guitarShape, guitarSlashNotice, guitarInversionUnavailable, guitarPositions, isPro }) {
+export default function InstrumentDock({ chordNotes, previewNotes, bassHighlightNote, keysRootNote, keysPositionIndex, onKeysPositionChange, guitarPositionIndex, onGuitarPositionChange, root, guitarShape, guitarSlashNotice, guitarInversionUnavailable, guitarPositions, isPro }) {
   const [tab, setTab] = useState('keys')
-  const [positionIndex, setPositionIndex] = useState(0)
   const canShowFrets = !guitarInversionUnavailable && (!!guitarShape || guitarSlashNotice)
 
   // Structurally parallel to the guitar position selector below, but with
@@ -32,31 +31,25 @@ export default function InstrumentDock({ chordNotes, previewNotes, bassHighlight
     if (!canShowFrets && tab === 'frets') setTab('keys')
   }, [canShowFrets, tab])
 
-  // A new chord (or leaving/re-entering root position) always starts back
-  // at position 1 -- guitarShape is the same static object reference for a
-  // given chord (it's a plain import), so it changes identity exactly when
-  // the chord does.
-  useEffect(() => {
-    setPositionIndex(0)
-  }, [guitarShape])
-
   const hasPositions = Array.isArray(guitarPositions) && guitarPositions.length > 1
   // Position 1 is always free; positions 2+ are Pro-gated. Clamping here
   // (not just disabling the "next" control) means a free user can never
-  // actually be shown position 2/3, even if positionIndex state somehow
-  // held a stale non-zero value -- the same defense-in-depth pattern
-  // already used for effectiveBassNote in App.jsx.
+  // actually be shown position 2/3, even if guitarPositionIndex state
+  // somehow held a stale non-zero value -- the same defense-in-depth
+  // pattern already used for effectiveBassNote in App.jsx. guitarPositionIndex
+  // itself (and its reset-to-0-on-new-chord effect) lives in App.jsx now,
+  // not here, since Phase 2's reverse-lookup ranking needs to read it too.
   const maxAllowedIndex = hasPositions ? (isPro ? guitarPositions.length - 1 : 0) : 0
-  const activeIndex = Math.min(positionIndex, maxAllowedIndex)
+  const activeIndex = Math.min(guitarPositionIndex, maxAllowedIndex)
   const activeShape = hasPositions ? guitarPositions[activeIndex] : guitarShape
 
   function goToPrevPosition() {
     if (!isPro) return
-    setPositionIndex(i => Math.max(0, i - 1))
+    onGuitarPositionChange(Math.max(0, guitarPositionIndex - 1))
   }
   function goToNextPosition() {
     if (!isPro || !hasPositions) return
-    setPositionIndex(i => Math.min(guitarPositions.length - 1, i + 1))
+    onGuitarPositionChange(Math.min(guitarPositions.length - 1, guitarPositionIndex + 1))
   }
 
   return (

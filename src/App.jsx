@@ -69,6 +69,25 @@ function toDataKey(root, quality, extension) {
   return null
 }
 
+// Guitar-shape/position resolution for a chord identified by its own
+// dataKey + (optional) slash bass -- factored out of the active-chord
+// computation below so Phase 2's reverse-lookup ranking (App.jsx's
+// referenceGuitarShape) can resolve a shape for the last progression
+// chord too, without duplicating this lookup a second time.
+function resolveGuitarPositions(dataKey, hasSlashBass, effectiveBassNote, chordNotes) {
+  if (!dataKey) return null
+  if (hasSlashBass) {
+    const isInversion = isInChordTone(chordNotes, effectiveBassNote)
+    const inversionShape = isInversion ? GUITAR_INVERSION_SHAPES[dataKey]?.[effectiveBassNote] : null
+    if (!isInversion || !inversionShape) return null
+    const alt = GUITAR_INVERSION_ALT_POSITIONS[dataKey]?.[effectiveBassNote] || []
+    return [inversionShape, ...alt.filter(Boolean)]
+  }
+  if (!GUITAR_SHAPES[dataKey]) return null
+  const alt = GUITAR_ALT_POSITIONS[dataKey] || []
+  return [GUITAR_SHAPES[dataKey], ...alt.filter(Boolean)]
+}
+
 // Format chord display name from tonal
 function getDisplayName(root, quality, extension) {
   const symbol = buildChordSymbol(root, quality, extension)
@@ -128,6 +147,12 @@ export default function App() {
   const [playingChordNotes, setPlayingChordNotes] = useState(null)
   const [playingRootNote, setPlayingRootNote] = useState(null)
   const [keysPositionIndex, setKeysPositionIndex] = useState(0)
+  // Lifted out of InstrumentDock (which used to own this locally) so the
+  // reverse-lookup's "closest to the last progression chord" ranking can
+  // tell whether the last chord IS the one currently shown on the Guitar
+  // tab, and if so, use whichever neck position is actually selected for
+  // it right now instead of always assuming position 1.
+  const [guitarPositionIndex, setGuitarPositionIndex] = useState(0)
 
   // ProgressionStrip now applies the selected Keys voicing (Drop-2/Split)
   // during playback too, so playingChordNotes[0] is no longer reliably the
@@ -178,17 +203,39 @@ export default function App() {
   // resolved to; any additional positions get appended after it, so the
   // array's own length (1-3) already reflects how many of the 2 alternates
   // actually exist for this specific chord (+ bass, for inversions).
-  const guitarPositions = useMemo(() => {
-    if (!dataKey) return null
-    if (hasSlashBass) {
-      if (!isInversion || !inversionGuitarShape) return null
-      const alt = GUITAR_INVERSION_ALT_POSITIONS[dataKey]?.[effectiveBassNote] || []
-      return [inversionGuitarShape, ...alt.filter(Boolean)]
-    }
-    if (!GUITAR_SHAPES[dataKey]) return null
-    const alt = GUITAR_ALT_POSITIONS[dataKey] || []
-    return [GUITAR_SHAPES[dataKey], ...alt.filter(Boolean)]
-  }, [hasSlashBass, dataKey, isInversion, inversionGuitarShape, effectiveBassNote])
+  const guitarPositions = useMemo(
+    () => resolveGuitarPositions(dataKey, hasSlashBass, effectiveBassNote, chordEntry?.notes),
+    [dataKey, hasSlashBass, effectiveBassNote, chordEntry],
+  )
+
+  // Reference shape for the reverse-lookup's Phase 2 ranking: the LAST
+  // chord already in the progression, resolved via the exact same
+  // resolveGuitarPositions lookup above -- reused, not duplicated. Its
+  // name only tells us root/quality/extension (chordNameToSelection can't
+  // recover a slash bass from a display string), so this never resolves an
+  // inversion shape for it; that's an acceptable simplification, not a
+  // silent wrong answer -- an unresolvable last chord just means no
+  // reference shape, same as an empty progression (ease-only ranking).
+  //
+  // "Whichever position is currently displayed for it" only has a real
+  // answer when the last progression chord IS the chord the builder/Guitar
+  // tab is actively showing right now -- guitarPositionIndex is a single,
+  // global "what's selected for the chord on screen" value, not a memory
+  // per progression slot. When the last chord isn't what's on screen, its
+  // own position 1 (the shape's default fingering) is the only honest
+  // choice, since nothing else was ever "selected" for it.
+  const lastProgressionEntry = progression.length > 0 ? progression[progression.length - 1] : null
+  const lastChordSelection = lastProgressionEntry ? chordNameToSelection(lastProgressionEntry.chord) : null
+  const lastChordDataKey = lastChordSelection
+    ? toDataKey(lastChordSelection.root, lastChordSelection.quality, lastChordSelection.extension)
+    : null
+  const lastChordGuitarPositions = lastChordDataKey
+    ? resolveGuitarPositions(lastChordDataKey, false, 'none', null)
+    : null
+  const lastChordIsOnScreen = !hasSlashBass && lastChordDataKey === dataKey
+  const referenceGuitarShape = lastChordGuitarPositions
+    ? lastChordGuitarPositions[lastChordIsOnScreen ? Math.min(guitarPositionIndex, lastChordGuitarPositions.length - 1) : 0]
+    : null
 
   // Suggested-chord preview only makes sense for the chord it was shown under
   useEffect(() => {
@@ -200,6 +247,12 @@ export default function App() {
   // the guitar neck-position selector.
   useEffect(() => {
     setKeysPositionIndex(0)
+  }, [dataKey, effectiveBassNote])
+
+  // Same reset rule for the guitar neck position, now that it's lifted up
+  // here instead of living inside InstrumentDock.
+  useEffect(() => {
+    setGuitarPositionIndex(0)
   }, [dataKey, effectiveBassNote])
 
   // Reset the bass note whenever it stops being selectable, so switching
@@ -469,7 +522,11 @@ export default function App() {
 
             {mode === 'find' ? (
               <section className="app__section">
-                <ReverseVoicingFinder onAddToProgression={addToProgression} />
+                <ReverseVoicingFinder
+                  onAddToProgression={addToProgression}
+                  progression={progression}
+                  referenceGuitarShape={referenceGuitarShape}
+                />
               </section>
             ) : (
               <>
@@ -573,6 +630,8 @@ export default function App() {
         keysRootNote={pianoRootNote}
         keysPositionIndex={keysPositionIndex}
         onKeysPositionChange={setKeysPositionIndex}
+        guitarPositionIndex={guitarPositionIndex}
+        onGuitarPositionChange={setGuitarPositionIndex}
         root={root}
         guitarShape={guitarShapeToShow}
         guitarSlashNotice={guitarSlashNotice}
