@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { createKeysSynth, startAudioContext } from '../audio/synth'
 import { formatNoteNames } from '../utils/formatNotes'
 import { buildChordMidiBytes, downloadMidiFile, sanitizeFilename } from '../utils/midiExport'
@@ -29,8 +29,17 @@ const CONFIRMATION_MS = 1500
 
 export default function ChordOutputPanel({ chordName, notes, intervals, available, onAddToProgression, isPro }) {
   const [playing, setPlaying] = useState(false)
-  const [justExported, setJustExported] = useState(false)
+  // 'idle' | 'exporting' | 'success' | 'error' -- gives the button itself a
+  // brief, visible state for each phase, instead of the previous
+  // build-and-download happening with no feedback at all if it fails.
+  const [exportStatus, setExportStatus] = useState('idle')
+  const [exportError, setExportError] = useState('')
   const synthRef = useRef(null)
+  const exportResetRef = useRef(null)
+
+  useEffect(() => () => {
+    if (exportResetRef.current) clearTimeout(exportResetRef.current)
+  }, [])
 
   async function handlePlay() {
     if (playing || !notes || notes.length === 0) return
@@ -53,10 +62,24 @@ export default function ChordOutputPanel({ chordName, notes, intervals, availabl
   // plays.
   function handleExportMidi() {
     if (!isPro || !notes || notes.length === 0) return
-    const bytes = buildChordMidiBytes(notes, HOLD_SECONDS)
-    downloadMidiFile(bytes, `${sanitizeFilename(chordName)}.mid`)
-    setJustExported(true)
-    setTimeout(() => setJustExported(false), CONFIRMATION_MS)
+    if (exportResetRef.current) clearTimeout(exportResetRef.current)
+    setExportStatus('exporting')
+    setExportError('')
+    // Deferred a tick so the "Exporting…" state actually gets painted --
+    // building the bytes and clicking the download anchor are otherwise
+    // synchronous and would otherwise land in the same batched render as
+    // the success/error state that follows it.
+    setTimeout(() => {
+      try {
+        const bytes = buildChordMidiBytes(notes, HOLD_SECONDS)
+        downloadMidiFile(bytes, `${sanitizeFilename(chordName)}.mid`)
+        setExportStatus('success')
+      } catch (err) {
+        setExportStatus('error')
+        setExportError(err instanceof Error ? err.message : 'Export failed')
+      }
+      exportResetRef.current = setTimeout(() => setExportStatus('idle'), CONFIRMATION_MS)
+    }, 0)
   }
 
   if (!available) {
@@ -100,11 +123,14 @@ export default function ChordOutputPanel({ chordName, notes, intervals, availabl
         {isPro ? (
           <button
             type="button"
-            className="chord-output__export-btn"
+            className={`chord-output__export-btn ${exportStatus === 'error' ? 'chord-output__export-btn--error' : ''}`}
             onClick={handleExportMidi}
-            disabled={!notes || notes.length === 0}
+            disabled={exportStatus === 'exporting' || !notes || notes.length === 0}
           >
-            {justExported ? 'Exported!' : 'Export MIDI'}
+            {exportStatus === 'exporting' ? 'Exporting…'
+              : exportStatus === 'success' ? 'Downloaded!'
+                : exportStatus === 'error' ? 'Export failed'
+                  : 'Export MIDI'}
           </button>
         ) : (
           <button type="button" className="chord-output__export-btn chord-output__export-btn--locked" disabled>
@@ -112,6 +138,9 @@ export default function ChordOutputPanel({ chordName, notes, intervals, availabl
           </button>
         )}
       </div>
+      {exportStatus === 'error' && (
+        <p className="chord-output__export-error" role="status">{exportError}</p>
+      )}
       <div className="chord-output__row">
         <span className="chord-output__row-label">Notes</span>
         <span className="chord-output__row-value">
