@@ -3,6 +3,7 @@ import GuitarDisplay from './GuitarDisplay'
 import NotePicker from './NotePicker'
 import MidiImportPanel from './MidiImportPanel'
 import { findVoicings, soundingNotes, detectChordName, PITCH_CLASS_NAMES } from '../utils/reverseVoicingLookup'
+import { formatChordName } from '../utils/formatChordName'
 import './ReverseVoicingFinder.css'
 
 const STRING_COUNT = 6
@@ -132,22 +133,23 @@ export default function ReverseVoicingFinder({ onAddToProgression, onImportSeque
               // extra tone) can genuinely differ from another ranked
               // shape's, so they can legitimately deserve different names.
               const detected = detectChordName(result.frets)
+              const name = formatChordName(detected.name)
               return (
                 <div className="reverse-finder__result" key={result.frets.join('-')}>
                   <div className="reverse-finder__result-label">{RESULT_LABELS[i] || `#${i + 1}`}</div>
                   <div className={`reverse-finder__result-name ${detected.isDetected ? '' : 'reverse-finder__result-name--fallback'}`}>
-                    {detected.name}
+                    {name}
                   </div>
                   {detected.isDetected && detected.alternates.length > 0 && (
-                    <div className="reverse-finder__result-alt">also: {detected.alternates.join(', ')}</div>
+                    <div className="reverse-finder__result-alt">also: {detected.alternates.map(formatChordName).join(', ')}</div>
                   )}
                   <GuitarDisplay shape={{ frets: result.frets }} notes={selectedNoteNames} compact />
                   <div className="reverse-finder__result-stats">{statsLine(result)}</div>
                   <button
                     type="button"
                     className="reverse-finder__add-btn"
-                    onClick={() => onAddToProgression?.(detected.name, soundingNotes(result.frets))}
-                    aria-label={`Add ${detected.name} to progression`}
+                    onClick={() => onAddToProgression?.(name, soundingNotes(result.frets))}
+                    aria-label={`Add ${name} to progression`}
                   >
                     + Add to progression
                   </button>

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { parseMidiArrayBuffer, segmentChordMoments } from '../utils/midiChordMoments'
 import { detectChordNameFromPitchClasses } from '../utils/reverseVoicingLookup'
+import { formatChordName } from '../utils/formatChordName'
 import './MidiImportPanel.css'
 
 function formatTime(seconds) {
@@ -60,7 +61,7 @@ export default function MidiImportPanel({ onLoadMoment, onImportSequence }) {
     const ordered = [...checked].sort((a, b) => a - b).map(i => {
       const m = moments[i]
       const detected = detectChordNameFromPitchClasses(m.pitchClasses)
-      return { chord: detected.name, notes: m.notes.map(n => n.name) }
+      return { chord: formatChordName(detected.name), notes: m.notes.map(n => n.name) }
     })
     onImportSequence?.(ordered)
     setChecked(new Set())
@@ -89,6 +90,7 @@ export default function MidiImportPanel({ onLoadMoment, onImportSequence }) {
           <ul className="midi-import__list">
             {moments.map((m, i) => {
               const detected = detectChordNameFromPitchClasses(m.pitchClasses)
+              const name = formatChordName(detected.name)
               return (
                 <li className="midi-import__row" key={i}>
                   <input
@@ -96,7 +98,7 @@ export default function MidiImportPanel({ onLoadMoment, onImportSequence }) {
                     className="midi-import__checkbox"
                     checked={checked.has(i)}
                     onChange={() => toggleChecked(i)}
-                    aria-label={`Select chord moment ${i + 1} (${detected.name}) for progression import`}
+                    aria-label={`Select chord moment ${i + 1} (${name}) for progression import`}
                   />
                   <button
                     type="button"
@@ -105,7 +107,7 @@ export default function MidiImportPanel({ onLoadMoment, onImportSequence }) {
                   >
                     <span className="midi-import__moment-index">#{i + 1}</span>
                     <span className={`midi-import__moment-name ${detected.isDetected ? '' : 'midi-import__moment-name--fallback'}`}>
-                      {detected.name}
+                      {name}
                     </span>
                     <span className="midi-import__moment-time">
                       {formatTime(m.startTime)}–{formatTime(m.endTime)}
