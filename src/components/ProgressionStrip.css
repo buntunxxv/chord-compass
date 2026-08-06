@@ -9,6 +9,20 @@
   padding: 10px 20px calc(10px + env(safe-area-inset-bottom));
 }
 
+/* ─── Cap expanded height to the viewport ───────────────────────────────────
+   position:fixed + bottom:0 with no height constraint lets the sheet's own
+   content push its top edge as far up as it needs, including off-screen on
+   short/landscape viewports (e.g. 844x390) -- dvh (not vh) tracks the real
+   visible height as mobile browser chrome shows/hides, and the header's own
+   64px (.app__header-inner) is reserved so the sheet never grows above it.
+   The container itself doesn't scroll; only expanded-content does, so the
+   handle above it stays fixed in place and always reachable. */
+.progression-strip--expanded {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100dvh - 64px);
+}
+
 /* ─── Collapsible bottom sheet ──────────────────────────────────────────────
    Everything below (Keys/Guitar tabs, the instrument display, voicing
    selector, BPM, Play, Save/Export/Clear, Saved) stays mounted at all
@@ -23,6 +37,7 @@
   align-items: center;
   justify-content: center;
   height: 22px;
+  flex-shrink: 0;
   cursor: pointer;
   touch-action: none;
   -webkit-tap-highlight-color: transparent;
@@ -92,6 +107,24 @@
 
 .progression-strip--collapsed .progression-strip__expanded-content {
   display: none;
+}
+
+.progression-strip--expanded .progression-strip__expanded-content {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Keys/Guitar tabs are the controls that switch what's on screen and sit
+   right below the handle -- pin them to the top of the scrollable area so
+   they (like the handle above it) never scroll out of reach, no matter how
+   far down the rest of the expanded content the user has scrolled. */
+.progression-strip__expanded-content .instrument-dock__tabs {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--white);
 }
 
 .progression-strip__bar {
@@ -568,5 +601,38 @@
     order: 5;
     flex: 1 0 100%;
     text-align: center;
+  }
+}
+
+/* ─── Very short / landscape phones ─────────────────────────────────────────
+   The dvh cap above already keeps the sheet on-screen at any height, but on
+   very short viewports (landscape phones, ~390px and under) that still
+   leaves little breathing room before the user hits the internal scroll --
+   tighten padding/gaps and shrink the instrument diagrams so the reachable,
+   above-the-scroll area (handle + tabs + a usable amount of content) stays
+   comfortable rather than merely non-negative. */
+@media (max-height: 500px) {
+  .progression-strip {
+    padding: 6px 20px calc(6px + env(safe-area-inset-bottom));
+  }
+
+  .progression-strip__expanded-content .instrument-dock {
+    margin: 0 auto 6px;
+  }
+
+  .progression-strip__expanded-content .instrument-dock__tabs {
+    margin-bottom: 4px;
+  }
+
+  .progression-strip__expanded-content .piano-display--compact .piano-display__svg {
+    max-width: 260px;
+  }
+
+  .progression-strip__expanded-content .guitar-display--compact .guitar-display__svg {
+    max-width: 150px;
+  }
+
+  .progression-strip__expanded-content .instrument-dock__keys-position-selector {
+    margin-top: 6px;
   }
 }
