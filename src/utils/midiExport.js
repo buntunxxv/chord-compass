@@ -54,7 +54,12 @@ export function downloadMidiFile(bytes, filename) {
   document.body.appendChild(a)
   a.click()
   a.remove()
-  URL.revokeObjectURL(url)
+  // Revoking in the same tick as click() is a documented edge case -- some
+  // browser/automated-testing environments haven't necessarily finished
+  // processing the download yet, and an immediately-revoked URL can cause
+  // it to fail silently. Deferring by a tick gives that processing a chance
+  // to start first.
+  setTimeout(() => URL.revokeObjectURL(url), 100)
 }
 
 // Strips characters that are illegal (Windows) or awkward (everywhere) in a

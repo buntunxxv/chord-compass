@@ -140,13 +140,22 @@ export default function ProgressionStrip({ expanded, onExpandedChange, activeCho
   const [showSaveInput, setShowSaveInput] = useState(false)
   const [saveName, setSaveName] = useState('')
   const [justSaved, setJustSaved] = useState(false)
-  const [justExported, setJustExported] = useState(false)
+  // 'idle' | 'exporting' | 'success' | 'error' -- gives the Export button a
+  // brief, visible state for each phase, instead of the previous
+  // build-and-download happening with no feedback at all if it fails.
+  const [exportStatus, setExportStatus] = useState('idle')
+  const [exportError, setExportError] = useState('')
   const [showSavedPanel, setShowSavedPanel] = useState(false)
   const saveInputRef = useRef(null)
+  const exportResetRef = useRef(null)
 
   useEffect(() => {
     localStorage.setItem(SAVED_STORAGE_KEY, JSON.stringify(savedProgressions))
   }, [savedProgressions])
+
+  useEffect(() => () => {
+    if (exportResetRef.current) clearTimeout(exportResetRef.current)
+  }, [])
 
   useEffect(() => {
     if (showSaveInput) saveInputRef.current?.focus()
@@ -184,12 +193,26 @@ export default function ProgressionStrip({ expanded, onExpandedChange, activeCho
   // actually sounds, since both go through computePlaybackProgression.
   function handleExportClick() {
     if (!isPro || progression.length === 0) return
-    const activeKeysIndex = Math.min(keysPositionIndex, isPro ? 2 : 0)
-    const voicedProgression = computePlaybackProgression(progression, activeKeysIndex)
-    const bytes = buildProgressionMidiBytes(voicedProgression, bpm)
-    downloadMidiFile(bytes, 'chord-progression.mid')
-    setJustExported(true)
-    setTimeout(() => setJustExported(false), CONFIRMATION_MS)
+    if (exportResetRef.current) clearTimeout(exportResetRef.current)
+    setExportStatus('exporting')
+    setExportError('')
+    // Deferred a tick so the "Exporting…" state actually gets painted --
+    // building the bytes and clicking the download anchor are otherwise
+    // synchronous and would otherwise land in the same batched render as
+    // the success/error state that follows it.
+    setTimeout(() => {
+      try {
+        const activeKeysIndex = Math.min(keysPositionIndex, isPro ? 2 : 0)
+        const voicedProgression = computePlaybackProgression(progression, activeKeysIndex)
+        const bytes = buildProgressionMidiBytes(voicedProgression, bpm)
+        downloadMidiFile(bytes, 'chord-progression.mid')
+        setExportStatus('success')
+      } catch (err) {
+        setExportStatus('error')
+        setExportError(err instanceof Error ? err.message : 'Export failed')
+      }
+      exportResetRef.current = setTimeout(() => setExportStatus('idle'), CONFIRMATION_MS)
+    }, 0)
   }
 
   function handleLoadSaved(chords) {
@@ -415,16 +438,23 @@ export default function ProgressionStrip({ expanded, onExpandedChange, activeCho
 
           {isPro ? (
             <button
-              className="progression-strip__pro-btn"
+              className={`progression-strip__pro-btn ${exportStatus === 'error' ? 'progression-strip__pro-btn--error' : ''}`}
               onClick={handleExportClick}
-              disabled={progression.length === 0}
+              disabled={exportStatus === 'exporting' || progression.length === 0}
             >
-              {justExported ? 'Exported!' : 'Export'}
+              {exportStatus === 'exporting' ? 'Exporting…'
+                : exportStatus === 'success' ? 'Exported!'
+                  : exportStatus === 'error' ? 'Export failed'
+                    : 'Export'}
             </button>
           ) : (
             <button className="progression-strip__pro-btn progression-strip__pro-btn--locked" disabled>
               Export <span className="progression-strip__pro-badge">PRO</span>
             </button>
+          )}
+
+          {exportStatus === 'error' && (
+            <p className="progression-strip__export-error" role="status">{exportError}</p>
           )}
 
           {isPro && savedProgressions.length > 0 && (
