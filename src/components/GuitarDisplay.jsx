@@ -65,7 +65,7 @@ export default function GuitarDisplay({ root, shape, notes, compact }) {
         xmlns="http://www.w3.org/2000/svg"
         className="guitar-display__svg"
         role="img"
-        aria-label={`Guitar chord diagram, root ${root}${baseFret > 1 ? `, starting at fret ${baseFret}` : ''}`}
+        aria-label={`Guitar chord diagram${root ? `, root ${root}` : ''}${baseFret > 1 ? `, starting at fret ${baseFret}` : ''}`}
       >
         {/* Fretboard body stays a fixed light tone regardless of app theme,
             same as the piano's white/black keys, so the grid lines always

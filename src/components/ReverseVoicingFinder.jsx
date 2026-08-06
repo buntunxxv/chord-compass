@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { Chord } from 'tonal'
 import GuitarDisplay from './GuitarDisplay'
 import NotePicker from './NotePicker'
 import MidiImportPanel from './MidiImportPanel'
@@ -134,6 +135,14 @@ export default function ReverseVoicingFinder({ onAddToProgression, onImportSeque
               // shape's, so they can legitimately deserve different names.
               const detected = detectChordName(result.frets)
               const name = formatChordName(detected.name)
+              // Root for GuitarDisplay's highlight/aria-label: derived from
+              // the RAW detected name (Chord.get needs tonal's own naming,
+              // not formatChordName's display-only "M"-tag stripping), same
+              // Chord.get(...).tonic pattern App.jsx already uses. Falls
+              // back to the first picked note when detection found no
+              // confident match (detected.name is then just a plain note
+              // list, which Chord.get can't resolve a tonic from).
+              const root = Chord.get(detected.name).tonic || selectedNoteNames[0]
               return (
                 <div className="reverse-finder__result" key={result.frets.join('-')}>
                   <div className="reverse-finder__result-label">{RESULT_LABELS[i] || `#${i + 1}`}</div>
@@ -143,7 +152,7 @@ export default function ReverseVoicingFinder({ onAddToProgression, onImportSeque
                   {detected.isDetected && detected.alternates.length > 0 && (
                     <div className="reverse-finder__result-alt">also: {detected.alternates.map(formatChordName).join(', ')}</div>
                   )}
-                  <GuitarDisplay shape={{ frets: result.frets }} notes={selectedNoteNames} compact />
+                  <GuitarDisplay shape={{ frets: result.frets }} notes={selectedNoteNames} root={root} compact />
                   <div className="reverse-finder__result-stats">{statsLine(result)}</div>
                   <button
                     type="button"
