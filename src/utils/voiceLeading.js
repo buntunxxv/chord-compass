@@ -1,3 +1,9 @@
+// Explicit .js extension (unlike this codebase's usual extensionless local
+// imports): this module is also imported directly by the Node-run
+// verification script, and plain Node's ESM resolver -- unlike Vite's --
+// requires it.
+import { applySelectedVoicing } from './pianoVoicings.js'
+
 const PITCH_CLASSES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
 const ENHARMONIC = { Cb: 'B', Db: 'C#', Eb: 'D#', Fb: 'E', Gb: 'F#', Ab: 'G#', Bb: 'A#' }
 const ENHARMONIC_OCTAVE_SHIFT = { Cb: -1 }
@@ -56,4 +62,22 @@ export function voiceLeadProgression(progression) {
     voiced.push({ ...entry, notes: voiceLeadChord(entry.notes, reference) })
   })
   return voiced
+}
+
+// Full playback pipeline for a progression: voice-lead each chord's upper
+// notes against the previous one, then layer the selected Keys voicing
+// (Close/Drop-2/Split) on top of each already-voice-led chord. This is
+// exactly what ProgressionStrip's Play button builds per chord -- pulled
+// out here as a pure function so MIDI export can reuse the identical
+// computation and always agree with playback on what "the currently active
+// voicing" actually sounds like, rather than risking a second, subtly
+// different implementation. rootNote is captured before the voicing
+// transform runs, since Drop-2 can re-sort notes so index 0 is no longer
+// the true root.
+export function computePlaybackProgression(progression, activeKeysIndex) {
+  return voiceLeadProgression(progression).map(entry => ({
+    ...entry,
+    rootNote: entry.notes[0],
+    notes: applySelectedVoicing(entry.notes, activeKeysIndex, entry.chord.includes('/')),
+  }))
 }

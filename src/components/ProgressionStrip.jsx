@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect } from 'react'
 import * as Tone from 'tone'
 import { createKeysSynth, startAudioContext } from '../audio/synth'
-import { voiceLeadProgression } from '../utils/voiceLeading'
-import { applyDrop2, applyLeftHandSplit } from '../utils/pianoVoicings'
+import { computePlaybackProgression } from '../utils/voiceLeading'
+import { buildProgressionMidiBytes, downloadMidiFile } from '../utils/midiExport'
 import InstrumentDock from './InstrumentDock'
 import './ProgressionStrip.css'
 
@@ -34,19 +34,6 @@ function chunkIntoRows(items, size) {
     rows.push(items.slice(i, i + size))
   }
   return rows
-}
-
-// Layers the selected Keys voicing (Close/Drop-2/Split) on top of whatever
-// voice-leading already produced for this chord -- Close is a no-op (voice
-// leading is already correct on its own), Drop-2 only protects the bass from
-// inversion for entries that are genuinely slash/inversion chords (same
-// isSlashChord signal App.jsx derives from hasSlashBass, here read off the
-// entry's own display chord name), and Split isolates the bass exactly as it
-// does in the live builder.
-function applySelectedVoicing(notes, activeKeysIndex, isSlashChord) {
-  if (activeKeysIndex === 1) return applyDrop2(notes, isSlashChord)
-  if (activeKeysIndex === 2) return applyLeftHandSplit(notes)
-  return notes
 }
 
 export default function ProgressionStrip({ expanded, onExpandedChange, activeChordName, progression, bpm, onBpmChange, onClear, onRemoveLast, onSelectChord, onReorder, onLoadSaved, teaserMessage, onPlayingChordChange, chordNotes, previewNotes, bassHighlightNote, keysRootNote, keysPositionIndex, onKeysPositionChange, guitarPositionIndex, onGuitarPositionChange, root, guitarShape, guitarSlashNotice, guitarInversionUnavailable, guitarPositions, templateInfo, isPro }) {
@@ -153,7 +140,7 @@ export default function ProgressionStrip({ expanded, onExpandedChange, activeCho
   const [showSaveInput, setShowSaveInput] = useState(false)
   const [saveName, setSaveName] = useState('')
   const [justSaved, setJustSaved] = useState(false)
-  const [justCopied, setJustCopied] = useState(false)
+  const [justExported, setJustExported] = useState(false)
   const [showSavedPanel, setShowSavedPanel] = useState(false)
   const saveInputRef = useRef(null)
 
@@ -191,16 +178,18 @@ export default function ProgressionStrip({ expanded, onExpandedChange, activeCho
     if (e.key === 'Escape') handleCancelSave()
   }
 
-  async function handleExportClick() {
+  // Exports a real playable .mid file (via @tonejs/midi), not clipboard
+  // text -- one chord per bar, in sequence, using the exact same voiced
+  // notes (Close/Drop-2/Split, voice-led, slash/inversion-aware) that Play
+  // actually sounds, since both go through computePlaybackProgression.
+  function handleExportClick() {
     if (!isPro || progression.length === 0) return
-    const text = formatProgressionText(progression)
-    try {
-      await navigator.clipboard.writeText(text)
-      setJustCopied(true)
-      setTimeout(() => setJustCopied(false), CONFIRMATION_MS)
-    } catch {
-      // Clipboard access denied or unavailable — nothing more we can do here
-    }
+    const activeKeysIndex = Math.min(keysPositionIndex, isPro ? 2 : 0)
+    const voicedProgression = computePlaybackProgression(progression, activeKeysIndex)
+    const bytes = buildProgressionMidiBytes(voicedProgression, bpm)
+    downloadMidiFile(bytes, 'chord-progression.mid')
+    setJustExported(true)
+    setTimeout(() => setJustExported(false), CONFIRMATION_MS)
   }
 
   function handleLoadSaved(chords) {
@@ -229,17 +218,10 @@ export default function ProgressionStrip({ expanded, onExpandedChange, activeCho
     // of each already-voice-led chord as a separate step, same clamp as the
     // live builder uses so a free user can't hear a Pro-gated position here
     // either -- this doesn't replace or redesign voice-leading, it's purely
-    // post-processing applied per chord.
+    // post-processing applied per chord. Pulled into computePlaybackProgression
+    // (voiceLeading.js) so MIDI export builds the exact same voiced notes.
     const activeKeysIndex = Math.min(keysPositionIndex, isPro ? 2 : 0)
-    // rootNote is captured before the voicing transform runs -- Drop-2 can
-    // re-sort notes so index 0 is no longer the true root, so callers that
-    // need the real root (PianoDisplay's gold highlight) need it passed
-    // separately rather than read back off the transformed array.
-    const voicedProgression = voiceLeadProgression(progression).map(entry => ({
-      ...entry,
-      rootNote: entry.notes[0],
-      notes: applySelectedVoicing(entry.notes, activeKeysIndex, entry.chord.includes('/')),
-    }))
+    const voicedProgression = computePlaybackProgression(progression, activeKeysIndex)
 
     voicedProgression.forEach((entry, i) => {
       synth.triggerAttackRelease(entry.notes, '1m', now + i * barDuration)
@@ -437,7 +419,7 @@ export default function ProgressionStrip({ expanded, onExpandedChange, activeCho
               onClick={handleExportClick}
               disabled={progression.length === 0}
             >
-              {justCopied ? 'Copied!' : 'Export'}
+              {justExported ? 'Exported!' : 'Export'}
             </button>
           ) : (
             <button className="progression-strip__pro-btn progression-strip__pro-btn--locked" disabled>
