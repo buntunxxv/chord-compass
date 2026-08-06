@@ -1,10 +1,17 @@
-// Reverse voicing lookup (Phase 1): given a set of target pitch classes,
-// search standard tuning for playable 6-string fret combinations whose
-// sounding pitch classes are a superset of the target -- the inverse of
-// every other guitar-shape file in this app, which start from a known
-// chord and produce one shape. Ranking here is ease/playability only
-// (fewer muted strings, smaller fret span, lower average fret); ranking
-// against a progression's voice-leading is Phase 2, not this module.
+// Reverse voicing lookup: given a set of target pitch classes, search
+// standard tuning for playable 6-string fret combinations whose sounding
+// pitch classes are a superset of the target -- the inverse of every other
+// guitar-shape file in this app, which start from a known chord and
+// produce one shape.
+//
+// Phase 1 ranked results by ease/playability alone (fewer muted strings,
+// smaller fret span, lower average fret). Phase 2 adds an optional
+// referenceShape (the last chord already in the progression, resolved by
+// App.jsx): when given, it REPLACES ease as the sort key entirely rather
+// than blending with it -- once there's a progression to voice-lead
+// toward, "closest to what you just played" is the whole point, not one
+// input among several. Ease-only ranking is unchanged and still exactly
+// what runs when there's no reference shape (an empty progression).
 import { Note, Interval, Chord } from 'tonal'
 
 // Standard tuning, low string to high: E A D G B e -- same open-string
@@ -44,6 +51,31 @@ function compareShapes(a, b) {
   return a.muted - b.muted || a.span - b.span || a.avgFret - b.avgFret
 }
 
+// A string flipping between muted and fretted is a bigger hand-position
+// change than sliding an already-fretted finger a couple of frets, so it's
+// weighted well above a typical single-string fret difference (usually
+// 0-4 within one coherent shape) rather than being just "worth one fret."
+const MUTE_CHANGE_PENALTY = 4
+
+// Physical closeness between two shapes on the neck: sum of absolute fret
+// differences on strings fretted in BOTH shapes, plus a penalty per string
+// whose muted/fretted status differs between them. A string muted in both
+// contributes nothing either way -- it's not part of either hand shape.
+function shapeDistance(a, b) {
+  let total = 0
+  for (let i = 0; i < STRING_COUNT; i++) {
+    const aMuted = a[i] === 'x'
+    const bMuted = b[i] === 'x'
+    if (aMuted && bMuted) continue
+    if (aMuted !== bMuted) {
+      total += MUTE_CHANGE_PENALTY
+      continue
+    }
+    total += Math.abs(Number(a[i]) - Number(b[i]))
+  }
+  return total
+}
+
 // The pitch classes a fret array actually sounds (muted strings excluded).
 export function soundingPitchClasses(frets) {
   const set = new Set()
@@ -62,7 +94,13 @@ export function soundingPitchClasses(frets) {
 // like a plain triad search come back full of unrelated open strings.
 // Returns [] if there are no target notes, or more distinct target classes
 // than there are strings to sound them on (max 6).
-export function findVoicings(targetPitchClasses, { maxResults = 3 } = {}) {
+//
+// `referenceShape`, when given (a plain frets array, e.g. { frets }.frets
+// from a GUITAR_SHAPES entry), ranks every candidate by shapeDistance to
+// it instead of ease -- see the file header for why this replaces rather
+// than blends with the ease criteria. Omitted/null reproduces Phase 1's
+// ease-only ranking exactly.
+export function findVoicings(targetPitchClasses, { maxResults = 3, referenceShape = null } = {}) {
   const target = [...new Set(targetPitchClasses)].filter(pc => Number.isInteger(pc) && pc >= 0 && pc <= 11)
   if (target.length === 0 || target.length > STRING_COUNT) return []
 
@@ -106,10 +144,16 @@ export function findVoicings(targetPitchClasses, { maxResults = 3 } = {}) {
   }
   backtrack(0)
 
-  return results
-    .map(f => ({ frets: f, ...scoreShape(f) }))
-    .sort(compareShapes)
-    .slice(0, maxResults)
+  const scored = results.map(f => ({ frets: f, ...scoreShape(f) }))
+
+  if (referenceShape) {
+    return scored
+      .map(r => ({ ...r, distance: shapeDistance(r.frets, referenceShape) }))
+      .sort((a, b) => a.distance - b.distance)
+      .slice(0, maxResults)
+  }
+
+  return scored.sort(compareShapes).slice(0, maxResults)
 }
 
 // The real note+octave a fret array sounds, low string to high, for adding

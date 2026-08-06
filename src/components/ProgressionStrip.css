@@ -9,6 +9,91 @@
   padding: 10px 20px calc(10px + env(safe-area-inset-bottom));
 }
 
+/* ─── Collapsible bottom sheet ──────────────────────────────────────────────
+   Everything below (Keys/Guitar tabs, the instrument display, voicing
+   selector, BPM, Play, Save/Export/Clear, Saved) stays mounted at all
+   times -- collapsing only toggles CSS visibility, never unmounts it, so
+   nothing inside loses its own state (which tab was selected, an open
+   Save input, an in-progress chip drag) just because the sheet closed.
+   Collapsed by default; only the user's own tap/swipe on the handle or the
+   collapsed bar ever changes it -- see App.jsx's sheetExpanded state. */
+
+.progression-strip__handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 22px;
+  cursor: pointer;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.progression-strip__handle-pill {
+  width: 36px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--border);
+}
+
+.progression-strip__collapsed-bar {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  max-width: 860px;
+  margin: 0 auto;
+  min-height: 44px;
+  padding: 4px 0 8px;
+  cursor: pointer;
+}
+
+.progression-strip--collapsed .progression-strip__collapsed-bar {
+  display: flex;
+}
+
+.progression-strip__collapsed-chord-name {
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--teal);
+  letter-spacing: -0.01em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.progression-strip__collapsed-play-btn {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--teal);
+  color: var(--on-accent);
+  border: none;
+  font-size: 15px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+}
+
+.progression-strip__collapsed-play-btn:hover:not(:disabled) {
+  background: var(--teal-dark);
+}
+
+.progression-strip__collapsed-play-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.progression-strip__collapsed-play-btn--playing {
+  background: var(--teal-dark);
+}
+
+.progression-strip--collapsed .progression-strip__expanded-content {
+  display: none;
+}
+
 .progression-strip__bar {
   max-width: 860px;
   margin: 0 auto;
