@@ -300,6 +300,42 @@ export default function App() {
     setTappedChordIndex(insertAt)
   }
 
+  // Bulk sibling of addToProgression, for importing an ordered sequence of
+  // chords in one shot (MIDI range import). addToProgression reads
+  // progression.length/tappedChordIndex from this render's own closured
+  // state, which is fine for a single call but would silently reorder the
+  // sequence if called once per chord in a loop: every call in the same
+  // synchronous batch would see the SAME pre-loop progression/index (React
+  // doesn't re-render mid-loop), so each chord would compute the same
+  // insertAt and effectively race to the same slot rather than building on
+  // the previous insert. Computing insertAt/the cap ONCE here and inserting
+  // every chord via a single setProgression call sidesteps that entirely.
+  //
+  // Free-tier cap still applies here for consistency with addToProgression/
+  // loadTemplate, even though today only Pro users can reach a MIDI import
+  // in the first place (it's Pro-gated at the UI level) -- so this path
+  // never actually truncates yet, but stays correct if that ever changes.
+  function addProgressionSequence(chords) {
+    if (!chords || chords.length === 0) return
+    const insertAt = (tappedChordIndex != null && tappedChordIndex < progression.length)
+      ? tappedChordIndex + 1
+      : progression.length
+    const allowed = isPro ? chords : chords.slice(0, Math.max(0, PROGRESSION_LIMIT - progression.length))
+    if (allowed.length < chords.length) {
+      setProgressionTeaser(PROGRESSION_TEASER)
+      if (teaserTimeoutRef.current) clearTimeout(teaserTimeoutRef.current)
+      teaserTimeoutRef.current = setTimeout(() => setProgressionTeaser(''), 4000)
+    }
+    if (allowed.length === 0) return
+    setActiveTemplate(null)
+    setProgression(prev => [
+      ...prev.slice(0, insertAt),
+      ...allowed.map(({ chord, notes }) => ({ chord, notes })),
+      ...prev.slice(insertAt),
+    ])
+    setTappedChordIndex(insertAt + allowed.length - 1)
+  }
+
   function clearProgression() {
     setActiveTemplate(null)
     setProgression([])
@@ -532,8 +568,10 @@ export default function App() {
               <section className="app__section">
                 <ReverseVoicingFinder
                   onAddToProgression={addToProgression}
+                  onImportSequence={addProgressionSequence}
                   progression={progression}
                   referenceGuitarShape={referenceGuitarShape}
+                  isPro={isPro}
                 />
               </section>
             ) : (

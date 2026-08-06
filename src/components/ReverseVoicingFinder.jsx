@@ -1,6 +1,7 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import GuitarDisplay from './GuitarDisplay'
 import NotePicker from './NotePicker'
+import MidiImportPanel from './MidiImportPanel'
 import { findVoicings, soundingNotes, detectChordName, PITCH_CLASS_NAMES } from '../utils/reverseVoicingLookup'
 import './ReverseVoicingFinder.css'
 
@@ -26,8 +27,25 @@ function statsLine(result) {
 // findVoicings for why. referenceGuitarShape is resolved by App.jsx
 // (which already owns the lookup logic for every chord's guitar shape);
 // this component only needs progression for the "closest to X" hint text.
-export default function ReverseVoicingFinder({ onAddToProgression, progression, referenceGuitarShape }) {
+// MIDI import (alongside the note picker) is Pro-gated -- unlike Phase 1's
+// note-picker matching itself, which stays free (see the comment above).
+// `isPro`/`onImportSequence` are new; both are threaded straight through
+// from App.jsx (isPro is the same tier flag every other Pro-gated control
+// in this app already reads, onImportSequence is addProgressionSequence,
+// the bulk sibling of onAddToProgression -- see its own comment in App.jsx
+// for why a range import needs a dedicated bulk function rather than
+// calling onAddToProgression once per chord in a loop).
+export default function ReverseVoicingFinder({ onAddToProgression, onImportSequence, progression, referenceGuitarShape, isPro }) {
   const [selected, setSelected] = useState([])
+  const [inputMode, setInputMode] = useState('notes') // 'notes' | 'midi'
+
+  // Defense-in-depth, same pattern InstrumentDock uses for its own tabs:
+  // even if inputMode somehow held 'midi' while isPro was/became false,
+  // this snaps back to the note picker rather than leaving the locked
+  // panel showing.
+  useEffect(() => {
+    if (!isPro && inputMode === 'midi') setInputMode('notes')
+  }, [isPro, inputMode])
 
   const results = useMemo(() => {
     if (selected.length === 0 || selected.length > STRING_COUNT) return []
@@ -50,7 +68,39 @@ export default function ReverseVoicingFinder({ onAddToProgression, progression, 
           : 'Tap the notes you want to hear, then see the best playable guitar shapes that contain them.'}
       </p>
 
-      <NotePicker selected={selected} onChange={setSelected} />
+      <div className="reverse-finder__input-tabs" role="tablist" aria-label="Note input method">
+        <button
+          type="button"
+          role="tab"
+          aria-selected={inputMode === 'notes'}
+          className={`reverse-finder__input-tab ${inputMode === 'notes' ? 'reverse-finder__input-tab--active' : ''}`}
+          onClick={() => setInputMode('notes')}
+        >
+          Pick Notes
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={inputMode === 'midi'}
+          className={`reverse-finder__input-tab ${inputMode === 'midi' ? 'reverse-finder__input-tab--active' : ''}`}
+          disabled={!isPro}
+          onClick={() => { if (isPro) setInputMode('midi') }}
+        >
+          Import MIDI
+          {!isPro && <span className="reverse-finder__pro-badge">PRO</span>}
+        </button>
+      </div>
+
+      {inputMode === 'notes' ? (
+        <NotePicker selected={selected} onChange={setSelected} />
+      ) : (
+        isPro && (
+          <MidiImportPanel
+            onLoadMoment={pitchClasses => setSelected(pitchClasses)}
+            onImportSequence={chords => onImportSequence?.(chords)}
+          />
+        )
+      )}
 
       <div className="reverse-finder__selection-row">
         <span className="reverse-finder__selection">
