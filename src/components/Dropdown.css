@@ -97,6 +97,10 @@
   font-weight: 700;
 }
 
+.dropdown__option--highlighted {
+  box-shadow: inset 0 0 0 2px var(--teal);
+}
+
 .dropdown__check {
   color: var(--teal);
   flex-shrink: 0;

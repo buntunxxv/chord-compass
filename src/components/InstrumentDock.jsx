@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import PianoDisplay from './PianoDisplay'
 import GuitarDisplay from './GuitarDisplay'
+import { getAdjacentTabIndex } from '../utils/tabsKeyboardNav'
 import './InstrumentDock.css'
 
 const KEYS_POSITION_LABELS = ['Close', 'Drop-2', 'Split']
@@ -8,6 +9,19 @@ const KEYS_POSITION_LABELS = ['Close', 'Drop-2', 'Split']
 export default function InstrumentDock({ chordNotes, previewNotes, bassHighlightNote, keysRootNote, keysPositionIndex, onKeysPositionChange, guitarPositionIndex, onGuitarPositionChange, root, guitarShape, guitarSlashNotice, guitarInversionUnavailable, guitarPositions, isPro }) {
   const [tab, setTab] = useState('keys')
   const canShowFrets = !guitarInversionUnavailable && (!!guitarShape || guitarSlashNotice)
+  const dockTabRefs = useRef([])
+  const dockTabs = [
+    { key: 'keys', disabled: false },
+    { key: 'frets', disabled: !canShowFrets },
+  ]
+
+  function handleDockTabKeyDown(e, index) {
+    const nextIndex = getAdjacentTabIndex(dockTabs, index, e.key)
+    if (nextIndex === index) return
+    e.preventDefault()
+    setTab(dockTabs[nextIndex].key)
+    dockTabRefs.current[nextIndex]?.focus()
+  }
 
   // Structurally parallel to the guitar position selector below, but with
   // its own independent state (keysPositionIndex lives in App.jsx, not
@@ -57,21 +71,27 @@ export default function InstrumentDock({ chordNotes, previewNotes, bassHighlight
       <div className="instrument-dock__tabs" role="tablist" aria-label="Instrument view">
         <button
           id="wt-keys-tab"
+          ref={el => { dockTabRefs.current[0] = el }}
           type="button"
           role="tab"
           aria-selected={tab === 'keys'}
+          tabIndex={tab === 'keys' ? 0 : -1}
           className={`instrument-dock__tab ${tab === 'keys' ? 'instrument-dock__tab--active' : ''}`}
           onClick={() => setTab('keys')}
+          onKeyDown={e => handleDockTabKeyDown(e, 0)}
         >
           Keys
         </button>
         <button
           id="wt-frets-tab"
+          ref={el => { dockTabRefs.current[1] = el }}
           type="button"
           role="tab"
           aria-selected={tab === 'frets'}
+          tabIndex={tab === 'frets' ? 0 : -1}
           className={`instrument-dock__tab ${tab === 'frets' ? 'instrument-dock__tab--active' : ''}`}
           onClick={() => setTab('frets')}
+          onKeyDown={e => handleDockTabKeyDown(e, 1)}
           disabled={!canShowFrets}
           title={
             guitarInversionUnavailable ? 'No clean guitar fingering exists for this inversion'

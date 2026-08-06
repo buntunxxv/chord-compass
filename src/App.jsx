@@ -9,6 +9,7 @@ import { buildChordSymbol } from './components/ChordSelector'
 import { isSlashEligible, computeSlashNotes, appendSlashSymbol, isInChordTone } from './utils/slashChord'
 import { applyDrop2, applyLeftHandSplit } from './utils/pianoVoicings'
 import { useTheme } from './hooks/useTheme'
+import { getAdjacentTabIndex } from './utils/tabsKeyboardNav'
 import ChordSelector from './components/ChordSelector'
 import ChordOutputPanel from './components/ChordOutputPanel'
 import NextChordSuggestions from './components/NextChordSuggestions'
@@ -23,6 +24,11 @@ import './App.css'
 const PROGRESSION_LIMIT = 4
 const PROGRESSION_STORAGE_KEY = 'chordCompassProgression'
 const PROGRESSION_TEASER = 'Longer progressions are coming in Chord Compass Pro.'
+
+const MODE_TABS = [
+  { key: 'build', label: 'Build a Chord' },
+  { key: 'find', label: 'Find Shapes by Notes' },
+]
 
 // Map selector state to CHORD_DATA key
 function toDataKey(root, quality, extension) {
@@ -119,6 +125,15 @@ export default function App() {
   // that contain them). A tab inside the existing panel, not a separate
   // route or modal, and not persisted -- always starts back on the builder.
   const [mode, setMode] = useState('build')
+  const modeTabRefs = useRef([])
+
+  function handleModeTabKeyDown(e, index) {
+    const nextIndex = getAdjacentTabIndex(MODE_TABS, index, e.key)
+    if (nextIndex === index) return
+    e.preventDefault()
+    setMode(MODE_TABS[nextIndex].key)
+    modeTabRefs.current[nextIndex]?.focus()
+  }
 
   useEffect(() => {
     if (!localStorage.getItem('kcc_seen_intro_v2')) {
@@ -544,24 +559,21 @@ export default function App() {
         <main className={`app__panel app__builder-panel ${templatesDrawerOpen ? 'app__builder-panel--hidden' : ''}`}>
           <div className={`app__panel-inner ${sheetExpanded ? '' : 'app__panel-inner--sheet-collapsed'}`}>
             <div className="app__mode-tabs" role="tablist" aria-label="Chord tool mode">
-              <button
-                type="button"
-                role="tab"
-                aria-selected={mode === 'build'}
-                className={`app__mode-tab ${mode === 'build' ? 'app__mode-tab--active' : ''}`}
-                onClick={() => setMode('build')}
-              >
-                Build a Chord
-              </button>
-              <button
-                type="button"
-                role="tab"
-                aria-selected={mode === 'find'}
-                className={`app__mode-tab ${mode === 'find' ? 'app__mode-tab--active' : ''}`}
-                onClick={() => setMode('find')}
-              >
-                Find Shapes by Notes
-              </button>
+              {MODE_TABS.map((tab, index) => (
+                <button
+                  key={tab.key}
+                  ref={el => { modeTabRefs.current[index] = el }}
+                  type="button"
+                  role="tab"
+                  aria-selected={mode === tab.key}
+                  tabIndex={mode === tab.key ? 0 : -1}
+                  className={`app__mode-tab ${mode === tab.key ? 'app__mode-tab--active' : ''}`}
+                  onClick={() => setMode(tab.key)}
+                  onKeyDown={e => handleModeTabKeyDown(e, index)}
+                >
+                  {tab.label}
+                </button>
+              ))}
             </div>
 
             {mode === 'find' ? (
