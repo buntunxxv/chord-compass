@@ -293,6 +293,8 @@ export default function FeedbackPanel({ isOpen, onClose, theme }) {
         role="dialog"
         aria-modal="true"
         aria-label="Feedback questionnaire"
+        inert={!isOpen}
+        aria-hidden={!isOpen ? 'true' : undefined}
       >
         {/* Header */}
         <div className="fp-header">
