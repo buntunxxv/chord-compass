@@ -94,6 +94,24 @@ function resolveGuitarPositions(dataKey, hasSlashBass, effectiveBassNote, chordN
   return [GUITAR_SHAPES[dataKey], ...alt.filter(Boolean)]
 }
 
+// Resolves each displayed note's interval label from what it actually IS
+// (by pitch class), not from its position in the array -- notes get
+// reordered/re-voiced independently of tonalChord's own root-position
+// notes/intervals (slash-chord bass via computeSlashNotes, Drop-2, Split),
+// so a positional pairing is only ever coincidentally correct. Building a
+// chroma -> interval lookup from tonalChord's own notes/intervals pairing
+// once, then resolving every displayed note against it by pitch class,
+// handles any reordering with a single lookup -- no separate slash-chord
+// special case needed. A note whose pitch class isn't one of the chord's
+// own tones (only possible today via a foreign, non-chord-tone slash bass)
+// has no interval to report and is simply omitted.
+function intervalsForNotes(tonalChord, notes) {
+  if (!tonalChord?.notes || !tonalChord?.intervals) return []
+  const chromaToInterval = new Map()
+  tonalChord.notes.forEach((n, i) => chromaToInterval.set(Note.chroma(n), tonalChord.intervals[i]))
+  return notes.map(n => chromaToInterval.get(Note.chroma(n))).filter(Boolean)
+}
+
 // Format chord display name from tonal
 function getDisplayName(root, quality, extension) {
   const symbol = buildChordSymbol(root, quality, extension)
@@ -446,8 +464,6 @@ export default function App() {
     return appendSlashSymbol(base, effectiveBassNote, root)
   }, [tonalChord, symbol, effectiveBassNote, root])
 
-  const intervals = tonalChord?.intervals || []
-
   // Notes to highlight: use CHORD_DATA notes if available, else derive from tonal at octave 4,
   // re-voiced for the selected bass note (Pro-gated slash chords) -- see computeSlashNotes
   const chordNotes = computeSlashNotes(chordEntry?.notes || [], effectiveBassNote, root)
@@ -471,6 +487,11 @@ export default function App() {
   const maxAllowedKeysIndex = isPro ? keysPositions.length - 1 : 0
   const activeKeysIndex = Math.min(keysPositionIndex, maxAllowedKeysIndex)
   const displayedPianoNotes = keysPositions[activeKeysIndex]
+
+  // See intervalsForNotes above -- resolved against whichever notes are
+  // actually on screen (Close/Drop-2/Split, slash bass and all), not
+  // tonalChord's own root-position array.
+  const intervals = intervalsForNotes(tonalChord, displayedPianoNotes)
 
   // While a progression plays, the piano should track whatever's actually
   // sounding (ProgressionStrip applies the same selected voicing transform
