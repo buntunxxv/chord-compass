@@ -4,6 +4,10 @@ import { formatNoteNames } from '../utils/formatNotes'
 import { buildChordMidiBytes, downloadMidiFile, sanitizeFilename } from '../utils/midiExport'
 import './ChordOutputPanel.css'
 
+// Every interval Session 30's extended/altered chord types can actually
+// produce (verified against Tonal's own Chord.get(...).intervals for each
+// symbol buildChordSymbol emits -- 9/maj9/11/13/maj13, 7#9/7b9/7#5/7b5/7#11,
+// m9/m11/m13 -- not guessed), on top of the base triad/7th/sus set.
 const INTERVAL_NAMES = {
   '1P': 'Root',
   '3M': '3',
@@ -15,8 +19,13 @@ const INTERVAL_NAMES = {
   '7d': '♭♭7',
   '7M': '7',
   '9M': '9',
+  '9m': '♭9',
+  '9A': '♯9',
   '4P': '4',
   '2M': '2',
+  '11P': '11',
+  '11A': '♯11',
+  '13M': '13',
 }
 
 function formatInterval(interval) {
