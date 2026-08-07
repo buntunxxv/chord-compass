@@ -6,6 +6,18 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  /* As a flex item, this defaults to min-width:auto -- content-based, not
+     0 -- so without this it refuses to shrink below the keyboard's own
+     (now much wider, intrinsically-sized) natural width, growing every
+     ancestor up the chain instead of letting piano-display__keys-scroll
+     actually scroll. max-width is the other half of that: the parent
+     centers its children (align-items:center) rather than stretching them,
+     which sizes this box to its own natural content width with nothing
+     clamping it back down to the available space -- without the clamp,
+     piano-display__keys-scroll ends up exactly as wide as its own content
+     and never actually overflows/scrolls. */
+  min-width: 0;
+  max-width: 100%;
 }
 
 .piano-display__title {
@@ -18,11 +30,26 @@
   margin-bottom: 16px;
 }
 
-.piano-display__svg {
+/* Scrolls horizontally instead of the svg being scaled down to fit --
+   real 44px-wide keys make a full octave-plus wider than most phone
+   screens, the accepted tradeoff for a genuine touch target (see
+   PianoDisplay.jsx's WHITE_KEY_WIDTH). max-width:100% keeps the scroll
+   container itself from overflowing its own parent card/panel. Deliberately
+   NOT display:flex + justify-content:center here -- centering an
+   overflowing flex/grid container's content that way is a well-known CSS
+   trap: browsers only expose HALF the overflow as scrollable, silently
+   making the far end of the keyboard unreachable. margin:auto on the svg
+   itself (below) gets the same "center if it fits" look without that trap.  */
+.piano-display__keys-scroll {
   width: 100%;
-  max-width: 640px;
-  height: auto;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.piano-display__svg {
   display: block;
+  margin: 0 auto;
   filter: drop-shadow(0 2px 6px rgba(0,0,0,0.1));
 }
 
@@ -31,10 +58,6 @@
   border-radius: 0;
   padding: 0;
   box-shadow: none;
-}
-
-.piano-display--compact .piano-display__svg {
-  max-width: 420px;
 }
 
 .piano-display__legend {

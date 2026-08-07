@@ -32,9 +32,19 @@ const BLACK_KEYS = [
   { note: 'C#5', whiteIndex: 14 },
 ]
 
-const WHITE_KEY_WIDTH = 42
+// White keys render at their true intrinsic size (see the svg's explicit
+// width/height attributes below, and piano-display__svg's CSS -- no
+// container-relative scaling), so these viewBox units map 1:1 to real CSS
+// px. 46 gives a genuine 44px-wide tappable rect once the 1px visual gap on
+// each side is subtracted out (see the white-key rect's `x={x+1}` / `width=
+// {WHITE_KEY_WIDTH - 2}` below) -- a real 44x44 minimum touch target, not
+// just a scaled-up appearance. Black keys grow deliberately past their old
+// visual ratio to 32px (not just proportionally with the white-key bump) so
+// they stay comfortably tappable as a secondary target, while remaining
+// visibly narrower than a white key per standard piano key convention.
+const WHITE_KEY_WIDTH = 46
 const WHITE_KEY_HEIGHT = 160
-const BLACK_KEY_WIDTH = 26
+const BLACK_KEY_WIDTH = 32
 const BLACK_KEY_HEIGHT = 100
 const SVG_WIDTH = WHITE_KEY_WIDTH * WHITE_KEYS.length
 const SVG_HEIGHT = WHITE_KEY_HEIGHT + 24
@@ -149,13 +159,21 @@ export default function PianoDisplay({ chordNotes, previewNotes, bassHighlightNo
   return (
     <div className={`piano-display ${compact ? 'piano-display--compact' : ''}`} id="wt-piano">
       {!compact && <h2 className="piano-display__title">On the Keys</h2>}
-      <svg
-        viewBox={`0 0 ${SVG_WIDTH} ${SVG_HEIGHT}`}
-        xmlns="http://www.w3.org/2000/svg"
-        className="piano-display__svg"
-        role="group"
-        aria-label="Piano keyboard showing chord tones across two octaves"
-      >
+      {/* Real 44px keys are wider than most phone screens for a full
+          octave-plus keyboard -- that's the accepted tradeoff for a genuine
+          44px touch target (see WHITE_KEY_WIDTH above), so the keyboard
+          scrolls horizontally inside its own container rather than the SVG
+          shrinking itself back down to fit. */}
+      <div className="piano-display__keys-scroll">
+        <svg
+          viewBox={`0 0 ${SVG_WIDTH} ${SVG_HEIGHT}`}
+          width={SVG_WIDTH}
+          height={SVG_HEIGHT}
+          xmlns="http://www.w3.org/2000/svg"
+          className="piano-display__svg"
+          role="group"
+          aria-label="Piano keyboard showing chord tones across two octaves"
+        >
         {/* White keys */}
         {WHITE_KEYS.map((note, i) => {
           const x = i * WHITE_KEY_WIDTH
@@ -301,7 +319,8 @@ export default function PianoDisplay({ chordNotes, previewNotes, bassHighlightNo
         >
           C3 – D5
         </text>
-      </svg>
+        </svg>
+      </div>
 
       {hasPreview && !compact && (
         <div className="piano-display__legend">

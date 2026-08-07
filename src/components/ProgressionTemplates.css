@@ -84,10 +84,19 @@
 }
 
 .progression-templates__mood-chip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border: 1.5px solid var(--border);
   background: transparent;
   color: var(--text-muted);
   border-radius: 20px;
+  /* 44px minimum touch target (was ~31px tall) -- padding/font-size
+     unchanged, only the tappable box around the label grows. min-width
+     matters here too, not just min-height: the shortest chip ("All") is
+     narrow enough on content alone to fall just under 44px wide. */
+  min-height: 44px;
+  min-width: 44px;
   padding: 5px 12px;
   font-size: 12px;
   font-weight: 600;
