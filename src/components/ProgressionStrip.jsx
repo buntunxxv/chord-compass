@@ -10,13 +10,20 @@ const BPM_MIN = 60
 const BPM_MAX = 140
 const BPM_MID = 100
 const SNAP_THRESHOLD = 4
-const CHORDS_PER_ROW = 4
 const SAVED_STORAGE_KEY = 'chordCompassSavedProgressions'
 const CONFIRMATION_MS = 1500
 // Below this many pixels of pointer travel, a press-and-release on a chip is
 // treated as a tap (select), not a drag (reorder) -- keeps an ordinary tap
 // from being misread as a zero-distance "drag" that does nothing.
 const DRAG_THRESHOLD_PX = 6
+// Drag-to-reorder auto-scroll: how close to the scroll container's edge (in
+// px) a drag has to get before it starts nudging the scroll position, and
+// how far each nudge moves -- without this, a chip can only be dragged as
+// far as whatever's already visible, which breaks down completely once the
+// chip row is wider than the viewport (any progression beyond a handful of
+// chords).
+const AUTO_SCROLL_EDGE_PX = 48
+const AUTO_SCROLL_STEP_PX = 16
 
 function formatProgressionText(progression) {
   return progression
@@ -26,14 +33,6 @@ function formatProgressionText(progression) {
 
 function snapBpm(val) {
   return Math.abs(val - BPM_MID) <= SNAP_THRESHOLD ? BPM_MID : val
-}
-
-function chunkIntoRows(items, size) {
-  const rows = []
-  for (let i = 0; i < items.length; i += size) {
-    rows.push(items.slice(i, i + size))
-  }
-  return rows
 }
 
 export default function ProgressionStrip({ expanded, onExpandedChange, activeChordName, progression, bpm, onBpmChange, onClear, onRemoveLast, onSelectChord, onReorder, onLoadSaved, teaserMessage, onPlayingChordChange, chordNotes, previewNotes, bassHighlightNote, keysRootNote, keysPositionIndex, onKeysPositionChange, guitarPositionIndex, onGuitarPositionChange, root, guitarShape, guitarSlashNotice, guitarInversionUnavailable, guitarPositions, templateInfo, isPro }) {
@@ -81,22 +80,42 @@ export default function ProgressionStrip({ expanded, onExpandedChange, activeCho
   const [dragOverIndex, setDragOverIndex] = useState(null)
   const dragStartRef = useRef(null)
   const chipRefs = useRef([])
+  const chartScrollRef = useRef(null)
 
-  function nearestChipIndex(x, y) {
+  // Chips now sit in a single horizontally-scrollable row (not a wrapped
+  // multi-row grid), so the nearest-chip search is just 1D distance along x
+  // -- carrying over the old 2D (x,y) distance formula would let a finger
+  // drifting vertically during a touch-drag skew which chip reads as
+  // "nearest" for no reason, since every chip now sits at the same y.
+  function nearestChipIndex(x) {
     let best = null
     let bestDist = Infinity
     chipRefs.current.forEach((el, idx) => {
       if (!el) return
       const rect = el.getBoundingClientRect()
       const cx = rect.left + rect.width / 2
-      const cy = rect.top + rect.height / 2
-      const dist = (cx - x) ** 2 + (cy - y) ** 2
+      const dist = Math.abs(cx - x)
       if (dist < bestDist) {
         bestDist = dist
         best = idx
       }
     })
     return best
+  }
+
+  // Nudges the chip row's own scroll position when a drag gets close to
+  // either edge, so a chip can be dragged all the way to a position that
+  // isn't currently visible -- without this, reordering breaks down as soon
+  // as the row is wider than the viewport.
+  function autoScrollChartDuringDrag(x) {
+    const el = chartScrollRef.current
+    if (!el) return
+    const rect = el.getBoundingClientRect()
+    if (x < rect.left + AUTO_SCROLL_EDGE_PX) {
+      el.scrollLeft -= AUTO_SCROLL_STEP_PX
+    } else if (x > rect.right - AUTO_SCROLL_EDGE_PX) {
+      el.scrollLeft += AUTO_SCROLL_STEP_PX
+    }
   }
 
   function handleChipPointerDown(e, index) {
@@ -109,8 +128,9 @@ export default function ProgressionStrip({ expanded, onExpandedChange, activeCho
 
   function handleChipPointerMove(e) {
     if (dragFromIndex === null) return
-    const idx = nearestChipIndex(e.clientX, e.clientY)
+    const idx = nearestChipIndex(e.clientX)
     if (idx !== null) setDragOverIndex(idx)
+    autoScrollChartDuringDrag(e.clientX)
   }
 
   function endDrag(e, index, chordName, commit) {
@@ -286,7 +306,14 @@ export default function ProgressionStrip({ expanded, onExpandedChange, activeCho
         aria-label="Expand chord tools"
         onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') onExpandedChange?.(true) }}
       >
-        <span className="progression-strip__collapsed-chord-name">{activeChordName || '—'}</span>
+        <div className="progression-strip__collapsed-info">
+          <span className="progression-strip__collapsed-chord-name">{activeChordName || '—'}</span>
+          {progression.length > 0 && (
+            <span className="progression-strip__collapsed-count">
+              {progression.length} chord{progression.length === 1 ? '' : 's'}
+            </span>
+          )}
+        </div>
         <button
           type="button"
           className={`progression-strip__collapsed-play-btn ${isPlaying ? 'progression-strip__collapsed-play-btn--playing' : ''}`}
@@ -333,37 +360,38 @@ export default function ProgressionStrip({ expanded, onExpandedChange, activeCho
           <p className="progression-strip__empty">Add chords above to build a sequence</p>
         ) : (
           <div className="progression-strip__chart-group">
-            {chunkIntoRows(progression, CHORDS_PER_ROW).map((row, rowIndex) => (
-              <div className="progression-strip__chart" key={rowIndex}>
-                {row.map((entry, i) => {
-                  const globalIndex = rowIndex * CHORDS_PER_ROW + i
-                  // Every chip is tappable (and draggable) now, not just the
-                  // last one -- Session 11's "last chip only" restriction is
-                  // lifted here; the same generalization also makes chords
-                  // with accidental roots (e.g. F#m7) fully tappable, since
-                  // the exclusion was never really about accidentals, just
-                  // about position, and chordNameToSelection already parses
-                  // sharps/flats correctly (Session 18).
-                  const tappable = !isPlaying
-                  const isDragSource = dragFromIndex === globalIndex
-                  const isDropTarget = dragOverIndex === globalIndex && dragFromIndex !== null && dragOverIndex !== dragFromIndex
-                  return (
-                    <span
-                      key={globalIndex}
-                      ref={el => { chipRefs.current[globalIndex] = el }}
-                      className={`progression-strip__slot ${activeIndex === globalIndex ? 'progression-strip__slot--active' : ''} ${tappable ? 'progression-strip__slot--tappable' : ''} ${isDragSource ? 'progression-strip__slot--dragging' : ''} ${isDropTarget ? 'progression-strip__slot--drag-over' : ''}`}
-                      onPointerDown={tappable ? e => handleChipPointerDown(e, globalIndex) : undefined}
-                      onPointerMove={tappable ? handleChipPointerMove : undefined}
-                      onPointerUp={tappable ? e => endDrag(e, globalIndex, entry.chord, true) : undefined}
-                      onPointerCancel={tappable ? e => endDrag(e, globalIndex, entry.chord, false) : undefined}
-                      title={tappable ? `${entry.chord} — tap to select, drag to reorder` : undefined}
-                    >
-                      {entry.chord}
-                    </span>
-                  )
-                })}
-              </div>
-            ))}
+            <div
+              className={`progression-strip__chart-scroll ${dragFromIndex !== null ? 'progression-strip__chart-scroll--dragging' : ''}`}
+              ref={chartScrollRef}
+            >
+              {progression.map((entry, index) => {
+                // Every chip is tappable (and draggable) now, not just the
+                // last one -- Session 11's "last chip only" restriction is
+                // lifted here; the same generalization also makes chords
+                // with accidental roots (e.g. F#m7) fully tappable, since
+                // the exclusion was never really about accidentals, just
+                // about position, and chordNameToSelection already parses
+                // sharps/flats correctly (Session 18).
+                const tappable = !isPlaying
+                const isDragSource = dragFromIndex === index
+                const isDropTarget = dragOverIndex === index && dragFromIndex !== null && dragOverIndex !== dragFromIndex
+                return (
+                  <span
+                    key={index}
+                    ref={el => { chipRefs.current[index] = el }}
+                    className={`progression-strip__slot ${activeIndex === index ? 'progression-strip__slot--active' : ''} ${tappable ? 'progression-strip__slot--tappable' : ''} ${isDragSource ? 'progression-strip__slot--dragging' : ''} ${isDropTarget ? 'progression-strip__slot--drag-over' : ''}`}
+                    onPointerDown={tappable ? e => handleChipPointerDown(e, index) : undefined}
+                    onPointerMove={tappable ? handleChipPointerMove : undefined}
+                    onPointerUp={tappable ? e => endDrag(e, index, entry.chord, true) : undefined}
+                    onPointerCancel={tappable ? e => endDrag(e, index, entry.chord, false) : undefined}
+                    title={tappable ? `${entry.chord} — tap to select, drag to reorder` : undefined}
+                  >
+                    <span className="progression-strip__slot-index">{index + 1}</span>
+                    <span className="progression-strip__slot-chord">{entry.chord}</span>
+                  </span>
+                )
+              })}
+            </div>
           </div>
         )}
 
