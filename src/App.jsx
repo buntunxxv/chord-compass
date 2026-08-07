@@ -556,7 +556,11 @@ export default function App() {
       </header>
 
       <div className="app__drawer-wrapper">
-        <main className={`app__panel app__builder-panel ${templatesDrawerOpen ? 'app__builder-panel--hidden' : ''}`}>
+        <main
+          className={`app__panel app__builder-panel ${templatesDrawerOpen ? 'app__builder-panel--hidden' : ''}`}
+          inert={templatesDrawerOpen}
+          aria-hidden={templatesDrawerOpen ? 'true' : undefined}
+        >
           <div className={`app__panel-inner ${sheetExpanded ? '' : 'app__panel-inner--sheet-collapsed'}`}>
             <div className="app__mode-tabs" role="tablist" aria-label="Chord tool mode">
               {MODE_TABS.map((tab, index) => (
@@ -635,7 +639,11 @@ export default function App() {
           </div>
         </main>
 
-        <div className={`app__panel app__templates-panel ${templatesDrawerOpen ? 'app__templates-panel--open' : ''}`}>
+        <div
+          className={`app__panel app__templates-panel ${templatesDrawerOpen ? 'app__templates-panel--open' : ''}`}
+          inert={!templatesDrawerOpen}
+          aria-hidden={!templatesDrawerOpen ? 'true' : undefined}
+        >
           <div className={`app__panel-inner ${sheetExpanded ? '' : 'app__panel-inner--sheet-collapsed'}`}>
             <section className="app__section">
               <ProgressionTemplates
