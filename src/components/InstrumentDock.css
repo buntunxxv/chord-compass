@@ -18,9 +18,16 @@
 }
 
 .instrument-dock__tab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: transparent;
   border: none;
   border-radius: 16px;
+  /* 44px minimum touch target -- horizontal padding unchanged, the label
+     stays the same font-size. */
+  min-height: 44px;
+  min-width: 44px;
   padding: 5px 16px;
   font-family: var(--font);
   font-size: 12px;

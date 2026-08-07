@@ -95,8 +95,10 @@
 
 .progression-strip__collapsed-play-btn {
   flex-shrink: 0;
-  width: 40px;
-  height: 40px;
+  /* 44x44 minimum touch target (was 40x40) -- the icon stays the same
+     font-size, only the tappable circle around it grows. */
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   background: var(--teal);
   color: var(--on-accent);
@@ -704,10 +706,11 @@
     margin-bottom: 4px;
   }
 
-  .progression-strip__expanded-content .piano-display--compact .piano-display__svg {
-    max-width: 260px;
-  }
-
+  /* No equivalent piano-display__svg max-width override here -- the piano
+     keyboard now renders at a fixed intrinsic size (see PianoDisplay.css)
+     to guarantee a genuine 44px touch target per white key; shrinking it
+     back down on short viewports would silently undo that. It scrolls
+     horizontally instead (piano-display__keys-scroll). */
   .progression-strip__expanded-content .guitar-display--compact .guitar-display__svg {
     max-width: 150px;
   }

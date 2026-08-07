@@ -3,9 +3,11 @@
   align-items: center;
   background: var(--bg);
   border: 1px solid var(--border);
-  border-radius: 20px;
+  border-radius: 26px;
   padding: 3px;
-  gap: 2px;
+  /* Wider than the pre-44px 2px -- otherwise three adjacent 44px circles
+     sit close enough to touch/mis-tap between. */
+  gap: 4px;
   flex-shrink: 0;
 }
 
@@ -13,8 +15,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 26px;
-  height: 26px;
+  /* 44x44 minimum touch target (was 26x26) -- the icon itself stays the
+     same font-size, only the tappable area around it grows. */
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   background: transparent;
   border: none;

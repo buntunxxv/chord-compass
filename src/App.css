@@ -73,8 +73,10 @@
 /* ─── Help (?) button ───────────────────────────────────────────────────────── */
 
 .app__help-btn {
-  width: 28px;
-  height: 28px;
+  /* 44x44 minimum touch target (was 28x28) -- the "?" glyph itself stays
+     the same font-size, only the tappable circle around it grows. */
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   border: 2px solid var(--teal);
   background: none;
@@ -104,8 +106,10 @@
   justify-content: center;
   align-items: center;
   gap: 5px;
-  width: 40px;
-  height: 40px;
+  /* 44x44 minimum touch target (was 40x40) -- the three bar lines stay the
+     same size, only the tappable area around them grows. */
+  width: 44px;
+  height: 44px;
   background: none;
   border: none;
   cursor: pointer;
@@ -265,9 +269,16 @@
 }
 
 .app__mode-tab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: transparent;
   border: none;
   border-radius: 16px;
+  /* 44px minimum touch target (was ~35px tall) -- horizontal padding
+     unchanged, the label stays the same font-size. */
+  min-height: 44px;
+  min-width: 44px;
   padding: 8px 16px;
   font-family: var(--font);
   font-size: 12.5px;
