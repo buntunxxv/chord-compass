@@ -16,6 +16,20 @@ const CONFIRMATION_MS = 1500
 // treated as a tap (select), not a drag (reorder) -- keeps an ordinary tap
 // from being misread as a zero-distance "drag" that does nothing.
 const DRAG_THRESHOLD_PX = 6
+// Long-press-to-drag: how long a chip has to be held essentially stationary
+// before drag mode engages. Chips sit in a horizontally-scrollable row, so
+// a touch-drag can't be captured as a reorder attempt the instant it
+// starts -- that would make it impossible to ever scroll the row by
+// swiping across a chip. Instead, native scrolling stays available by
+// default (no touch-action:none) until the pointer has been held still
+// this long, at which point drag mode arms and touch-action:none applies
+// only for the remainder of that specific drag.
+const LONG_PRESS_MS = 350
+// A pending long-press is cancelled the moment the pointer moves more than
+// this many px before the timer fires -- that movement means the user
+// meant to scroll, not hold-and-drag, so the browser's native scroll
+// handles it from there with no further involvement from this component.
+const LONG_PRESS_MOVE_CANCEL_PX = 6
 // Drag-to-reorder auto-scroll: how close to the scroll container's edge (in
 // px) a drag has to get before it starts nudging the scroll position, and
 // how far each nudge moves -- without this, a chip can only be dragged as
@@ -81,6 +95,14 @@ export default function ProgressionStrip({ expanded, onExpandedChange, activeCho
   const dragStartRef = useRef(null)
   const chipRefs = useRef([])
   const chartScrollRef = useRef(null)
+  // Set while a long-press is timing out but hasn't armed drag mode yet --
+  // distinct from dragFromIndex, which only becomes non-null once the press
+  // has actually been held long enough (see handleChipPointerDown below).
+  const pendingDragIndexRef = useRef(null)
+  const longPressTimerRef = useRef(null)
+  // The chip currently wearing the native touchmove listener that blocks
+  // scrolling during an active drag -- see armDrag/releaseDragTouchBlock.
+  const dragTouchBlockElRef = useRef(null)
 
   // Chips now sit in a single horizontally-scrollable row (not a wrapped
   // multi-row grid), so the nearest-chip search is just 1D distance along x
@@ -118,29 +140,90 @@ export default function ProgressionStrip({ expanded, onExpandedChange, activeCho
     }
   }
 
+  function clearPendingLongPress() {
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current)
+      longPressTimerRef.current = null
+    }
+    pendingDragIndexRef.current = null
+  }
+
+  // Cancels the touchmove default action for as long as it's attached --
+  // used to block native scrolling only once a drag is actually armed.
+  function preventTouchScroll(e) {
+    e.preventDefault()
+  }
+
+  // CSS touch-action and calling preventDefault() from a React onPointerMove
+  // handler both turn out not to be reliably honored once a touch sequence
+  // is already in flight -- Chromium's gesture recognizer only waits for JS
+  // before committing to a scroll if a genuinely non-passive raw `touchmove`
+  // listener exists on the target at the moment of the next move, and
+  // apparently doesn't extend that same courtesy to a Pointer Event
+  // listener. Attaching one directly, right as the long-press timer fires
+  // (i.e. before the next move can occur), is what actually suppresses the
+  // native scroll for the rest of an armed drag.
+  function blockTouchScrollFor(el) {
+    if (!el) return
+    el.addEventListener('touchmove', preventTouchScroll, { passive: false })
+    dragTouchBlockElRef.current = el
+  }
+
+  function releaseDragTouchBlock() {
+    if (dragTouchBlockElRef.current) {
+      dragTouchBlockElRef.current.removeEventListener('touchmove', preventTouchScroll)
+      dragTouchBlockElRef.current = null
+    }
+  }
+
+  // setPointerCapture happens immediately (harmless -- it only affects which
+  // element JS pointer events route to, it doesn't itself block native
+  // scrolling the way touch-action does), but drag mode itself is deferred
+  // to the long-press timer below. Until that timer fires, this is
+  // indistinguishable from an ordinary tap or the start of a scroll swipe.
   function handleChipPointerDown(e, index) {
     if (isPlaying) return
     e.currentTarget.setPointerCapture(e.pointerId)
     dragStartRef.current = { x: e.clientX, y: e.clientY }
-    setDragFromIndex(index)
-    setDragOverIndex(index)
+    pendingDragIndexRef.current = index
+    longPressTimerRef.current = setTimeout(() => {
+      longPressTimerRef.current = null
+      if (pendingDragIndexRef.current === index) {
+        pendingDragIndexRef.current = null
+        blockTouchScrollFor(chipRefs.current[index])
+        setDragFromIndex(index)
+        setDragOverIndex(index)
+      }
+    }, LONG_PRESS_MS)
   }
 
   function handleChipPointerMove(e) {
-    if (dragFromIndex === null) return
+    if (dragFromIndex === null) {
+      // Still waiting on the long-press timer -- real movement this early
+      // means the user meant to scroll, not hold-and-drag, so cancel the
+      // pending arm and leave the browser's native touch scroll alone for
+      // the rest of this gesture (touch-action was never blocked).
+      if (pendingDragIndexRef.current === null) return
+      const start = dragStartRef.current
+      const moved = start ? Math.hypot(e.clientX - start.x, e.clientY - start.y) : 0
+      if (moved > LONG_PRESS_MOVE_CANCEL_PX) clearPendingLongPress()
+      return
+    }
     const idx = nearestChipIndex(e.clientX)
     if (idx !== null) setDragOverIndex(idx)
     autoScrollChartDuringDrag(e.clientX)
   }
 
   function endDrag(e, index, chordName, commit) {
-    if (dragFromIndex === null) return
+    const wasArmed = dragFromIndex !== null
+    clearPendingLongPress()
+    releaseDragTouchBlock()
     if (commit) {
       const start = dragStartRef.current
       const moved = start ? Math.hypot(e.clientX - start.x, e.clientY - start.y) : 0
       if (moved < DRAG_THRESHOLD_PX) {
         onSelectChord?.(index, chordName)
-      } else if (dragOverIndex !== null && dragOverIndex !== dragFromIndex) {
+      } else if (wasArmed && dragOverIndex !== null && dragOverIndex !== dragFromIndex) {
         onReorder?.(dragFromIndex, dragOverIndex)
       }
     }
@@ -148,6 +231,11 @@ export default function ProgressionStrip({ expanded, onExpandedChange, activeCho
     setDragOverIndex(null)
     dragStartRef.current = null
   }
+
+  useEffect(() => () => {
+    if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current)
+    releaseDragTouchBlock()
+  }, [])
 
   const [savedProgressions, setSavedProgressions] = useState(() => {
     try {
