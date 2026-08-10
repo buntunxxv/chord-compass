@@ -4,6 +4,7 @@ import { createKeysSynth, startAudioContext } from '../audio/synth'
 import { computePlaybackProgression } from '../utils/voiceLeading'
 import { buildProgressionMidiBytes, downloadMidiFile } from '../utils/midiExport'
 import InstrumentDock from './InstrumentDock'
+import PianoDisplay from './PianoDisplay'
 import './ProgressionStrip.css'
 
 const BPM_MIN = 60
@@ -402,6 +403,13 @@ export default function ProgressionStrip({ expanded, onExpandedChange, activeCho
             </span>
           )}
         </div>
+        <PianoDisplay
+          chordNotes={chordNotes}
+          previewNotes={previewNotes}
+          bassHighlightNote={bassHighlightNote}
+          rootNote={keysRootNote}
+          miniature
+        />
         <button
           type="button"
           className={`progression-strip__collapsed-play-btn ${isPlaying ? 'progression-strip__collapsed-play-btn--playing' : ''}`}
