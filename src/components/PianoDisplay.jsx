@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { createKeysSynth, startAudioContext } from '../audio/synth'
+import { getNoteColors } from '../utils/noteColors'
 import './PianoDisplay.css'
 
 // Two octaves, C3–D5, so a chord's notes render at their real pitch
@@ -88,20 +89,12 @@ function findSpelling(keyNote, chordNotes) {
   return match.replace(/\d+$/, '').replace('#', '♯').replace('b', '♭')
 }
 
-const SUGGEST_FILL = '#8B5CF6'
-// Left-hand/right-hand split's isolated bass note gets its own color --
-// distinct from root gold (#F5B82E), chord-tone teal (#119392), and the
-// suggestion-preview purple (#8B5CF6) above, so the hand-split reads at a
-// glance instead of just looking like an ordinary root highlight sitting an
-// octave low. A deep rose sits far enough from all three on the color wheel
-// to stay unambiguous, and (like every other key fill here) is a fixed hex
-// value rather than a theme CSS variable -- consistent with how root/teal/
-// suggest already render identically in light and dark mode, since the
-// piano's white/black keys themselves never re-theme.
-const BASS_SPLIT_FILL = '#D6336C'
-
-// Work out fill + whether the key gets a "shared" ring for a single key
-function resolveKeyStyle(note, notes, root, previewNotes, defaultFill, bassHighlightNote) {
+// Work out fill + whether the key gets a "shared" ring for a single key.
+// The four highlight colors (root gold, chord-tone teal, suggested purple,
+// split-bass rose) all come from noteColors -- see src/utils/noteColors.js
+// and index.css's --note-color-* custom properties, the single source of
+// truth both this component and GuitarDisplay read from.
+function resolveKeyStyle(note, notes, root, previewNotes, defaultFill, bassHighlightNote, noteColors) {
   const inCurrent = noteMatches(note, notes)
   const inPreview = previewNotes && previewNotes.length > 0 && noteMatches(note, previewNotes)
   const isCurrentRoot = isRoot(note, root)
@@ -109,7 +102,7 @@ function resolveKeyStyle(note, notes, root, previewNotes, defaultFill, bassHighl
 
   if (inCurrent) {
     return {
-      fill: isBassSplit ? BASS_SPLIT_FILL : isCurrentRoot ? '#F5B82E' : '#119392',
+      fill: isBassSplit ? noteColors.splitBass : isCurrentRoot ? noteColors.root : noteColors.chordTone,
       active: true,
       shared: inPreview,
       textFill: isBassSplit ? '#ffffff' : isCurrentRoot ? '#7a5500' : '#ffffff',
@@ -117,7 +110,7 @@ function resolveKeyStyle(note, notes, root, previewNotes, defaultFill, bassHighl
     }
   }
   if (inPreview) {
-    return { fill: SUGGEST_FILL, active: true, shared: false, textFill: '#ffffff', spelling: findSpelling(note, previewNotes) }
+    return { fill: noteColors.suggested, active: true, shared: false, textFill: '#ffffff', spelling: findSpelling(note, previewNotes) }
   }
   return { fill: defaultFill, active: false, shared: false, textFill: '#aaaaaa', spelling: null }
 }
@@ -132,7 +125,7 @@ export default function PianoDisplay({ chordNotes, previewNotes, bassHighlightNo
   // (e.g. progression playback, whose notes are never reordered) falls
   // back to the original notes[0] convention unchanged.
   const root = rootNote ?? (notes.length > 0 ? notes[0] : null)
-  const hasPreview = !!(previewNotes && previewNotes.length > 0)
+  const noteColors = getNoteColors()
 
   const synthRef = useRef(null)
   const timerRef = useRef(null)
@@ -177,7 +170,7 @@ export default function PianoDisplay({ chordNotes, previewNotes, bassHighlightNo
         {/* White keys */}
         {WHITE_KEYS.map((note, i) => {
           const x = i * WHITE_KEY_WIDTH
-          const style = resolveKeyStyle(note, notes, root, previewNotes, '#ffffff', bassHighlightNote)
+          const style = resolveKeyStyle(note, notes, root, previewNotes, '#ffffff', bassHighlightNote, noteColors)
           const isPressed = pressedNote === note
 
           return (
@@ -219,7 +212,7 @@ export default function PianoDisplay({ chordNotes, previewNotes, bassHighlightNo
                   height={WHITE_KEY_HEIGHT - 8}
                   rx={3}
                   fill="none"
-                  stroke={SUGGEST_FILL}
+                  stroke={noteColors.suggested}
                   strokeWidth={2.5}
                   strokeDasharray="4 3"
                 />
@@ -243,7 +236,7 @@ export default function PianoDisplay({ chordNotes, previewNotes, bassHighlightNo
         {/* Black keys — rendered on top */}
         {BLACK_KEYS.map(({ note, whiteIndex }) => {
           const x = whiteIndex * WHITE_KEY_WIDTH + WHITE_KEY_WIDTH - BLACK_KEY_WIDTH / 2 - 1
-          const style = resolveKeyStyle(note, notes, root, previewNotes, '#1a1a1a', bassHighlightNote)
+          const style = resolveKeyStyle(note, notes, root, previewNotes, '#1a1a1a', bassHighlightNote, noteColors)
           const isPressed = pressedNote === note
 
           return (
@@ -285,7 +278,7 @@ export default function PianoDisplay({ chordNotes, previewNotes, bassHighlightNo
                   height={BLACK_KEY_HEIGHT - 6}
                   rx={2}
                   fill="none"
-                  stroke={SUGGEST_FILL}
+                  stroke={noteColors.suggested}
                   strokeWidth={2}
                   strokeDasharray="3 2"
                 />
@@ -322,19 +315,24 @@ export default function PianoDisplay({ chordNotes, previewNotes, bassHighlightNo
         </svg>
       </div>
 
-      {hasPreview && !compact && (
-        <div className="piano-display__legend">
-          <span className="piano-display__legend-item">
-            <span className="piano-display__legend-dot piano-display__legend-dot--current" /> Current chord
-          </span>
-          <span className="piano-display__legend-item">
-            <span className="piano-display__legend-dot piano-display__legend-dot--suggested" /> Suggested chord
-          </span>
-          <span className="piano-display__legend-item">
-            <span className="piano-display__legend-dot piano-display__legend-dot--shared" /> Shared note
-          </span>
-        </div>
-      )}
+      {/* Documents all four note-highlight colors -- shown wherever the
+          piano itself is shown (not gated behind compact/preview state),
+          since root and chord-tone highlighting is relevant to every chord
+          the piano displays, not just while a suggestion preview is active. */}
+      <div className="piano-display__legend">
+        <span className="piano-display__legend-item">
+          <span className="piano-display__legend-dot piano-display__legend-dot--root" /> Root
+        </span>
+        <span className="piano-display__legend-item">
+          <span className="piano-display__legend-dot piano-display__legend-dot--chord-tone" /> Chord tone
+        </span>
+        <span className="piano-display__legend-item">
+          <span className="piano-display__legend-dot piano-display__legend-dot--suggested" /> Suggested chord
+        </span>
+        <span className="piano-display__legend-item">
+          <span className="piano-display__legend-dot piano-display__legend-dot--split-bass" /> Split bass
+        </span>
+      </div>
     </div>
   )
 }

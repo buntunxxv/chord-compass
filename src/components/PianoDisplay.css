@@ -83,15 +83,23 @@
   display: inline-block;
 }
 
-.piano-display__legend-dot--current {
-  background: var(--teal);
+/* Reads the same --note-color-* custom properties (index.css) that
+   PianoDisplay.jsx's SVG fills read via src/utils/noteColors.js -- one
+   real definition per color, not two kept in sync by hand. Deliberately
+   NOT var(--teal)/var(--suggest): those re-theme between light/dark mode,
+   while a note's highlight color (like the keys themselves) doesn't. */
+.piano-display__legend-dot--root {
+  background: var(--note-color-root);
+}
+
+.piano-display__legend-dot--chord-tone {
+  background: var(--note-color-chord-tone);
 }
 
 .piano-display__legend-dot--suggested {
-  background: var(--suggest);
+  background: var(--note-color-suggested);
 }
 
-.piano-display__legend-dot--shared {
-  background: transparent;
-  border: 2px dashed var(--suggest);
+.piano-display__legend-dot--split-bass {
+  background: var(--note-color-split-bass);
 }

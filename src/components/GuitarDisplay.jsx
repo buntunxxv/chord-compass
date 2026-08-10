@@ -1,3 +1,4 @@
+import { getNoteColors } from '../utils/noteColors'
 import './GuitarDisplay.css'
 
 // Standard tuning, low string to high: E A D G B e
@@ -48,6 +49,10 @@ function findSpelling(pitchClass, notes) {
 export default function GuitarDisplay({ root, shape, notes, compact }) {
   if (!shape) return null
 
+  // Same root/chord-tone colors as PianoDisplay, read from the single
+  // shared source (index.css's --note-color-* custom properties) instead
+  // of a second independently-hardcoded pair of hex values.
+  const noteColors = getNoteColors()
   const rootPc = ROOT_PITCH_CLASS[root]
   const frets = shape.frets
 
@@ -167,7 +172,7 @@ export default function GuitarDisplay({ root, shape, notes, compact }) {
           if (f === 0) {
             const pitchClass = OPEN_PITCH_CLASS[i]
             const isRoot = rootPc !== undefined && pitchClass === rootPc
-            const color = isRoot ? '#F5B82E' : '#119392'
+            const color = isRoot ? noteColors.root : noteColors.chordTone
             return (
               <g key={i}>
                 <circle
@@ -208,7 +213,7 @@ export default function GuitarDisplay({ root, shape, notes, compact }) {
                 cx={stringX(i)}
                 cy={fretRowY(row) - FRET_HEIGHT / 2}
                 r={DOT_RADIUS}
-                fill={isRoot ? '#F5B82E' : '#119392'}
+                fill={isRoot ? noteColors.root : noteColors.chordTone}
                 stroke="#fff"
                 strokeWidth={1.5}
               />

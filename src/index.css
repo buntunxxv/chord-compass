@@ -27,6 +27,21 @@
   --shadow: 0 2px 8px rgba(0,0,0,0.08);
   --font: 'Poppins', system-ui, sans-serif;
   --font-script: 'Lora', Georgia, serif;
+
+  /* Single source of truth for note-highlight colors -- shared by every
+     instrument display (PianoDisplay, GuitarDisplay, and any future
+     compact mini-keyboard) via CSS for stylesheets and
+     src/utils/noteColors.js (reads these same custom properties) for
+     inline SVG fill attributes in JS. Deliberately fixed/non-theme-aware
+     and declared only here, never overridden under [data-theme="dark"] --
+     unlike most colors in this app, a note's meaning (root/chord tone/
+     suggested/split bass) has to read identically in both themes, since
+     these render on the piano/guitar's own always-light key/fretboard
+     surfaces, which never re-theme themselves. */
+  --note-color-root: #F5B82E;
+  --note-color-chord-tone: #119392;
+  --note-color-suggested: #8B5CF6;
+  --note-color-split-bass: #D6336C;
 }
 
 [data-theme="dark"] {
