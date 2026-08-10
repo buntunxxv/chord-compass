@@ -4,7 +4,7 @@ import { createKeysSynth, startAudioContext } from '../audio/synth'
 import { computePlaybackProgression } from '../utils/voiceLeading'
 import { buildProgressionMidiBytes, downloadMidiFile } from '../utils/midiExport'
 import InstrumentDock from './InstrumentDock'
-import MiniKeyboard from './MiniKeyboard'
+import PianoDisplay from './PianoDisplay'
 import './ProgressionStrip.css'
 
 const BPM_MIN = 60
@@ -403,11 +403,12 @@ export default function ProgressionStrip({ expanded, onExpandedChange, activeCho
             </span>
           )}
         </div>
-        <MiniKeyboard
+        <PianoDisplay
           chordNotes={chordNotes}
           previewNotes={previewNotes}
           bassHighlightNote={bassHighlightNote}
           rootNote={keysRootNote}
+          miniature
         />
         <button
           type="button"

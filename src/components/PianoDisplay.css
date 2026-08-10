@@ -60,6 +60,26 @@
   box-shadow: none;
 }
 
+/* The collapsed bottom bar's mini-keyboard strip -- a fixed, modest-height
+   inline element sitting next to the chord name and play button, not a
+   card of its own. flex-shrink:0 keeps its small intrinsic size (set via
+   the svg's own width/height, see PianoDisplay.jsx's MINIATURE_WIDTH/
+   HEIGHT) from being squeezed by its siblings in that flex row. */
+.piano-display--miniature {
+  display: block;
+  background: none;
+  border-radius: 0;
+  padding: 0;
+  box-shadow: none;
+  flex-shrink: 0;
+  line-height: 0;
+}
+
+.piano-display__svg--miniature {
+  display: block;
+  filter: none;
+}
+
 .piano-display__legend {
   display: flex;
   gap: 16px;
