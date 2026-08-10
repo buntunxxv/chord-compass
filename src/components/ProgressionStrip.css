@@ -263,10 +263,12 @@
   text-decoration-color: var(--teal);
   text-underline-offset: 3px;
   box-shadow: inset 0 0 0 1.5px var(--teal);
-  /* Pointer Events drive dragging here, not the browser's own touch-scroll
-     gesture -- without this, a touch-drag on a chip scrolls the page
-     instead of reordering it. */
-  touch-action: none;
+  /* touch-action stays at its default (native scrolling allowed) here --
+     chips sit in a horizontally-scrollable row, and a swipe across one has
+     to be able to scroll it. Pointer Events don't engage drag mode until a
+     long-press timer fires (see handleChipPointerDown), at which point
+     .progression-strip__slot--dragging below takes over and blocks native
+     scrolling only for that specific chip's active drag. */
   user-select: none;
 }
 
@@ -276,6 +278,9 @@
 
 .progression-strip__slot--dragging {
   opacity: 0.45;
+  /* Applied only once a long-press has armed drag mode -- Pointer Events
+     drive the reorder from here, not the browser's own touch-scroll. */
+  touch-action: none;
 }
 
 .progression-strip__slot--drag-over {
