@@ -577,6 +577,13 @@ export default function App() {
 
   return (
     <div className="app">
+      {/* Same inert pattern the builder/templates panel swap already uses
+          (see app__builder-panel/app__templates-panel below) -- while the
+          feedback panel is open, this is everything "behind" it, so it's
+          the side that goes inert, making FeedbackPanel a genuine modal
+          rather than just a visually-on-top overlay a screen reader or
+          keyboard user could still reach into. */}
+      <div className="app__background" inert={feedbackOpen} aria-hidden={feedbackOpen ? 'true' : undefined}>
       <header className="app__header">
         <div className="app__header-inner">
           <div className="app__logo">
@@ -795,6 +802,7 @@ export default function App() {
         guitarPositions={guitarPositions}
         isPro={isPro}
       />
+      </div>
 
       {/* Feedback panel — state persists while closed */}
       <FeedbackPanel
