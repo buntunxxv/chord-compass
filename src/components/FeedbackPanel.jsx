@@ -205,6 +205,44 @@ export default function FeedbackPanel({ isOpen, onClose, theme }) {
   const [direction, setDirection] = useState(1)
   const [animating, setAnimating] = useState(false)
   const textareaRef = useRef(null)
+  // Every step transition (picking a profile card, answering a choice
+  // question, footer Back/Next) delays its actual stage/questionIndex
+  // update until its exit animation finishes, so the old screen stays
+  // visible while it animates out. That's fine while the panel is open --
+  // but this component never unmounts (see the render below), so closing
+  // mid-animation used to leave that update still pending: reopening
+  // moments later could land back on the stage from BEFORE the answer that
+  // was just given (e.g. still 'type' even though a profile card was
+  // already picked). Tracking the pending update here lets it be flushed
+  // immediately the moment the panel closes, while it's invisible anyway,
+  // so a reopen always reflects the settled, post-answer position.
+  const pendingTransitionRef = useRef(null)
+
+  useEffect(() => {
+    return () => { if (pendingTransitionRef.current) clearTimeout(pendingTransitionRef.current.timerId) }
+  }, [])
+
+  function scheduleTransition(apply, delay) {
+    if (pendingTransitionRef.current) clearTimeout(pendingTransitionRef.current.timerId)
+    const timerId = setTimeout(() => {
+      pendingTransitionRef.current = null
+      apply()
+    }, delay)
+    pendingTransitionRef.current = { timerId, apply }
+  }
+
+  function flushPendingTransition() {
+    if (!pendingTransitionRef.current) return
+    clearTimeout(pendingTransitionRef.current.timerId)
+    const { apply } = pendingTransitionRef.current
+    pendingTransitionRef.current = null
+    apply()
+  }
+
+  function handleClose() {
+    flushPendingTransition()
+    onClose?.()
+  }
 
   const questions = getQuestions(userType)
   const isFinal = stage === 'final'
@@ -237,7 +275,7 @@ export default function FeedbackPanel({ isOpen, onClose, theme }) {
     if (animating) return
     setDirection(step)
     setAnimating(true)
-    setTimeout(() => {
+    scheduleTransition(() => {
       if (stage === 'type' && step === 1) {
         setStage('questions')
         setQuestionIndex(0)
@@ -284,7 +322,7 @@ export default function FeedbackPanel({ isOpen, onClose, theme }) {
     <>
       <div
         className={`fp-backdrop ${isOpen ? 'fp-backdrop--open' : ''}`}
-        onClick={onClose}
+        onClick={handleClose}
         aria-hidden="true"
       />
 
@@ -312,7 +350,7 @@ export default function FeedbackPanel({ isOpen, onClose, theme }) {
                 ↺ Start over
               </button>
             )}
-            <button className="fp-header__close" onClick={onClose} aria-label="Close feedback and return to tool">
+            <button className="fp-header__close" onClick={handleClose} aria-label="Close feedback and return to tool">
               <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
                 <path d="M2 2l14 14M16 2L2 16" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
               </svg>
@@ -347,7 +385,7 @@ export default function FeedbackPanel({ isOpen, onClose, theme }) {
                     className={`fp-typecard ${userType === t.value ? 'fp-typecard--active' : ''}`}
                     onClick={() => {
                       setUserType(t.value)
-                      setTimeout(() => {
+                      scheduleTransition(() => {
                         setStage('questions')
                         setQuestionIndex(0)
                       }, 320)
@@ -385,7 +423,7 @@ export default function FeedbackPanel({ isOpen, onClose, theme }) {
                 {currentQ.type === 'choice' && (
                   <ChoiceInput
                     value={currentAnswer}
-                    onChange={v => { setAnswer(v); setTimeout(() => navigate(1), 320) }}
+                    onChange={v => { setAnswer(v); scheduleTransition(() => navigate(1), 320) }}
                     options={currentQ.options}
                   />
                 )}

@@ -5,6 +5,18 @@
   background: var(--bg);
 }
 
+/* Purely a layout passthrough for header/drawer-wrapper/ProgressionStrip --
+   same flex-column + flex:1 rules .app itself would apply to them directly,
+   just wrapped so this one element can be toggled inert while the feedback
+   panel is open (see App.jsx) without changing anything else about how
+   those children size themselves. */
+.app__background {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
 .app__header {
   background: var(--white);
   padding: 0 24px;
