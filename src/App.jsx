@@ -24,6 +24,10 @@ import './App.css'
 const PROGRESSION_LIMIT = 4
 const PROGRESSION_STORAGE_KEY = 'chordCompassProgression'
 const PROGRESSION_TEASER = 'Longer progressions are coming in Chord Compass Pro.'
+// How long the one-step "Undo" after a template load stays available before
+// it silently expires -- it also clears sooner, immediately, on any other
+// progression-mutating action (see clearLoadUndo's call sites below).
+const LOAD_UNDO_WINDOW_MS = 10000
 
 const MODE_TABS = [
   { key: 'build', label: 'Build a Chord' },
@@ -181,6 +185,46 @@ export default function App() {
   const [templateKeyRoot, setTemplateKeyRoot] = useState('C')
   const [templateKeyMode, setTemplateKeyMode] = useState('major')
   const [activeTemplate, setActiveTemplate] = useState(null)
+  // Snapshot of {progression, activeTemplate, tappedChordIndex} taken right
+  // before a template load overwrites them -- null means no undo is
+  // currently available. One step only: a second load overwrites this with
+  // its own pre-load snapshot rather than stacking a history.
+  const [loadUndoSnapshot, setLoadUndoSnapshot] = useState(null)
+  const loadUndoTimeoutRef = useRef(null)
+
+  useEffect(() => {
+    return () => { if (loadUndoTimeoutRef.current) clearTimeout(loadUndoTimeoutRef.current) }
+  }, [])
+
+  function armLoadUndo(snapshot) {
+    if (loadUndoTimeoutRef.current) clearTimeout(loadUndoTimeoutRef.current)
+    setLoadUndoSnapshot(snapshot)
+    loadUndoTimeoutRef.current = setTimeout(() => setLoadUndoSnapshot(null), LOAD_UNDO_WINDOW_MS)
+  }
+
+  // Called at the top of every progression mutation that ISN'T itself a
+  // template load, so the undo affordance only ever offers to restore the
+  // state from immediately before the most recent load, never a stale one
+  // from several edits ago.
+  function clearLoadUndo() {
+    if (loadUndoTimeoutRef.current) {
+      clearTimeout(loadUndoTimeoutRef.current)
+      loadUndoTimeoutRef.current = null
+    }
+    setLoadUndoSnapshot(null)
+  }
+
+  function undoLoad() {
+    if (!loadUndoSnapshot) return
+    if (loadUndoTimeoutRef.current) {
+      clearTimeout(loadUndoTimeoutRef.current)
+      loadUndoTimeoutRef.current = null
+    }
+    setProgression(loadUndoSnapshot.progression)
+    setActiveTemplate(loadUndoSnapshot.activeTemplate)
+    setTappedChordIndex(loadUndoSnapshot.tappedChordIndex)
+    setLoadUndoSnapshot(null)
+  }
 
   useEffect(() => {
     setIsPro(localStorage.getItem('kcc_tier') === 'pro')
@@ -322,6 +366,7 @@ export default function App() {
       teaserTimeoutRef.current = setTimeout(() => setProgressionTeaser(''), 4000)
       return
     }
+    clearLoadUndo()
     setActiveTemplate(null)
     const insertAt = (tappedChordIndex != null && tappedChordIndex < progression.length)
       ? tappedChordIndex + 1
@@ -360,6 +405,7 @@ export default function App() {
       teaserTimeoutRef.current = setTimeout(() => setProgressionTeaser(''), 4000)
     }
     if (allowed.length === 0) return
+    clearLoadUndo()
     setActiveTemplate(null)
     setProgression(prev => [
       ...prev.slice(0, insertAt),
@@ -370,17 +416,25 @@ export default function App() {
   }
 
   function clearProgression() {
+    clearLoadUndo()
     setActiveTemplate(null)
     setProgression([])
     setTappedChordIndex(null)
   }
 
   function removeLast() {
+    clearLoadUndo()
     setActiveTemplate(null)
     setProgression(prev => prev.slice(0, -1))
     setTappedChordIndex(prev => (prev === progression.length - 1 ? null : prev))
   }
 
+  // Templates only ever ADD chords (never merge into an existing one), so
+  // loading one over a non-empty progression is a full, hard-to-undo
+  // replacement -- worth a confirm. An empty progression has nothing to
+  // lose, so it loads straight away. Either way, the progression as it
+  // stood right before this call is kept for one undoLoad() (see
+  // armLoadUndo above) so a confirmed replace is never truly a one-way door.
   function loadTemplate(entries, template) {
     if (!isPro && entries.length > PROGRESSION_LIMIT) {
       setProgressionTeaser(PROGRESSION_TEASER)
@@ -388,12 +442,20 @@ export default function App() {
       teaserTimeoutRef.current = setTimeout(() => setProgressionTeaser(''), 4000)
       return
     }
+    if (progression.length > 0) {
+      const confirmed = window.confirm(
+        `Replace your current progression (${progression.length} chord${progression.length === 1 ? '' : 's'}) with "${template.name}"?`
+      )
+      if (!confirmed) return
+    }
+    armLoadUndo({ progression, activeTemplate, tappedChordIndex })
     setProgression(entries)
     setActiveTemplate({ name: template.name, description: template.description })
     setTappedChordIndex(null)
   }
 
   function loadSavedProgression(chords) {
+    clearLoadUndo()
     setActiveTemplate(null)
     setProgression(chords)
     setTappedChordIndex(null)
@@ -406,6 +468,7 @@ export default function App() {
   // chip from the chord it was actually tapped on.
   function moveChord(fromIndex, toIndex) {
     if (fromIndex === toIndex) return
+    clearLoadUndo()
     setActiveTemplate(null)
     setProgression(prev => {
       const next = [...prev]
@@ -713,6 +776,8 @@ export default function App() {
         onReorder={moveChord}
         onLoadSaved={loadSavedProgression}
         templateInfo={activeTemplate}
+        canUndoLoad={!!loadUndoSnapshot}
+        onUndoLoad={undoLoad}
         teaserMessage={progressionTeaser}
         onPlayingChordChange={handlePlayingChordChange}
         chordNotes={pianoNotes}

@@ -50,7 +50,7 @@ function snapBpm(val) {
   return Math.abs(val - BPM_MID) <= SNAP_THRESHOLD ? BPM_MID : val
 }
 
-export default function ProgressionStrip({ expanded, onExpandedChange, activeChordName, progression, bpm, onBpmChange, onClear, onRemoveLast, onSelectChord, onReorder, onLoadSaved, teaserMessage, onPlayingChordChange, chordNotes, previewNotes, bassHighlightNote, keysRootNote, keysPositionIndex, onKeysPositionChange, guitarPositionIndex, onGuitarPositionChange, root, guitarShape, guitarSlashNotice, guitarInversionUnavailable, guitarPositions, templateInfo, isPro }) {
+export default function ProgressionStrip({ expanded, onExpandedChange, activeChordName, progression, bpm, onBpmChange, onClear, onRemoveLast, onSelectChord, onReorder, onLoadSaved, teaserMessage, onPlayingChordChange, chordNotes, previewNotes, bassHighlightNote, keysRootNote, keysPositionIndex, onKeysPositionChange, guitarPositionIndex, onGuitarPositionChange, root, guitarShape, guitarSlashNotice, guitarInversionUnavailable, guitarPositions, templateInfo, canUndoLoad, onUndoLoad, isPro }) {
   const [activeIndex, setActiveIndex] = useState(null)
   const [isPlaying, setIsPlaying] = useState(false)
   const synthRef = useRef(null)
@@ -446,6 +446,19 @@ export default function ProgressionStrip({ expanded, onExpandedChange, activeCho
       {templateInfo && progression.length > 0 && (
         <div className="progression-strip__template-banner">
           <strong>{templateInfo.name}</strong> — {templateInfo.description}
+        </div>
+      )}
+
+      {/* One-step undo for the progression that was just replaced by a
+          template load -- App.jsx clears this (canUndoLoad becomes false)
+          after ~10s or as soon as any other progression edit happens, so it
+          never lingers as a stale offer to restore an outdated state. */}
+      {canUndoLoad && (
+        <div className="progression-strip__undo-banner">
+          <span>Progression loaded.</span>
+          <button type="button" className="progression-strip__undo-btn" onClick={onUndoLoad}>
+            Undo
+          </button>
         </div>
       )}
 
