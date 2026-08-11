@@ -396,7 +396,16 @@
   transform: translateY(-1px);
 }
 
-@media (max-width: 700px) {
+/* Wider than the .app__site-nav/.app__panel-inner breakpoints below on
+   purpose: at tablet-portrait widths (e.g. 768px) there's still room for
+   the primary site nav inline, but not for the nav AND the title AND the
+   feedback CTA AND the theme toggle AND the help button all on one row --
+   that combination is what pushed "Chord Compass" onto its own wrapped
+   line. Consolidating just the two secondary items (feedback CTA, theme
+   toggle) into the existing mobile menu here frees enough width for the
+   title to stay on one line, while the primary nav and help button keep
+   their own, narrower breakpoints unchanged. */
+@media (max-width: 900px) {
   .app__header-divider,
   .app__header-feedback-btn,
   .app__header-tool .theme-toggle {
@@ -408,6 +417,9 @@
   .app__hamburger {
     display: flex;
   }
+}
+
+@media (max-width: 700px) {
   .app__panel-inner {
     padding-bottom: calc(370px + env(safe-area-inset-bottom));
   }
