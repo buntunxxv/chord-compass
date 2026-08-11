@@ -320,48 +320,40 @@
   }
 }
 
-/* Fixed-size edge tabs -- same base class for both, mirrored via the
-   --open/--close modifiers for which edge they sit on and which corners
-   round. Always position:fixed (viewport-relative) so they stay put
-   regardless of which panel is scrolled, same as ProgressionStrip. */
+/* Templates drawer toggle -- a normal button living in the header's own
+   control row (app__header-tool), alongside the title/feedback/theme/help,
+   rather than a fixed-position tab pinned to the viewport edge that used to
+   float on top of whichever panel's content happened to scroll underneath
+   it. One button (not a separate open/close pair) whose label and
+   pressed-look flip with templatesDrawerOpen, same toggle-button pattern
+   as ThemeToggle -- aria-pressed communicates state instead of a
+   position/writing-mode change only sighted users could read. */
+.app__header-templates-btn {
+  flex-shrink: 0;
+  background: none;
+  border: 1.5px solid var(--teal);
+  color: var(--teal);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, color 0.15s;
+}
 
-.app__drawer-tab {
-  position: fixed;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 32px;
-  height: 56px;
-  z-index: 95;
+.app__header-templates-btn:hover {
+  background: rgba(17, 147, 146, 0.08);
+}
+
+.app__header-templates-btn--active {
   background: var(--teal);
   color: var(--on-accent);
-  border: none;
-  box-shadow: var(--shadow);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  font-family: var(--font);
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  writing-mode: vertical-rl;
-  text-orientation: mixed;
-  transition: background 0.15s;
 }
 
-.app__drawer-tab:hover {
+.app__header-templates-btn--active:hover {
   background: var(--teal-dark);
-}
-
-.app__drawer-tab--open {
-  right: 0;
-  border-radius: 8px 0 0 8px;
-}
-
-.app__drawer-tab--close {
-  left: 0;
-  border-radius: 0 8px 8px 0;
 }
 
 .app__unavailable {
@@ -416,6 +408,28 @@
   }
   .app__hamburger {
     display: flex;
+  }
+}
+
+/* Phone widths: even with the 900px consolidation above, logo + "Chord
+   Compass" + the Templates toggle + hamburger + help no longer fit on one
+   row once the row gets this narrow -- the app's own content already makes
+   it obvious this is Chord Compass, so the wordmark is the one thing here
+   that's genuinely redundant to drop, rather than shrinking the Templates
+   button down to the point its label stops reading clearly. */
+@media (max-width: 480px) {
+  .app__header {
+    padding: 0 12px;
+  }
+  .app__header-tool-name {
+    display: none;
+  }
+  .app__header-tool {
+    gap: 6px;
+  }
+  .app__header-templates-btn {
+    padding: 5px 10px;
+    font-size: 11px;
   }
 }
 

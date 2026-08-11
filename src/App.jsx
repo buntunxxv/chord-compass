@@ -599,6 +599,15 @@ export default function App() {
           <div className="app__header-tool">
             <div className="app__header-divider" />
             <span className="app__header-tool-name">Chord Compass</span>
+            <button
+              type="button"
+              className={`app__header-templates-btn ${templatesDrawerOpen ? 'app__header-templates-btn--active' : ''}`}
+              onClick={() => setTemplatesDrawerOpen(o => !o)}
+              aria-pressed={templatesDrawerOpen}
+              aria-label={templatesDrawerOpen ? 'Back to chord builder' : 'Open progression templates'}
+            >
+              {templatesDrawerOpen ? '← Chords' : 'Templates'}
+            </button>
             <div className="app__header-divider" />
             <button
               className="app__header-feedback-btn"
@@ -747,27 +756,6 @@ export default function App() {
             </section>
           </div>
         </div>
-
-        {!templatesDrawerOpen && (
-          <button
-            type="button"
-            className="app__drawer-tab app__drawer-tab--open"
-            onClick={() => setTemplatesDrawerOpen(true)}
-            aria-label="Open progression templates"
-          >
-            Templates
-          </button>
-        )}
-        {templatesDrawerOpen && (
-          <button
-            type="button"
-            className="app__drawer-tab app__drawer-tab--close"
-            onClick={() => setTemplatesDrawerOpen(false)}
-            aria-label="Back to chord builder"
-          >
-            Chords
-          </button>
-        )}
       </div>
 
       <ProgressionStrip
