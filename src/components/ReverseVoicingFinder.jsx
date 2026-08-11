@@ -100,6 +100,7 @@ export default function ReverseVoicingFinder({ onAddToProgression, onImportSeque
           <MidiImportPanel
             onLoadMoment={pitchClasses => setSelected(pitchClasses)}
             onImportSequence={chords => onImportSequence?.(chords)}
+            onImportError={() => setSelected([])}
           />
         )
       )}

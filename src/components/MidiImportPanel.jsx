@@ -18,7 +18,7 @@ function formatTime(seconds) {
 // ordered progression. Gating itself lives one level up in
 // ReverseVoicingFinder (this component is only ever mounted for Pro users),
 // so there's nothing to lock here.
-export default function MidiImportPanel({ onLoadMoment, onImportSequence }) {
+export default function MidiImportPanel({ onLoadMoment, onImportSequence, onImportError }) {
   const [fileName, setFileName] = useState(null)
   const [moments, setMoments] = useState(null)
   const [error, setError] = useState(null)
@@ -40,11 +40,18 @@ export default function MidiImportPanel({ onLoadMoment, onImportSequence }) {
       const segmented = segmentChordMoments(midi)
       if (segmented.length === 0) {
         setError('No notes found in this MIDI file.')
+        // A prior successful import's tapped-moment notes (and the guitar
+        // shapes ranked from them, in ReverseVoicingFinder) live one level
+        // up and outlive this component's own moments/checked reset above
+        // -- without this, they'd sit there below a fresh error, looking
+        // like results for the file that just failed.
+        onImportError?.()
         return
       }
       setMoments(segmented)
     } catch {
       setError('Could not read this file — make sure it’s a standard .mid/.midi file.')
+      onImportError?.()
     }
   }
 
