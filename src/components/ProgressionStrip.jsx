@@ -573,6 +573,17 @@ export default function ProgressionStrip({ expanded, onExpandedChange, activeCho
             </button>
           )}
 
+          {/* Same self-clearing status-message pattern the export button
+              already uses below (role="status" so it's announced, cleared
+              by the same justSaved timeout that flips the Save button's own
+              label back) -- previously the only feedback here was the
+              "Saved (N)" toggle's count silently changing, easy to miss
+              since it sits to the side of the button that was actually
+              clicked. */}
+          {justSaved && (
+            <p className="progression-strip__save-status" role="status">Progression saved</p>
+          )}
+
           {isPro ? (
             <button
               className={`progression-strip__pro-btn ${exportStatus === 'error' ? 'progression-strip__pro-btn--error' : ''}`}
