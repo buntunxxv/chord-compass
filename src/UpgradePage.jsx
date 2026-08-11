@@ -89,12 +89,16 @@ export default function UpgradePage() {
           <h2 className="upgrade-page__unlock-title">Already backed the project?</h2>
           <p className="upgrade-page__unlock-hint">Enter the email you used at checkout to unlock Pro features.</p>
           {unlockState === 'success' ? (
-            <div className="upgrade-page__unlock-success">
+            <div className="upgrade-page__unlock-success" role="status">
               Pro unlocked — welcome aboard. <Link to="/">Go back to the app →</Link>
             </div>
           ) : (
             <form className="upgrade-page__unlock-form" onSubmit={handleUnlock}>
+              <label htmlFor="upgrade-unlock-email" className="upgrade-page__unlock-label">
+                Email
+              </label>
               <input
+                id="upgrade-unlock-email"
                 className="upgrade-page__unlock-input"
                 type="email"
                 placeholder="you@example.com"
@@ -110,8 +114,11 @@ export default function UpgradePage() {
               >
                 {unlockState === 'loading' ? 'Checking…' : 'Unlock Pro'}
               </button>
+              {/* Same role="status" pattern ProgressionStrip's save/export
+                  toasts use -- announced to screen readers rather than only
+                  a silent visual change. */}
               {unlockState === 'error' && (
-                <p className="upgrade-page__unlock-error">
+                <p className="upgrade-page__unlock-error" role="status">
                   We couldn't find that email — check for typos, or wait a few minutes after payment and try again.
                 </p>
               )}
