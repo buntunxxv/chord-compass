@@ -561,11 +561,15 @@
   list-style: none;
 }
 
+/* Column, not row: three action buttons (Load/Rename/Delete) plus the
+   name/chords text reliably overflow a single row on a phone-width sheet.
+   Stacking the actions below the info as their own right-aligned row keeps
+   every button at its normal, readable size instead of shrinking them (or
+   the text) to fit. */
 .progression-strip__saved-item {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  flex-direction: column;
+  gap: 8px;
   padding: 10px 14px;
   border-bottom: 1px solid var(--border);
 }
@@ -613,6 +617,55 @@
 
 .progression-strip__saved-load-btn:hover {
   background: var(--teal);
+  color: var(--on-accent);
+}
+
+.progression-strip__saved-edit-input {
+  min-width: 0;
+  width: 100%;
+  padding: 5px 8px;
+  font-size: 13px;
+}
+
+.progression-strip__saved-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.progression-strip__saved-rename-btn {
+  flex-shrink: 0;
+  background: transparent;
+  border: 1.5px solid var(--border);
+  color: var(--text-muted);
+  border-radius: 6px;
+  padding: 7px 12px;
+  font-size: 12.5px;
+  font-weight: 600;
+  text-align: center;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.progression-strip__saved-rename-btn:hover {
+  border-color: var(--text-muted);
+  color: var(--text);
+}
+
+.progression-strip__saved-delete-btn {
+  flex-shrink: 0;
+  background: transparent;
+  border: 1.5px solid #c0392b;
+  color: #c0392b;
+  border-radius: 6px;
+  padding: 7px 12px;
+  font-size: 12.5px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.progression-strip__saved-delete-btn:hover {
+  background: #c0392b;
   color: var(--on-accent);
 }
 

@@ -255,8 +255,20 @@ export default function ProgressionStrip({ expanded, onExpandedChange, activeCho
   const [exportStatus, setExportStatus] = useState('idle')
   const [exportError, setExportError] = useState('')
   const [showSavedPanel, setShowSavedPanel] = useState(false)
+  // Index of the saved-progression item currently being renamed inline, or
+  // null when nothing is being edited -- only one at a time, same as the
+  // top-level save flow only ever has one name input open.
+  const [savedEditingIndex, setSavedEditingIndex] = useState(null)
+  const [savedEditName, setSavedEditName] = useState('')
+  // Reuses the exact same brief, self-clearing role="status" pattern (and
+  // even the same CSS class) as justSaved's "Progression saved" message
+  // above, just parameterized by message so rename and delete can both
+  // flash through it instead of each inventing their own toast.
+  const [savedListStatus, setSavedListStatus] = useState('')
   const saveInputRef = useRef(null)
+  const savedEditInputRef = useRef(null)
   const exportResetRef = useRef(null)
+  const savedListStatusResetRef = useRef(null)
 
   useEffect(() => {
     localStorage.setItem(SAVED_STORAGE_KEY, JSON.stringify(savedProgressions))
@@ -264,11 +276,16 @@ export default function ProgressionStrip({ expanded, onExpandedChange, activeCho
 
   useEffect(() => () => {
     if (exportResetRef.current) clearTimeout(exportResetRef.current)
+    if (savedListStatusResetRef.current) clearTimeout(savedListStatusResetRef.current)
   }, [])
 
   useEffect(() => {
     if (showSaveInput) saveInputRef.current?.focus()
   }, [showSaveInput])
+
+  useEffect(() => {
+    if (savedEditingIndex != null) savedEditInputRef.current?.focus()
+  }, [savedEditingIndex])
 
   function handleSaveClick() {
     if (!isPro || progression.length === 0) return
@@ -327,6 +344,56 @@ export default function ProgressionStrip({ expanded, onExpandedChange, activeCho
   function handleLoadSaved(chords) {
     onLoadSaved?.(chords)
     setShowSavedPanel(false)
+  }
+
+  function flashSavedListStatus(message) {
+    if (savedListStatusResetRef.current) clearTimeout(savedListStatusResetRef.current)
+    setSavedListStatus(message)
+    savedListStatusResetRef.current = setTimeout(() => setSavedListStatus(''), CONFIRMATION_MS)
+  }
+
+  function startSavedRename(index, currentName) {
+    setSavedEditingIndex(index)
+    setSavedEditName(currentName)
+  }
+
+  function cancelSavedRename() {
+    setSavedEditingIndex(null)
+    setSavedEditName('')
+  }
+
+  function confirmSavedRename(index) {
+    const name = savedEditName.trim()
+    if (!name) {
+      cancelSavedRename()
+      return
+    }
+    setSavedProgressions(prev => prev.map((saved, i) => (i === index ? { ...saved, name } : saved)))
+    cancelSavedRename()
+    flashSavedListStatus('Progression renamed')
+  }
+
+  function handleSavedRenameKeyDown(e, index) {
+    if (e.key === 'Enter') confirmSavedRename(index)
+    if (e.key === 'Escape') cancelSavedRename()
+  }
+
+  function handleDeleteSaved(index) {
+    const target = savedProgressions[index]
+    if (!target) return
+    if (!window.confirm(`Delete saved progression "${target.name}"?`)) return
+    setSavedProgressions(prev => prev.filter((_, i) => i !== index))
+    // Deleting shifts every later index down by one -- if an unrelated item
+    // was mid-rename, keep that edit pointed at the right row rather than
+    // silently dropping or misattributing it; only clear it outright if the
+    // deleted row was the one actually being edited.
+    setSavedEditingIndex(prev => {
+      if (prev == null) return prev
+      if (prev === index) return null
+      return prev > index ? prev - 1 : prev
+    })
+    if (savedEditingIndex === index) setSavedEditName('')
+    flashSavedListStatus('Progression deleted')
   }
 
   async function handlePlay() {
@@ -634,24 +701,83 @@ export default function ProgressionStrip({ expanded, onExpandedChange, activeCho
       </div>
 
       {isPro && showSavedPanel && savedProgressions.length > 0 && (
-        <div className="progression-strip__saved-panel">
-          <ul className="progression-strip__saved-list">
-            {savedProgressions.map((saved, i) => (
-              <li key={i} className="progression-strip__saved-item">
-                <div className="progression-strip__saved-info">
-                  <span className="progression-strip__saved-name">{saved.name}</span>
-                  <span className="progression-strip__saved-chords">{formatProgressionText(saved.chords)}</span>
-                </div>
-                <button
-                  className="progression-strip__saved-load-btn"
-                  onClick={() => handleLoadSaved(saved.chords)}
-                >
-                  Load
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
+        <>
+          <div className="progression-strip__saved-panel">
+            <ul className="progression-strip__saved-list">
+              {savedProgressions.map((saved, i) => (
+                <li key={i} className="progression-strip__saved-item">
+                  <div className="progression-strip__saved-info">
+                    {savedEditingIndex === i ? (
+                      <input
+                        ref={savedEditInputRef}
+                        type="text"
+                        className="progression-strip__save-input progression-strip__saved-edit-input"
+                        value={savedEditName}
+                        onChange={e => setSavedEditName(e.target.value)}
+                        onKeyDown={e => handleSavedRenameKeyDown(e, i)}
+                        maxLength={60}
+                      />
+                    ) : (
+                      <span className="progression-strip__saved-name">{saved.name}</span>
+                    )}
+                    <span className="progression-strip__saved-chords">{formatProgressionText(saved.chords)}</span>
+                  </div>
+                  <div className="progression-strip__saved-actions">
+                    {savedEditingIndex === i ? (
+                      <>
+                        <button
+                          className="progression-strip__save-confirm-btn"
+                          onClick={() => confirmSavedRename(i)}
+                          disabled={!savedEditName.trim()}
+                          aria-label="Confirm rename"
+                        >
+                          ✓
+                        </button>
+                        <button
+                          className="progression-strip__save-cancel-btn"
+                          onClick={cancelSavedRename}
+                          aria-label="Cancel rename"
+                        >
+                          ✕
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          className="progression-strip__saved-load-btn"
+                          onClick={() => handleLoadSaved(saved.chords)}
+                        >
+                          Load
+                        </button>
+                        <button
+                          className="progression-strip__saved-rename-btn"
+                          onClick={() => startSavedRename(i, saved.name)}
+                          aria-label={`Rename ${saved.name}`}
+                        >
+                          Rename
+                        </button>
+                        <button
+                          className="progression-strip__saved-delete-btn"
+                          onClick={() => handleDeleteSaved(i)}
+                          aria-label={`Delete ${saved.name}`}
+                        >
+                          Delete
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Same self-clearing role="status" toast the Save button uses
+              above, reused here for rename/delete instead of a third
+              feedback mechanism. */}
+          {savedListStatus && (
+            <p className="progression-strip__save-status" role="status">{savedListStatus}</p>
+          )}
+        </>
       )}
       </div>
     </div>
