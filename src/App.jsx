@@ -494,6 +494,31 @@ export default function App() {
     return appendSlashSymbol(base, effectiveBassNote, root)
   }, [tonalChord, symbol, effectiveBassNote, root])
 
+  // Editing a chord's Keys voicing or guitar neck position WHILE it's the
+  // tapped progression entry (Field Test, 12 Aug 2026: the keyboard/
+  // fretboard visibly updated, but playback kept sounding whatever was
+  // stored when the chord was originally added) has to write the new value
+  // back into that entry, not just the transient global selector state --
+  // otherwise the change is only ever a live preview, never actually saved.
+  // Guarded by the tapped entry's own chord name still matching what's live
+  // in the builder: editing the ChordSelector's dropdowns away from that
+  // entry doesn't itself clear tappedChordIndex (see handleSelectChord's
+  // own comment), so without this guard a position change made after
+  // building an unrelated chord would silently overwrite a stale slot.
+  function handleKeysPositionChange(index) {
+    setKeysPositionIndex(index)
+    if (tappedChordIndex != null && progression[tappedChordIndex]?.chord === displayName) {
+      setProgression(prev => prev.map((entry, i) => (i === tappedChordIndex ? { ...entry, keysPositionIndex: index } : entry)))
+    }
+  }
+
+  function handleGuitarPositionChange(index) {
+    setGuitarPositionIndex(index)
+    if (tappedChordIndex != null && progression[tappedChordIndex]?.chord === displayName) {
+      setProgression(prev => prev.map((entry, i) => (i === tappedChordIndex ? { ...entry, guitarPositionIndex: index } : entry)))
+    }
+  }
+
   // Notes to highlight: use CHORD_DATA notes if available, else derive from tonal at octave 4,
   // re-voiced for the selected bass note (Pro-gated slash chords) -- see computeSlashNotes
   const chordNotes = computeSlashNotes(chordEntry?.notes || [], effectiveBassNote, root)
@@ -747,9 +772,9 @@ export default function App() {
         bassHighlightNote={pianoBassHighlight}
         keysRootNote={pianoRootNote}
         keysPositionIndex={keysPositionIndex}
-        onKeysPositionChange={setKeysPositionIndex}
+        onKeysPositionChange={handleKeysPositionChange}
         guitarPositionIndex={guitarPositionIndex}
-        onGuitarPositionChange={setGuitarPositionIndex}
+        onGuitarPositionChange={handleGuitarPositionChange}
         root={playingGuitarShape ? playingChordLookup.root : root}
         guitarShape={playingGuitarShape || guitarShapeToShow}
         guitarSlashNotice={guitarSlashNotice}
