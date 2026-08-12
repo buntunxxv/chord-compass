@@ -285,19 +285,6 @@ export default function App() {
     setPreviewIndex(null)
   }, [dataKey])
 
-  // A new chord (or a new slash/inversion bass) always starts back at Close
-  // position -- same "always reset to position 1" rule Session 29 used for
-  // the guitar neck-position selector.
-  useEffect(() => {
-    setKeysPositionIndex(0)
-  }, [dataKey, effectiveBassNote])
-
-  // Same reset rule for the guitar neck position, now that it's lifted up
-  // here instead of living inside InstrumentDock.
-  useEffect(() => {
-    setGuitarPositionIndex(0)
-  }, [dataKey, effectiveBassNote])
-
   // Reset the bass note whenever it stops being selectable, so switching
   // back to an eligible quality later doesn't resurrect a stale slash choice
   useEffect(() => {
@@ -317,7 +304,18 @@ export default function App() {
   // tapped (the default, e.g. nothing's been tapped yet) that's the same
   // position as appending, so this is a strict generalization of the old
   // always-append behavior, not a different one.
-  function addToProgression(chord, notes) {
+  //
+  // guitarPositionIndex/keysPositionIndex are stored ON the entry itself,
+  // not left as a transient global selection -- a chord's chosen guitar
+  // neck position and Keys voicing (Close/Drop-2/Split) are part of what
+  // was actually added, so they need to survive as long as the chord does
+  // (tapping back to it later, or playback, both read these back). Callers
+  // that add a chord OTHER than whatever's live in the builder (a
+  // suggestion, a reverse-lookup result) have no "position I picked" to
+  // report -- there's no position selector for either -- so they default to
+  // 0/0 (Close, position 1), which is also what those chords would already
+  // show if you tapped into them.
+  function addToProgression(chord, notes, entryGuitarPositionIndex = 0, entryKeysPositionIndex = 0) {
     if (!isPro && progression.length >= PROGRESSION_LIMIT) {
       setProgressionTeaser(PROGRESSION_TEASER)
       if (teaserTimeoutRef.current) clearTimeout(teaserTimeoutRef.current)
@@ -329,7 +327,8 @@ export default function App() {
     const insertAt = (tappedChordIndex != null && tappedChordIndex < progression.length)
       ? tappedChordIndex + 1
       : progression.length
-    setProgression(prev => [...prev.slice(0, insertAt), { chord, notes }, ...prev.slice(insertAt)])
+    const entry = { chord, notes, guitarPositionIndex: entryGuitarPositionIndex, keysPositionIndex: entryKeysPositionIndex }
+    setProgression(prev => [...prev.slice(0, insertAt), entry, ...prev.slice(insertAt)])
     // The freshly-inserted chord becomes the new tapped position, so adding
     // several suggestions in a row while exploring from a middle chip keeps
     // extending forward from there instead of stacking in reverse order.
@@ -367,7 +366,10 @@ export default function App() {
     setActiveTemplate(null)
     setProgression(prev => [
       ...prev.slice(0, insertAt),
-      ...allowed.map(({ chord, notes }) => ({ chord, notes })),
+      // Same "no position was ever picked for these" default as
+      // addToProgression's own suggestion/reverse-lookup callers -- a range
+      // import has no guitar/Keys position selector of its own either.
+      ...allowed.map(({ chord, notes }) => ({ chord, notes, guitarPositionIndex: 0, keysPositionIndex: 0 })),
       ...prev.slice(insertAt),
     ])
     setTappedChordIndex(insertAt + allowed.length - 1)
@@ -451,10 +453,37 @@ export default function App() {
   // inserts after it) even if the name doesn't parse into a selector state
   // for some reason; the two are independent, position tracking shouldn't
   // depend on display-parsing succeeding.
+  //
+  // Also restores THIS chord's own stored guitarPositionIndex/
+  // keysPositionIndex (Sessions 11/36's tap-to-select, extended) -- reading
+  // straight from progression[index] rather than trusting the chordName
+  // param, since the param only round-trips display text, not the entry's
+  // real stored fields. `?? 0` covers entries persisted before these fields
+  // existed (older localStorage progressions, saved progressions, template
+  // loads) with the same Close/position-1 default they always implicitly
+  // had.
   function handleSelectChord(index, chordName) {
     setTappedChordIndex(index)
     const sel = chordNameToSelection(chordName)
     if (sel) setSelection({ ...sel, bassNote: 'none' })
+    const entry = progression[index]
+    setGuitarPositionIndex(entry?.guitarPositionIndex ?? 0)
+    setKeysPositionIndex(entry?.keysPositionIndex ?? 0)
+  }
+
+  // The ChordSelector's own dropdowns (Root/Quality/Extension/Bass note) are
+  // the one place a genuinely NEW chord gets built from scratch -- unlike
+  // handleSelectChord (tapping a progression chip), there's no prior
+  // position to restore here, so this always resets back to Close/position
+  // 1, same "always reset to position 1" rule Session 29 used for the
+  // guitar neck-position selector. Kept as an explicit reset on this one
+  // real call site instead of a blanket "any time dataKey changes" effect,
+  // since that blanket form couldn't tell a genuine new-chord edit apart
+  // from handleSelectChord's own restore immediately overwriting it.
+  function handleBuilderSelectionChange(newSelection) {
+    setSelection(newSelection)
+    setGuitarPositionIndex(0)
+    setKeysPositionIndex(0)
   }
 
   const symbol = useMemo(() => buildChordSymbol(root, quality, extension), [root, quality, extension])
@@ -637,7 +666,7 @@ export default function App() {
                     extension={extension}
                     bassNote={bassNote}
                     isPro={isPro}
-                    onChange={setSelection}
+                    onChange={handleBuilderSelectionChange}
                   />
                 </section>
 
@@ -647,7 +676,7 @@ export default function App() {
                     notes={displayedPianoNotes}
                     intervals={intervals}
                     available={available}
-                    onAddToProgression={addToProgression}
+                    onAddToProgression={(chord, notes) => addToProgression(chord, notes, guitarPositionIndex, keysPositionIndex)}
                     isPro={isPro}
                   />
                 </section>
