@@ -1,6 +1,7 @@
 import { Chord } from 'tonal'
 import { CHORD_DATA } from '../chordData'
 import { BASS_NOTE_PITCH_CLASSES, isSlashEligible } from '../utils/slashChord'
+import { toUnicodeAccidentals } from '../utils/formatNotes'
 import Dropdown from './Dropdown'
 import './ChordSelector.css'
 
@@ -50,8 +51,13 @@ function hasData(root, quality, extension, isPro) {
   return true
 }
 
+// ROOTS are the internal values -- CHORD_DATA lookup keys, logic, etc. all
+// key off these exact ASCII strings and stay unchanged. ROOT_DISPLAY is
+// display-only, derived from ROOTS via the same toUnicodeAccidentals every
+// other note/chord display in the app already goes through (this dropdown
+// was the last spot still showing raw "#"/"b").
 const ROOTS = ['C', 'C#', 'Db', 'D', 'D#', 'Eb', 'E', 'F', 'F#', 'Gb', 'G', 'G#', 'Ab', 'A', 'A#', 'Bb', 'B']
-const ROOT_DISPLAY = ['C', 'C#', 'Db', 'D', 'D#', 'Eb', 'E', 'F', 'F#', 'Gb', 'G', 'G#', 'Ab', 'A', 'A#', 'Bb', 'B']
+const ROOT_DISPLAY = ROOTS.map(toUnicodeAccidentals)
 
 const QUALITIES = [
   { value: 'major', label: 'Major', tonal: 'M' },
@@ -73,16 +79,16 @@ const EXTENSIONS = [
   { value: '11', label: '11', tonal: '11', proOnly: true },
   { value: '13', label: '13', tonal: '13', proOnly: true },
   { value: 'maj13', label: 'maj13', tonal: 'maj13', proOnly: true },
-  { value: '7#9', label: '7#9', tonal: '7#9', proOnly: true },
-  { value: '7b9', label: '7b9', tonal: '7b9', proOnly: true },
-  { value: '7#5', label: '7#5', tonal: '7#5', proOnly: true },
-  { value: '7b5', label: '7b5', tonal: '7b5', proOnly: true },
-  { value: '7#11', label: '7#11', tonal: '7#11', proOnly: true },
+  { value: '7#9', label: toUnicodeAccidentals('7#9'), tonal: '7#9', proOnly: true },
+  { value: '7b9', label: toUnicodeAccidentals('7b9'), tonal: '7b9', proOnly: true },
+  { value: '7#5', label: toUnicodeAccidentals('7#5'), tonal: '7#5', proOnly: true },
+  { value: '7b5', label: toUnicodeAccidentals('7b5'), tonal: '7b5', proOnly: true },
+  { value: '7#11', label: toUnicodeAccidentals('7#11'), tonal: '7#11', proOnly: true },
 ]
 
 const BASS_NOTE_OPTIONS = [
   { value: 'none', label: 'None' },
-  ...BASS_NOTE_PITCH_CLASSES.map(n => ({ value: n, label: n })),
+  ...BASS_NOTE_PITCH_CLASSES.map(n => ({ value: n, label: toUnicodeAccidentals(n) })),
 ]
 
 // Map our selection to a Tonal chord symbol
