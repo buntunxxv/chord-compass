@@ -63,7 +63,7 @@
 }
 
 .next-chords__label-badge {
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 600;
   padding: 3px 9px;
   border-radius: 20px;
@@ -79,7 +79,7 @@
 }
 
 .next-chords__explanation {
-  font-size: 12.5px;
+  font-size: 13px;
   line-height: 1.4;
   color: var(--text-muted);
 }
@@ -134,7 +134,7 @@
 }
 
 .next-chords__pro-teaser {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--text-muted);
   font-style: italic;
   margin-top: 10px;

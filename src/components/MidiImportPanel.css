@@ -31,7 +31,7 @@
 
 .midi-import__filename {
   margin-left: 10px;
-  font-size: 12.5px;
+  font-size: 13px;
   color: var(--text-muted);
 }
 
@@ -94,7 +94,7 @@
 }
 
 .midi-import__moment-index {
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 700;
   color: var(--text-faint);
   min-width: 20px;
@@ -108,14 +108,14 @@
 }
 
 .midi-import__moment-name--fallback {
-  font-size: 12.5px;
+  font-size: 13px;
   font-weight: 600;
   font-style: italic;
   color: var(--text-muted);
 }
 
 .midi-import__moment-time {
-  font-size: 11px;
+  font-size: 13px;
   color: var(--text-faint);
   white-space: nowrap;
 }

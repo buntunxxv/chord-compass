@@ -82,7 +82,7 @@
 }
 
 .af-stat__label {
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--text-muted);
   text-transform: uppercase;
@@ -129,7 +129,7 @@
   background: rgba(0, 0, 0, 0.12);
   border-radius: 10px;
   padding: 1px 7px;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 700;
 }
 
@@ -179,7 +179,7 @@
   display: inline-block;
   padding: 3px 10px;
   border-radius: 12px;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -194,7 +194,7 @@
 }
 
 .af-card__email-chip {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--teal);
   font-weight: 600;
   background: rgba(17, 147, 146, 0.08);
@@ -233,7 +233,7 @@
 }
 
 .af-qa__label {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--text-muted);
   line-height: 1.4;
@@ -264,7 +264,7 @@
 }
 
 .af-notify__label {
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -290,7 +290,7 @@
 }
 
 .af-notify__no {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--text-muted);
 }
 
@@ -300,10 +300,6 @@
   .af-qa {
     grid-template-columns: 1fr;
     gap: 4px;
-  }
-
-  .af-qa__label {
-    font-size: 11px;
   }
 
   .af-stat__n {

@@ -87,7 +87,7 @@
 /* Visible even collapsed, so a long progression's existence isn't hidden
    behind whatever the current/last chord happens to be. */
 .progression-strip__collapsed-count {
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--text-muted);
   white-space: nowrap;
@@ -156,7 +156,7 @@
 }
 
 .progression-strip__label {
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -300,7 +300,7 @@
 }
 
 .progression-strip__bpm-value {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
   color: var(--text-muted);
   white-space: nowrap;
@@ -457,14 +457,14 @@
 
 .progression-strip__export-error {
   flex: 1 0 100%;
-  font-size: 12px;
+  font-size: 13px;
   color: #c0392b;
   margin: -2px 0 0;
 }
 
 .progression-strip__save-status {
   flex: 1 0 100%;
-  font-size: 12px;
+  font-size: 13px;
   color: var(--teal);
   margin: -2px 0 0;
 }
@@ -595,7 +595,7 @@
 }
 
 .progression-strip__saved-chords {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--text-muted);
   white-space: nowrap;
   overflow: hidden;

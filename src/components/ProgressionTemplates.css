@@ -39,7 +39,7 @@
 }
 
 .progression-templates__label {
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -147,7 +147,7 @@
 }
 
 .progression-templates__mood-badge {
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 600;
   padding: 3px 9px;
   border-radius: 20px;
@@ -193,7 +193,7 @@
 }
 
 .progression-templates__degree-pill {
-  font-size: 10.5px;
+  font-size: 13px;
   font-weight: 600;
   padding: 2px 7px;
   border-radius: 20px;
@@ -204,7 +204,7 @@
 }
 
 .progression-templates__description {
-  font-size: 12.5px;
+  font-size: 13px;
   line-height: 1.4;
   color: var(--text-muted);
   flex: 1;
