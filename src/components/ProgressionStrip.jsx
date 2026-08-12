@@ -315,8 +315,8 @@ export default function ProgressionStrip({ expanded, onExpandedChange, activeCho
 
   // Exports a real playable .mid file (via @tonejs/midi), not clipboard
   // text -- one chord per bar, in sequence, using the exact same voiced
-  // notes (Close/Drop-2/Split, voice-led, slash/inversion-aware) that Play
-  // actually sounds, since both go through computePlaybackProgression.
+  // notes (Close/Drop-2/Split, slash/inversion-aware) that Play actually
+  // sounds, since both go through computePlaybackProgression.
   function handleExportClick() {
     if (!isPro || progression.length === 0) return
     if (exportResetRef.current) clearTimeout(exportResetRef.current)
@@ -410,15 +410,14 @@ export default function ProgressionStrip({ expanded, onExpandedChange, activeCho
     const barDuration = (60 / bpm) * 4 // seconds per chord (one bar)
     const now = Tone.now()
 
-    // Root of each chord stays exactly as stored — only the upper notes are
-    // re-voiced to the closest octave to the previous chord, so playback
-    // doesn't jump registers every chord without ever using an inversion.
-    // The selected Keys voicing (Close/Drop-2/Split) is then layered on top
-    // of each already-voice-led chord as a separate step, same clamp as the
+    // Every chord plays back exactly as stored -- the same notes a
+    // single-chord preview would sound for it (no chord-to-chord
+    // re-voicing; see voiceLeading.js for why that was removed). The
+    // selected Keys voicing (Close/Drop-2/Split) is layered on top of each
+    // chord's own notes as a separate, per-chord step, same clamp as the
     // live builder uses so a free user can't hear a Pro-gated position here
-    // either -- this doesn't replace or redesign voice-leading, it's purely
-    // post-processing applied per chord. Pulled into computePlaybackProgression
-    // (voiceLeading.js) so MIDI export builds the exact same voiced notes.
+    // either. Pulled into computePlaybackProgression (voiceLeading.js) so
+    // MIDI export builds the exact same voiced notes.
     const activeKeysIndex = Math.min(keysPositionIndex, isPro ? 2 : 0)
     const voicedProgression = computePlaybackProgression(progression, activeKeysIndex)
 
