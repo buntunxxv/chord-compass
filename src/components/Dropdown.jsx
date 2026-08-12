@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useId } from 'react'
+import { scrollRevealIntoView } from '../utils/scrollReveal'
 import './Dropdown.css'
 
 // APG "listbox popup" keyboard model: DOM focus stays on the listbox (ul)
@@ -55,6 +56,7 @@ export default function Dropdown({ id, value, options, onChange, disabled }) {
         : firstEnabledIndex(options)
       setHighlightedIndex(startIndex)
       listRef.current?.focus()
+      scrollRevealIntoView(listRef.current)
     } else if (wasOpenRef.current) {
       triggerRef.current?.focus()
     }

@@ -426,7 +426,7 @@ export default function ProgressionStrip({ expanded, onExpandedChange, activeCho
       synth.triggerAttackRelease(entry.notes, '1m', now + i * barDuration)
       setTimeout(() => {
         setActiveIndex(i)
-        onPlayingChordChange?.(entry.notes, entry.rootNote)
+        onPlayingChordChange?.(entry.notes, entry.rootNote, entry.chord)
       }, i * barDuration * 1000)
     })
 
@@ -434,7 +434,7 @@ export default function ProgressionStrip({ expanded, onExpandedChange, activeCho
     setTimeout(() => {
       setActiveIndex(null)
       setIsPlaying(false)
-      onPlayingChordChange?.(null, null)
+      onPlayingChordChange?.(null, null, null)
     }, totalMs)
   }
 

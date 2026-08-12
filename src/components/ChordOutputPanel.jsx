@@ -151,17 +151,19 @@ export default function ChordOutputPanel({ chordName, notes, intervals, availabl
         <p className="chord-output__export-error" role="status">{exportError}</p>
       )}
       <div className="chord-output__row">
-        <span className="chord-output__row-label">Notes</span>
-        <span className="chord-output__row-value">
-          {noteNames.join(' · ')}
+        <span className="chord-output__row-pair">
+          <span className="chord-output__row-label">Notes</span>
+          <span className="chord-output__row-value">
+            {noteNames.join(' · ')}
+          </span>
         </span>
         {intervals && intervals.length > 0 && (
-          <>
+          <span className="chord-output__row-pair">
             <span className="chord-output__row-label chord-output__row-label--inline" title="The distance between each note — Root is the tonic, 3 is the third, 5 is the fifth">Intervals</span>
             <span className="chord-output__row-value">
               {intervals.map(formatInterval).join(' · ')}
             </span>
-          </>
+          </span>
         )}
       </div>
     </div>

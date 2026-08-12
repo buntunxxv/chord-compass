@@ -24,6 +24,22 @@ export function noteMatches(keyNote, chordNotes) {
   return chordNotes.some(n => normalizeNote(n) === normalizedKey)
 }
 
+// Pitch-class only (octave-blind) match -- a note that carries over into the
+// preview chord but lands at a different octave (very common: the Voicing
+// Rule pushes an extension whose letter falls before the root's up an
+// octave, so the SAME pitch class can sit at a different octave in two
+// chords that share it) is still the same held tone, not a coincidence.
+// Same principle App.jsx's intervalsForNotes already applies to interval
+// labels, applied here to "does this note carry over" instead.
+function pitchClassOf(note) {
+  return normalizeNote(note).replace(/\d+$/, '')
+}
+
+export function pitchClassMatches(keyNote, otherNotes) {
+  const pc = pitchClassOf(keyNote)
+  return otherNotes.some(n => pitchClassOf(n) === pc)
+}
+
 export function isRoot(keyNote, rootNote) {
   return !!rootNote && normalizeNote(keyNote) === normalizeNote(rootNote)
 }
@@ -46,21 +62,34 @@ export function findSpelling(keyNote, chordNotes) {
 // truth every display reading this reads from.
 export function resolveKeyStyle(note, notes, root, previewNotes, defaultFill, bassHighlightNote, noteColors) {
   const inCurrent = noteMatches(note, notes)
-  const inPreview = previewNotes && previewNotes.length > 0 && noteMatches(note, previewNotes)
+  const previewActive = !!previewNotes && previewNotes.length > 0
+  const inPreview = previewActive && noteMatches(note, previewNotes)
   const isCurrentRoot = isRoot(note, root)
   const isBassSplit = !!bassHighlightNote && isRoot(note, bassHighlightNote)
+  // Whether this note's pitch class survives into the preview chord --
+  // drives both the "shared" ring and, below, whether a currently-sounding
+  // note that DOESN'T survive visually recedes.
+  const holds = previewActive && pitchClassMatches(note, previewNotes)
 
   if (inCurrent) {
+    // Without this, every note of the current chord looks identical
+    // whether it's about to move or stay, and a preview reads as "nothing
+    // changed" even for a real chord-to-chord shift -- e.g. Dm7 -> Cmaj7's
+    // D/F/A all leave and only C holds, but all four looked equally "lit"
+    // (Field Test, 12 Aug 2026). A leaving note recedes so the shape
+    // visibly changes, not just gains extra highlighted keys elsewhere.
+    const leaving = previewActive && !holds
     return {
       fill: isBassSplit ? noteColors.splitBass : isCurrentRoot ? noteColors.root : noteColors.chordTone,
       active: true,
-      shared: inPreview,
+      shared: holds,
+      leaving,
       textFill: isBassSplit ? '#ffffff' : isCurrentRoot ? '#7a5500' : '#ffffff',
       spelling: findSpelling(note, notes),
     }
   }
   if (inPreview) {
-    return { fill: noteColors.suggested, active: true, shared: false, textFill: '#ffffff', spelling: findSpelling(note, previewNotes) }
+    return { fill: noteColors.suggested, active: true, shared: false, leaving: false, textFill: '#ffffff', spelling: findSpelling(note, previewNotes) }
   }
-  return { fill: defaultFill, active: false, shared: false, textFill: '#aaaaaa', spelling: null }
+  return { fill: defaultFill, active: false, shared: false, leaving: false, textFill: '#aaaaaa', spelling: null }
 }
