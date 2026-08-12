@@ -3,13 +3,12 @@ import { Chord, Note } from 'tonal'
 import { CHORD_DATA } from './chordData'
 import { GUITAR_SHAPES } from './guitarData'
 import { GUITAR_INVERSION_SHAPES } from './guitarInversions'
-import { GUITAR_ALT_POSITIONS } from './guitarPositions'
-import { GUITAR_INVERSION_ALT_POSITIONS } from './guitarInversionPositions'
 import { buildChordSymbol } from './components/ChordSelector'
 import { isSlashEligible, computeSlashNotes, appendSlashSymbol, isInChordTone } from './utils/slashChord'
 import { applyDrop2, applyLeftHandSplit } from './utils/pianoVoicings'
 import { useTheme } from './hooks/useTheme'
 import { getAdjacentTabIndex } from './utils/tabsKeyboardNav'
+import { toDataKey, chordNameToSelection, resolveGuitarPositions, guitarShapeForChordName } from './utils/chordSelectionLookup'
 import ChordSelector from './components/ChordSelector'
 import ChordOutputPanel from './components/ChordOutputPanel'
 import NextChordSuggestions from './components/NextChordSuggestions'
@@ -33,70 +32,6 @@ const MODE_TABS = [
   { key: 'build', label: 'Build a Chord' },
   { key: 'find', label: 'Find Shapes by Notes' },
 ]
-
-// Map selector state to CHORD_DATA key
-function toDataKey(root, quality, extension) {
-  const qualityMap = {
-    major: '',
-    minor: 'minor',
-    diminished: 'diminished',
-    augmented: 'augmented',
-    sus2: 'sus2',
-    sus4: 'sus4',
-  }
-  const extMap = {
-    none: '',
-    '7': '7',
-    maj7: 'maj7',
-    add9: 'add9',
-  }
-
-  if (quality === 'major' && extension === 'none') return `${root} major`
-  if (quality === 'minor' && extension === 'none') return `${root} minor`
-  if (quality === 'diminished' && extension === 'none') return `${root} diminished`
-  if (quality === 'augmented' && extension === 'none') return `${root} augmented`
-  if (quality === 'major' && extension === '7') return `${root}7`
-  if (quality === 'major' && extension === 'maj7') return `${root}maj7`
-  if (quality === 'minor' && extension === '7') return `${root}m7`
-  if (quality === 'diminished' && extension === '7') return `${root}m7b5`
-  if (quality === 'diminished' && extension === 'dim7') return `${root}dim7`
-  if (quality === 'major' && extension === 'add9') return `${root}add9`
-  if (quality === 'sus2' && extension === 'none') return `${root}sus2`
-  if (quality === 'sus4' && extension === 'none') return `${root}sus4`
-  if (quality === 'major' && extension === '9') return `${root}9`
-  if (quality === 'major' && extension === 'maj9') return `${root}maj9`
-  if (quality === 'minor' && extension === '9') return `${root}m9`
-  if (quality === 'major' && extension === '11') return `${root}11`
-  if (quality === 'minor' && extension === '11') return `${root}m11`
-  if (quality === 'major' && extension === '13') return `${root}13`
-  if (quality === 'major' && extension === 'maj13') return `${root}maj13`
-  if (quality === 'minor' && extension === '13') return `${root}m13`
-  if (quality === 'major' && extension === '7#9') return `${root}7#9`
-  if (quality === 'major' && extension === '7b9') return `${root}7b9`
-  if (quality === 'major' && extension === '7#5') return `${root}7#5`
-  if (quality === 'major' && extension === '7b5') return `${root}7b5`
-  if (quality === 'major' && extension === '7#11') return `${root}7#11`
-  return null
-}
-
-// Guitar-shape/position resolution for a chord identified by its own
-// dataKey + (optional) slash bass -- factored out of the active-chord
-// computation below so Phase 2's reverse-lookup ranking (App.jsx's
-// referenceGuitarShape) can resolve a shape for the last progression
-// chord too, without duplicating this lookup a second time.
-function resolveGuitarPositions(dataKey, hasSlashBass, effectiveBassNote, chordNotes) {
-  if (!dataKey) return null
-  if (hasSlashBass) {
-    const isInversion = isInChordTone(chordNotes, effectiveBassNote)
-    const inversionShape = isInversion ? GUITAR_INVERSION_SHAPES[dataKey]?.[effectiveBassNote] : null
-    if (!isInversion || !inversionShape) return null
-    const alt = GUITAR_INVERSION_ALT_POSITIONS[dataKey]?.[effectiveBassNote] || []
-    return [inversionShape, ...alt.filter(Boolean)]
-  }
-  if (!GUITAR_SHAPES[dataKey]) return null
-  const alt = GUITAR_ALT_POSITIONS[dataKey] || []
-  return [GUITAR_SHAPES[dataKey], ...alt.filter(Boolean)]
-}
 
 // Resolves each displayed note's interval label from what it actually IS
 // (by pitch class), not from its position in the array -- notes get
@@ -231,6 +166,12 @@ export default function App() {
   }, [])
   const [playingChordNotes, setPlayingChordNotes] = useState(null)
   const [playingRootNote, setPlayingRootNote] = useState(null)
+  // Which progression chord is actually sounding right now, by display name
+  // -- lets the Guitar tab (InstrumentDock/GuitarDisplay) resolve and show
+  // THAT chord's own shape during playback instead of staying frozen on
+  // whichever chord the builder happens to have selected (see
+  // playingGuitarShape below). null whenever nothing is playing.
+  const [playingChordName, setPlayingChordName] = useState(null)
   const [keysPositionIndex, setKeysPositionIndex] = useState(0)
   // Lifted out of InstrumentDock (which used to own this locally) so the
   // reverse-lookup's "closest to the last progression chord" ranking can
@@ -243,9 +184,10 @@ export default function App() {
   // during playback too, so playingChordNotes[0] is no longer reliably the
   // true root the way it was when playback only ever voice-led the chord
   // as-stored -- it needs its own untouched root passed alongside the notes.
-  function handlePlayingChordChange(notes, rootNote) {
+  function handlePlayingChordChange(notes, rootNote, chordName) {
     setPlayingChordNotes(notes)
     setPlayingRootNote(rootNote ?? null)
+    setPlayingChordName(chordName ?? null)
   }
   const { preference: themePreference, resolvedTheme, setPreference: setThemePreference } = useTheme()
 
@@ -321,6 +263,22 @@ export default function App() {
   const referenceGuitarShape = lastChordGuitarPositions
     ? lastChordGuitarPositions[lastChordIsOnScreen ? Math.min(guitarPositionIndex, lastChordGuitarPositions.length - 1) : 0]
     : null
+
+  // While a progression is playing, the Guitar tab must track whichever
+  // chord is actually sounding, the same way the piano already does via
+  // playingChordNotes -- otherwise the fretboard stays frozen on whatever
+  // the builder had selected before Play was pressed while the audio (and
+  // the piano) moves through the whole progression underneath it (Field
+  // Test, 12 Aug 2026). Same resolution pipeline as referenceGuitarShape
+  // above (display name -> selector state -> CHORD_DATA key -> curated
+  // shape), always position 1 since no "selected position" exists for an
+  // arbitrary progression chord. Resolves to null for a name the pipeline
+  // can't parse (e.g. a slash chord in the progression) or with no curated
+  // shape -- in that case the builder's own live root/shape/positions below
+  // are used unchanged for that beat, same "acceptable simplification, not
+  // a silent wrong answer" precedent already used for referenceGuitarShape.
+  const playingChordLookup = playingChordName ? guitarShapeForChordName(playingChordName) : null
+  const playingGuitarShape = playingChordLookup?.shape ?? null
 
   // Suggested-chord preview only makes sense for the chord it was shown under
   useEffect(() => {
@@ -486,26 +444,6 @@ export default function App() {
       }
       return prev
     })
-  }
-
-  // Parse a chord display name back into selector state
-  function chordNameToSelection(name) {
-    const m = name.match(/^([A-G][#b]?)(m7|maj7|m|add9|sus2|sus4|7|)$/)
-    if (!m) return null
-    const [, root, suffix] = m
-    const map = {
-      '': { quality: 'major', extension: 'none' },
-      'm': { quality: 'minor', extension: 'none' },
-      '7': { quality: 'major', extension: '7' },
-      'maj7': { quality: 'major', extension: 'maj7' },
-      'm7': { quality: 'minor', extension: '7' },
-      'add9': { quality: 'major', extension: 'add9' },
-      'sus2': { quality: 'sus2', extension: 'none' },
-      'sus4': { quality: 'sus4', extension: 'none' },
-    }
-    const qual = map[suffix]
-    if (!qual) return null
-    return { root, ...qual }
   }
 
   // Generalized from "tap the last chip" (Session 11) to any chip -- tapping
@@ -783,11 +721,11 @@ export default function App() {
         onKeysPositionChange={setKeysPositionIndex}
         guitarPositionIndex={guitarPositionIndex}
         onGuitarPositionChange={setGuitarPositionIndex}
-        root={root}
-        guitarShape={guitarShapeToShow}
+        root={playingGuitarShape ? playingChordLookup.root : root}
+        guitarShape={playingGuitarShape || guitarShapeToShow}
         guitarSlashNotice={guitarSlashNotice}
         guitarInversionUnavailable={guitarInversionUnavailable}
-        guitarPositions={guitarPositions}
+        guitarPositions={playingChordName ? null : guitarPositions}
         isPro={isPro}
       />
       </div>

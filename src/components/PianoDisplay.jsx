@@ -126,6 +126,7 @@ export default function PianoDisplay({ chordNotes, previewNotes, bassHighlightNo
         return (
           <g
             key={note}
+            opacity={style.leaving ? 0.4 : 1}
             {...(miniature
               ? {}
               : {
@@ -198,6 +199,7 @@ export default function PianoDisplay({ chordNotes, previewNotes, bassHighlightNo
         return (
           <g
             key={note}
+            opacity={style.leaving ? 0.4 : 1}
             {...(miniature
               ? {}
               : {

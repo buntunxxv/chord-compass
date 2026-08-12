@@ -187,6 +187,22 @@
   border-bottom: none;
 }
 
+/* Groups a label with its own value so flex-wrap on the row above only ever
+   breaks BETWEEN a label/value pair, never inside one -- previously "Notes"
+   and "Intervals" were four independent flex items in the same wrap
+   context, so a long Notes value could push "Intervals" onto its own line
+   while its value wrapped separately again after it. Each pair keeps its
+   own internal wrap as a last resort for genuinely unavoidable narrow
+   widths, so a very long value can still spill onto a second line without
+   ever separating from its label. */
+.chord-output__row-pair {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+}
+
 .chord-output__row-label {
   font-size: 13px;
   font-weight: 600;
@@ -198,7 +214,6 @@
 
 .chord-output__row-label--inline {
   min-width: auto;
-  margin-left: 8px;
 }
 
 .chord-output__row-value {

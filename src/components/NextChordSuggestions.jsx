@@ -1,10 +1,11 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import * as Tone from 'tone'
 import { LABEL_COLORS, LABEL_COLORS_DARK, LABEL_EXPLANATIONS } from '../chordData'
 import { createKeysSynth, startAudioContext } from '../audio/synth'
 import { formatNoteNames } from '../utils/formatNotes'
 import { logEvent } from '../analytics/events'
+import { scrollRevealIntoView } from '../utils/scrollReveal'
 import './NextChordSuggestions.css'
 
 export default function NextChordSuggestions({ suggestions, currentNotes, bpm, previewIndex, onPreviewChange, onAddToProgression, theme, isPro }) {
@@ -12,6 +13,15 @@ export default function NextChordSuggestions({ suggestions, currentNotes, bpm, p
   const labelFallback = theme === 'dark' ? { bg: '#2a2a2a', text: '#bbb' } : { bg: '#f0f0f0', text: '#555' }
   const [playingIndex, setPlayingIndex] = useState(null)
   const synthRef = useRef(null)
+  const detailRef = useRef(null)
+
+  // Expanding a suggestion's detail panel can push it below the visible
+  // viewport (or behind the bottom progression drawer) -- scroll just
+  // enough to reveal it, same shared rule every other reveal/expand control
+  // in the app uses (Field Test, 12 Aug 2026).
+  useEffect(() => {
+    if (previewIndex != null) scrollRevealIntoView(detailRef.current)
+  }, [previewIndex])
 
   async function handleHear(index, nextNotes) {
     onPreviewChange(index)
@@ -92,7 +102,7 @@ export default function NextChordSuggestions({ suggestions, currentNotes, bpm, p
         const noteNames = formatNoteNames(s.notes)
 
         return (
-          <div className="next-chords__detail">
+          <div className="next-chords__detail" ref={detailRef}>
             <p className="next-chords__notes">{noteNames.join(' · ')}</p>
 
             {explanation && (
