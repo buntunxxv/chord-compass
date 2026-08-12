@@ -1,0 +1,41 @@
+.learn-path {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 28px 20px;
+}
+
+.learn-path__inner {
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  text-align: center;
+}
+
+.learn-path__message {
+  font-size: 15px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.learn-path__back-btn {
+  background: var(--teal);
+  color: var(--on-accent);
+  border: none;
+  border-radius: 999px;
+  padding: 10px 24px;
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.learn-path__back-btn:hover {
+  background: var(--teal-dark);
+  transform: translateY(-1px);
+}

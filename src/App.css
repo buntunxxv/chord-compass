@@ -397,17 +397,31 @@
    toggle) into the existing mobile menu here frees enough width for the
    title to stay on one line, while the primary nav and help button keep
    their own, narrower breakpoints unchanged. */
-@media (max-width: 900px) {
+/* 1260px, not 900px: the header-inner's content already ran right up
+   against its own max-width before PathToggle existed (at 900-1256px there
+   was only ~0-130px of slack -- see the git history/measurements behind
+   this change), so adding PathToggle's ~117px into that row overflows the
+   header well before Share feedback/Theme would've collapsed on their own
+   at the old 900px number. Rather than leave PathToggle stuck in a range
+   where neither the inline row nor (since the hamburger trigger didn't
+   exist above 900px either) the mobile menu could reach it, the whole
+   consolidation -- Share feedback, Theme, and now PathToggle -- moves
+   together to this wider, overflow-safe breakpoint. */
+@media (max-width: 1260px) {
   .app__header-divider,
   .app__header-feedback-btn,
-  .app__header-tool .theme-toggle {
+  .app__header-tool .theme-toggle,
+  .app__header-tool .path-toggle {
     display: none;
-  }
-  .app__header-tool-name {
-    font-size: 11px;
   }
   .app__hamburger {
     display: flex;
+  }
+}
+
+@media (max-width: 900px) {
+  .app__header-tool-name {
+    font-size: 11px;
   }
 }
 
