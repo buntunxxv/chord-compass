@@ -561,6 +561,14 @@
   list-style: none;
 }
 
+.progression-strip__saved-empty {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-style: italic;
+  padding: 14px;
+  margin: 0;
+}
+
 /* Column, not row: three action buttons (Load/Rename/Delete) plus the
    name/chords text reliably overflow a single row on a phone-width sheet.
    Stacking the actions below the info as their own right-aligned row keeps
