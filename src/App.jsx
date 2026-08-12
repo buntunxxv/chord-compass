@@ -619,7 +619,6 @@ export default function App() {
             >
               Share feedback
             </button>
-            <PathToggle value={path} onChange={setPath} />
             <ThemeToggle preference={themePreference} onChange={setThemePreference} />
             <button
               className="app__hamburger"
@@ -652,15 +651,14 @@ export default function App() {
               Share feedback
             </button>
             <div className="app__mobile-menu-theme">
-              <span className="app__mobile-menu-theme-label">Path</span>
-              <PathToggle value={path} onChange={setPath} />
-            </div>
-            <div className="app__mobile-menu-theme">
               <span className="app__mobile-menu-theme-label">Appearance</span>
               <ThemeToggle preference={themePreference} onChange={setThemePreference} />
             </div>
           </div>
         )}
+        <div className="app__header-path-row">
+          <PathToggle value={path} onChange={setPath} />
+        </div>
       </header>
 
       {path === 'learn' ? (

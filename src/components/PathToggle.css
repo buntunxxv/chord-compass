@@ -4,8 +4,8 @@
   background: var(--bg);
   border: 1px solid var(--border);
   border-radius: 999px;
-  padding: 2px;
-  gap: 1px;
+  padding: 3px;
+  gap: 4px;
   flex-shrink: 0;
 }
 
@@ -13,13 +13,14 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 28px;
-  padding: 5px 9px;
-  border-radius: 999px;
+  /* 44px minimum touch target height, matching app__mode-tab/ThemeToggle. */
+  min-height: 44px;
+  padding: 8px 20px;
+  border-radius: 22px;
   background: transparent;
   border: none;
   font-family: var(--font);
-  font-size: 10.5px;
+  font-size: 13px;
   font-weight: 700;
   color: var(--text-muted);
   line-height: 1;

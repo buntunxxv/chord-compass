@@ -397,32 +397,33 @@
    toggle) into the existing mobile menu here frees enough width for the
    title to stay on one line, while the primary nav and help button keep
    their own, narrower breakpoints unchanged. */
-/* 1260px, not 900px: the header-inner's content already ran right up
-   against its own max-width before PathToggle existed (at 900-1256px there
-   was only ~0-130px of slack -- see the git history/measurements behind
-   this change), so adding PathToggle's ~117px into that row overflows the
-   header well before Share feedback/Theme would've collapsed on their own
-   at the old 900px number. Rather than leave PathToggle stuck in a range
-   where neither the inline row nor (since the hamburger trigger didn't
-   exist above 900px either) the mobile menu could reach it, the whole
-   consolidation -- Share feedback, Theme, and now PathToggle -- moves
-   together to this wider, overflow-safe breakpoint. */
-@media (max-width: 1260px) {
+@media (max-width: 900px) {
   .app__header-divider,
   .app__header-feedback-btn,
-  .app__header-tool .theme-toggle,
-  .app__header-tool .path-toggle {
+  .app__header-tool .theme-toggle {
     display: none;
+  }
+  .app__header-tool-name {
+    font-size: 11px;
   }
   .app__hamburger {
     display: flex;
   }
 }
 
-@media (max-width: 900px) {
-  .app__header-tool-name {
-    font-size: 11px;
-  }
+/* ─── Path row (Build/Learn) ────────────────────────────────────────────────
+   A dedicated row below the main header controls, at every breakpoint --
+   PathToggle used to live inline in .app__header-tool, but that row was
+   already tight enough (see the 900px consolidation above) that adding a
+   third control there overflowed the header between ~900-1256px and read as
+   crowded even above that. Its own row sidesteps both: no competition for
+   space with Share feedback/Theme/Templates, and no responsive juggling
+   needed since it's simply always present. */
+.app__header-path-row {
+  display: flex;
+  justify-content: center;
+  padding: 8px 24px;
+  border-top: 1px solid var(--border);
 }
 
 /* Phone widths: even with the 900px consolidation above, logo + "Chord
