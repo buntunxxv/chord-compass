@@ -176,7 +176,7 @@ export default function PianoDisplay({ chordNotes, previewNotes, bassHighlightNo
                 x={x + WHITE_KEY_WIDTH / 2}
                 y={WHITE_KEY_HEIGHT - 14}
                 textAnchor="middle"
-                fontSize={note[0] === 'C' ? 9.5 : 11}
+                fontSize={note[0] === 'C' ? 13 : 14}
                 fontWeight={style.active ? '600' : '500'}
                 fontFamily="Inter, sans-serif"
                 fill={style.textFill}
@@ -248,7 +248,7 @@ export default function PianoDisplay({ chordNotes, previewNotes, bassHighlightNo
                 x={x + BLACK_KEY_WIDTH / 2}
                 y={BLACK_KEY_HEIGHT - 10}
                 textAnchor="middle"
-                fontSize={8}
+                fontSize={13}
                 fontWeight="600"
                 fontFamily="Inter, sans-serif"
                 fill={style.textFill}
@@ -267,7 +267,7 @@ export default function PianoDisplay({ chordNotes, previewNotes, bassHighlightNo
           x={SVG_WIDTH - 6}
           y={SVG_HEIGHT - 4}
           textAnchor="end"
-          fontSize={10}
+          fontSize={13}
           fill="#aaaaaa"
           fontFamily="Inter, sans-serif"
         >
