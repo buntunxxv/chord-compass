@@ -672,7 +672,7 @@ export default function ProgressionStrip({ expanded, onExpandedChange, activeCho
             <p className="progression-strip__export-error" role="status">{exportError}</p>
           )}
 
-          {isPro && savedProgressions.length > 0 && (
+          {isPro && (
             <button
               className="progression-strip__saved-toggle"
               onClick={() => setShowSavedPanel(o => !o)}
@@ -700,9 +700,12 @@ export default function ProgressionStrip({ expanded, onExpandedChange, activeCho
         )}
       </div>
 
-      {isPro && showSavedPanel && savedProgressions.length > 0 && (
+      {isPro && showSavedPanel && (
         <>
           <div className="progression-strip__saved-panel">
+            {savedProgressions.length === 0 ? (
+              <p className="progression-strip__saved-empty">No saved progressions yet — build one and tap Save</p>
+            ) : (
             <ul className="progression-strip__saved-list">
               {savedProgressions.map((saved, i) => (
                 <li key={i} className="progression-strip__saved-item">
@@ -769,6 +772,7 @@ export default function ProgressionStrip({ expanded, onExpandedChange, activeCho
                 </li>
               ))}
             </ul>
+            )}
           </div>
 
           {/* Same self-clearing role="status" toast the Save button uses
