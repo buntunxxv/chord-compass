@@ -14,13 +14,14 @@
    content push its top edge as far up as it needs, including off-screen on
    short/landscape viewports (e.g. 844x390) -- dvh (not vh) tracks the real
    visible height as mobile browser chrome shows/hides, and the header's own
-   64px (.app__header-inner) is reserved so the sheet never grows above it.
-   The container itself doesn't scroll; only expanded-content does, so the
-   handle above it stays fixed in place and always reachable. */
+   133px (.app__header-inner's 64px + .app__header-path-row's 69px) is
+   reserved so the sheet never grows above it. The container itself doesn't
+   scroll; only expanded-content does, so the handle above it stays fixed in
+   place and always reachable. */
 .progression-strip--expanded {
   display: flex;
   flex-direction: column;
-  max-height: calc(100dvh - 64px);
+  max-height: calc(100dvh - 133px);
 }
 
 /* ─── Collapsible bottom sheet ──────────────────────────────────────────────

@@ -411,6 +411,21 @@
   }
 }
 
+/* ─── Path row (Build/Learn) ────────────────────────────────────────────────
+   A dedicated row below the main header controls, at every breakpoint --
+   PathToggle used to live inline in .app__header-tool, but that row was
+   already tight enough (see the 900px consolidation above) that adding a
+   third control there overflowed the header between ~900-1256px and read as
+   crowded even above that. Its own row sidesteps both: no competition for
+   space with Share feedback/Theme/Templates, and no responsive juggling
+   needed since it's simply always present. */
+.app__header-path-row {
+  display: flex;
+  justify-content: center;
+  padding: 8px 24px;
+  border-top: 1px solid var(--border);
+}
+
 /* Phone widths: even with the 900px consolidation above, logo + "Chord
    Compass" + the Templates toggle + hamburger + help no longer fit on one
    row once the row gets this narrow -- the app's own content already makes

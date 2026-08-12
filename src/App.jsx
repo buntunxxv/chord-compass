@@ -18,6 +18,8 @@ import ReverseVoicingFinder from './components/ReverseVoicingFinder'
 import FeedbackPanel from './components/FeedbackPanel'
 import WalkthroughOverlay from './components/WalkthroughOverlay'
 import ThemeToggle from './components/ThemeToggle'
+import PathToggle from './components/PathToggle'
+import LearnPath from './components/LearnPath'
 import './App.css'
 
 const PROGRESSION_LIMIT = 4
@@ -83,6 +85,15 @@ export default function App() {
   // route or modal, and not persisted -- always starts back on the builder.
   const [mode, setMode] = useState('build')
   const modeTabRefs = useRef([])
+
+  // Top-level Learn/Build path (distinct from `mode`, the build/find tab
+  // inside the builder panel above) -- persisted so the choice survives a
+  // reload.
+  const [path, setPath] = useState(() => localStorage.getItem('kcc_path') || 'build')
+
+  useEffect(() => {
+    localStorage.setItem('kcc_path', path)
+  }, [path])
 
   function handleModeTabKeyDown(e, index) {
     const nextIndex = getAdjacentTabIndex(MODE_TABS, index, e.key)
@@ -645,8 +656,15 @@ export default function App() {
             </div>
           </div>
         )}
+        <div className="app__header-path-row">
+          <PathToggle value={path} onChange={setPath} />
+        </div>
       </header>
 
+      {path === 'learn' ? (
+        <LearnPath onBackToBuild={() => setPath('build')} />
+      ) : (
+      <>
       <div className="app__drawer-wrapper">
         <main
           className={`app__panel app__builder-panel ${templatesDrawerOpen ? 'app__builder-panel--hidden' : ''}`}
@@ -782,6 +800,8 @@ export default function App() {
         guitarPositions={playingChordName ? null : guitarPositions}
         isPro={isPro}
       />
+      </>
+      )}
       </div>
 
       {/* Feedback panel — state persists while closed */}

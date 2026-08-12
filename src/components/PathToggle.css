@@ -1,0 +1,38 @@
+.path-toggle {
+  display: flex;
+  align-items: center;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 3px;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.path-toggle__btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* 44px minimum touch target height, matching app__mode-tab/ThemeToggle. */
+  min-height: 44px;
+  padding: 8px 20px;
+  border-radius: 22px;
+  background: transparent;
+  border: none;
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-muted);
+  line-height: 1;
+  white-space: nowrap;
+  transition: background 0.15s, color 0.15s;
+}
+
+.path-toggle__btn:hover {
+  background: rgba(17, 147, 146, 0.12);
+}
+
+.path-toggle__btn--active {
+  background: var(--teal);
+  color: var(--on-accent);
+}
