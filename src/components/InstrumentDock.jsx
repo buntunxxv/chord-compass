@@ -51,8 +51,10 @@ export default function InstrumentDock({ chordNotes, previewNotes, bassHighlight
   // actually be shown position 2/3, even if guitarPositionIndex state
   // somehow held a stale non-zero value -- the same defense-in-depth
   // pattern already used for effectiveBassNote in App.jsx. guitarPositionIndex
-  // itself (and its reset-to-0-on-new-chord effect) lives in App.jsx now,
-  // not here, since Phase 2's reverse-lookup ranking needs to read it too.
+  // itself (reset to 0 on a genuinely new builder chord, restored from the
+  // tapped progression entry's own stored value otherwise) lives in App.jsx
+  // now, not here, since Phase 2's reverse-lookup ranking needs to read it
+  // too, and since progression entries are the source of truth for it.
   const maxAllowedIndex = hasPositions ? (isPro ? guitarPositions.length - 1 : 0) : 0
   const activeIndex = Math.min(guitarPositionIndex, maxAllowedIndex)
   const activeShape = hasPositions ? guitarPositions[activeIndex] : guitarShape

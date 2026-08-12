@@ -35,7 +35,7 @@ const progression = CHORD_NAMES.map(name => ({
 check(`test setup: built a ${progression.length}-chord progression from real CHORD_DATA entries`, progression.length >= 10)
 
 // ── 1. No register drift: playback notes == stored notes (Close voicing) ──
-const voicedClose = computePlaybackProgression(progression, 0)
+const voicedClose = computePlaybackProgression(progression, false)
 let allMatch = true
 const mismatches = []
 voicedClose.forEach((entry, i) => {
@@ -74,20 +74,48 @@ for (const [i, name] of CHORD_NAMES.entries()) {
 // notes -- proof there's no dependency on chord position/neighbors at all,
 // not just that this one ordering happens to pass.
 const reversed = [...progression].reverse()
-const voicedReversed = computePlaybackProgression(reversed, 0)
+const voicedReversed = computePlaybackProgression(reversed, false)
 const reversedMatchesOriginal = voicedReversed.every((entry, i) => {
   const orig = reversed[i].notes
   return entry.notes.length === orig.length && entry.notes.every((n, j) => n === orig[j])
 })
 check('reordering the progression doesn\'t change any chord\'s own playback notes (position-independent)', reversedMatchesOriginal)
 
-// ── 3. Drop-2/Split voicing still applies correctly per-chord (unchanged) ──
-const voicedDrop2 = computePlaybackProgression(progression, 1)
-const drop2Differs = voicedDrop2.some((entry, i) => {
+// ── 3. Each entry's OWN stored keysPositionIndex still applies correctly,
+// independently per chord (not one global setting) ─────────────────────
+const drop2Progression = progression.map(entry => ({ ...entry, keysPositionIndex: 1 }))
+const voicedDrop2 = computePlaybackProgression(drop2Progression, true) // Pro, so Drop-2 isn't clamped away
+const drop2Differs = voicedDrop2.every((entry, i) => {
   const orig = progression[i].notes
   return entry.notes.length !== orig.length || !entry.notes.every((n, j) => n === orig[j])
 })
-check('Drop-2 voicing (activeKeysIndex 1) still transforms notes (per-chord transform intact, not accidentally disabled)', drop2Differs)
+check('every chord\'s own stored Drop-2 (keysPositionIndex 1) still transforms its notes (per-chord transform intact, not accidentally disabled)', drop2Differs)
+
+// Mixed per-chord voicings within ONE progression -- not a single setting
+// applied uniformly: chord 1 Close, chord 2 Drop-2, chord 3 Close again.
+const mixedProgression = [
+  { ...progression[0], keysPositionIndex: 0 },
+  { ...progression[1], keysPositionIndex: 1 },
+  { ...progression[2], keysPositionIndex: 0 },
+]
+const voicedMixed = computePlaybackProgression(mixedProgression, true)
+const chord1Unchanged = voicedMixed[0].notes.length === progression[0].notes.length
+  && voicedMixed[0].notes.every((n, j) => n === progression[0].notes[j])
+const chord2Changed = voicedMixed[1].notes.length !== progression[1].notes.length
+  || !voicedMixed[1].notes.every((n, j) => n === progression[1].notes[j])
+const chord3Unchanged = voicedMixed[2].notes.length === progression[2].notes.length
+  && voicedMixed[2].notes.every((n, j) => n === progression[2].notes[j])
+check('mixed progression: chord 1 (keysPositionIndex 0) stays Close while chord 2 (keysPositionIndex 1) gets Drop-2', chord1Unchanged && chord2Changed)
+check('mixed progression: chord 3 (keysPositionIndex 0) stays Close, unaffected by chord 2\'s Drop-2', chord3Unchanged)
+
+// A free (non-Pro) account can't get a Pro-only voicing played back even if
+// an entry still carries a Pro-tier keysPositionIndex.
+const voicedDrop2Free = computePlaybackProgression(drop2Progression, false)
+const clampedToClose = voicedDrop2Free.every((entry, i) => {
+  const orig = progression[i].notes
+  return entry.notes.length === orig.length && entry.notes.every((n, j) => n === orig[j])
+})
+check('a non-Pro account clamps every entry\'s stored Drop-2 back to Close', clampedToClose)
 
 console.log('')
 if (failures.length > 0) {

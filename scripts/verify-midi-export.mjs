@@ -48,7 +48,7 @@ const BPM = 120
 const BAR_SECONDS = (60 / BPM) * 4 // 2s/bar at 120bpm
 
 {
-  const voiced = computePlaybackProgression(CM_G_AM_F, 0) // Close (activeKeysIndex 0)
+  const voiced = computePlaybackProgression(CM_G_AM_F, false) // no keysPositionIndex on any entry -> defaults to Close
   const bytes = buildProgressionMidiBytes(voiced, BPM)
   const reparsed = new Midi(bytes)
   const notes = readBack(reparsed)
@@ -67,9 +67,11 @@ const BAR_SECONDS = (60 / BPM) * 4 // 2s/bar at 120bpm
   check('progression export: bar 4 (last chord) notes', chord4Notes, ['A3', 'C4', 'F3'])
 }
 
-// ── 2. Progression export respects the active Keys voicing (Drop-2) ────
+// ── 2. Progression export respects each entry's OWN stored Keys voicing ──
+// (not one setting applied uniformly across the whole progression)
 {
-  const voiced = computePlaybackProgression(CM_G_AM_F, 1) // Drop-2
+  const drop2Progression = CM_G_AM_F.map(entry => ({ ...entry, keysPositionIndex: 1 }))
+  const voiced = computePlaybackProgression(drop2Progression, true) // Pro, so Drop-2 isn't clamped away
   const bytes = buildProgressionMidiBytes(voiced, BPM)
   const reparsed = new Midi(bytes)
   const notes = readBack(reparsed)
@@ -80,12 +82,32 @@ const BAR_SECONDS = (60 / BPM) * 4 // 2s/bar at 120bpm
   // restate the implementation under test.
   const expectedDrop2 = applySelectedVoicing(['C4', 'E4', 'G4'], 1, false).slice().sort()
   check('progression export: Drop-2 voicing carried into bar 1', bar1Notes, expectedDrop2)
+
+  // A free (non-Pro) account can't get Drop-2 played back even if an entry
+  // somehow still carries keysPositionIndex: 1 -- same defense-in-depth
+  // clamp the live builder applies.
+  const voicedFree = computePlaybackProgression(drop2Progression, false)
+  check('progression export: Drop-2 clamps back to Close for a non-Pro account', voicedFree[0].notes, ['C4', 'E4', 'G4'])
+}
+
+// ── 2b. Mixed per-chord voicings within ONE progression, not one global
+// setting -- chord 1 Close, chord 2 Drop-2, chord 3 Close again ──────────
+{
+  const mixedProgression = [
+    { chord: 'CM', notes: ['C4', 'E4', 'G4'], keysPositionIndex: 0 },
+    { chord: 'G', notes: ['G3', 'B3', 'D4'], keysPositionIndex: 1 },
+    { chord: 'Am', notes: ['A3', 'C4', 'E4'], keysPositionIndex: 0 },
+  ]
+  const voiced = computePlaybackProgression(mixedProgression, true)
+  check('mixed voicings: chord 1 (keysPositionIndex 0) stays Close', voiced[0].notes, ['C4', 'E4', 'G4'])
+  check('mixed voicings: chord 2 (keysPositionIndex 1) gets its own Drop-2', voiced[1].notes, applySelectedVoicing(['G3', 'B3', 'D4'], 1, false))
+  check('mixed voicings: chord 3 (keysPositionIndex 0) stays Close, unaffected by chord 2', voiced[2].notes, ['A3', 'C4', 'E4'])
 }
 
 // ── 3. Progression export respects a slash/inversion bass ──────────────
 {
   const slashProgression = [{ chord: 'C/E', notes: ['E3', 'C4', 'G4'] }] // 1st-inversion C, E in the bass
-  const voiced = computePlaybackProgression(slashProgression, 0)
+  const voiced = computePlaybackProgression(slashProgression, false)
   const bytes = buildProgressionMidiBytes(voiced, BPM)
   const reparsed = new Midi(bytes)
   const notes = readBack(reparsed)

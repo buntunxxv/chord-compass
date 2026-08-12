@@ -328,8 +328,7 @@ export default function ProgressionStrip({ expanded, onExpandedChange, activeCho
     // the success/error state that follows it.
     setTimeout(() => {
       try {
-        const activeKeysIndex = Math.min(keysPositionIndex, isPro ? 2 : 0)
-        const voicedProgression = computePlaybackProgression(progression, activeKeysIndex)
+        const voicedProgression = computePlaybackProgression(progression, isPro)
         const bytes = buildProgressionMidiBytes(voicedProgression, bpm)
         downloadMidiFile(bytes, 'chord-progression.mid')
         setExportStatus('success')
@@ -412,14 +411,15 @@ export default function ProgressionStrip({ expanded, onExpandedChange, activeCho
 
     // Every chord plays back exactly as stored -- the same notes a
     // single-chord preview would sound for it (no chord-to-chord
-    // re-voicing; see voiceLeading.js for why that was removed). The
-    // selected Keys voicing (Close/Drop-2/Split) is layered on top of each
-    // chord's own notes as a separate, per-chord step, same clamp as the
-    // live builder uses so a free user can't hear a Pro-gated position here
+    // re-voicing; see voiceLeading.js for why that was removed). EACH
+    // chord's OWN stored Keys voicing (Close/Drop-2/Split -- set at
+    // add-time, not the single global keysPositionIndex the live builder
+    // happens to be showing right now) is layered on top of its own notes
+    // as a separate, per-chord step, with the same Pro-tier clamp the live
+    // builder uses so a free user can't hear a Pro-gated position here
     // either. Pulled into computePlaybackProgression (voiceLeading.js) so
     // MIDI export builds the exact same voiced notes.
-    const activeKeysIndex = Math.min(keysPositionIndex, isPro ? 2 : 0)
-    const voicedProgression = computePlaybackProgression(progression, activeKeysIndex)
+    const voicedProgression = computePlaybackProgression(progression, isPro)
 
     voicedProgression.forEach((entry, i) => {
       synth.triggerAttackRelease(entry.notes, '1m', now + i * barDuration)
