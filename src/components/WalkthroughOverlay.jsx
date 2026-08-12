@@ -3,25 +3,15 @@ import './WalkthroughOverlay.css'
 
 const PAD = 6
 
+// The core loop, one step per beat -- pick a chord, hear it, see a
+// suggestion, add it to a progression. Trimmed from 8 steps down to these
+// 4: the old version also spent a step each narrating the chord-output
+// display, the piano diagram, and the progression strip without asking for
+// any interaction, which just delayed getting to the first real action.
 const STEPS = [
   {
     selector: '#wt-root',
-    text: 'Start here — choose your Root. This is the note your chord is built from and named after.',
-    action: false,
-  },
-  {
-    selector: '#wt-quality',
-    text: 'Quality sets the mood. Major sounds bright and open, minor is darker and more emotional.',
-    action: false,
-  },
-  {
-    selector: '#wt-chord-output',
-    text: 'Your current chord appears here — its name, the notes it contains, and the intervals between them.',
-    action: false,
-  },
-  {
-    selector: '#wt-piano',
-    text: 'The keyboard shows your chord in real pitch position across two octaves.',
+    text: 'Pick a Root and Quality to build your chord.',
     action: false,
   },
   {
@@ -31,18 +21,13 @@ const STEPS = [
   },
   {
     selector: '#wt-next-chords',
-    text: 'These suggestion cards show where your song could go next — each moves in a different musical direction.',
+    text: 'These suggestion cards show where your song could go next.',
     action: false,
   },
   {
     selector: '#wt-add-btn',
     text: 'Add the current chord to start building a progression. Tap it now to try.',
     action: true,
-  },
-  {
-    selector: '#wt-progression',
-    text: 'Your progression builds here. Tap Play to hear the chords move together in sequence.',
-    action: false,
   },
 ]
 
@@ -93,7 +78,13 @@ export default function WalkthroughOverlay({ isOpen, onClose }) {
     function onAction() {
       if (done) return
       done = true
-      setTimeout(() => setStep(s => s + 1), 350)
+      // advance() (not a raw setStep(s => s + 1)) so clicking the
+      // spotlighted element on the FINAL step closes the walkthrough
+      // instead of pushing step past the end of STEPS -- the last step is
+      // itself action-gated now (Add to progression), which the original
+      // 8-step version never had to handle since its last step was always
+      // a plain narration screen.
+      setTimeout(() => advance(), 350)
     }
     el.addEventListener('click', onAction)
     return () => el.removeEventListener('click', onAction)
