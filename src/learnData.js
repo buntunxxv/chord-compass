@@ -6,7 +6,29 @@ import { CHORD_DATA } from './chordData'
 import { toDataKey } from './utils/chordSelectionLookup'
 import { buildChordSymbol } from './components/ChordSelector'
 
+// The 7 natural roots -- used for the KEY PICKER only (learners always
+// start a challenge on a natural-root major key). Kept separate from the
+// chord picker's own root list below, which is wider.
 export const LEARN_ROOTS = ['A', 'B', 'C', 'D', 'E', 'F', 'G']
+
+// Roots required so every seed challenge's correct answer, in every one of
+// the 7 natural keys, is actually selectable in the predict picker.
+// Decision Log 2026-08-12: originally the chord picker only covered the 7
+// natural roots ("no accidentals"), which meant a handful of seed-challenge
+// steps (e.g. "vi" in the key of A major = F#m) resolved to a chord the
+// learner could never pick -- flagged to the founder, now resolved by
+// adding these specific roots rather than narrowing the key picker or
+// which challenges can be attempted in which key.
+//
+// Each of F#, C#, G#, Bb is the diatonic resolution of at least one seed
+// challenge's degree (ii/IV/V/vi) in at least one of the 7 natural keys --
+// verified against Tonal's own Scale.get() output, not assumed (every other
+// natural-key/degree combination those 6 challenges use already lands on a
+// natural root). Given full major/minor/dominant7 coverage, same as the
+// natural roots, for a uniform picker -- even though not every quality is
+// exercised by a seed challenge today (challenges are explicitly editable,
+// not final).
+const ACCIDENTAL_CHORD_ROOTS = ['F#', 'C#', 'G#', 'Bb']
 
 // The three qualities the curated subset covers, expressed the same way
 // ChordSelector's own selector state does (quality + extension) so
@@ -33,12 +55,12 @@ function buildLearnChord(root, quality, extension) {
   }
 }
 
-// The curated 21-chord subset: 7 natural roots x {major, minor, dominant7}.
-// No accidentals, no other qualities/extensions -- verified against Tonal's
-// own Chord.get() output for every one of the 21 symbols (pitch classes
-// match exactly; see scripts/ for the one-off check run during
-// development), not assumed.
-export const LEARN_CHORD_SUBSET = LEARN_ROOTS.flatMap(root =>
+// The curated chord subset the predict picker offers: the 7 natural roots
+// plus the 4 accidental roots above, x {major, minor, dominant7} -- 33
+// chords total. Verified against Tonal's own Chord.get() output for every
+// symbol (pitch classes match exactly; see scripts/ for the one-off check
+// run during development), not assumed.
+export const LEARN_CHORD_SUBSET = [...LEARN_ROOTS, ...ACCIDENTAL_CHORD_ROOTS].flatMap(root =>
   SUBSET_TYPES.map(({ quality, extension }) => buildLearnChord(root, quality, extension))
 )
 
@@ -72,16 +94,12 @@ const ROMAN_NUMERAL_DEGREES = {
 // approximation) and Build mode's existing buildChordSymbol/CHORD_DATA
 // lookup for the actual symbol + playable (octave-bearing) notes.
 //
-// NOTE (flagged to founder, Decision Log 2026-08-12): the key picker is
-// restricted to the 7 natural roots and the 21-chord subset has no
-// accidentals, but several seed challenges resolve to an accidental-root
-// chord in 4 of those 7 keys (e.g. "vi" in A major = F#m). That chord is
-// real and correctly resolved here (`inSubset: false`), but it can never be
-// the learner's own pick, since it isn't offered in the picker. Only C, D,
-// and G major keep every seed challenge's degrees inside the 21-chord
-// subset. This is a scope conflict between "key picker = 7 naturals" and
-// "chords = no accidentals" that wasn't resolved by the brief -- left as-is
-// rather than silently narrowing either one.
+// inSubset is checked against LEARN_CHORD_SUBSET's own symbols (rather than
+// re-deriving the root/quality rules) so it can never drift out of sync
+// with what the picker actually offers -- e.g. it correctly stays false for
+// vii° (diminished isn't a picker quality) even now that every seed
+// challenge's degree resolves to a pickable chord in every one of the 7
+// keys (see ACCIDENTAL_CHORD_ROOTS above).
 export function resolveChallengeChord(numeral, keyRoot) {
   const info = ROMAN_NUMERAL_DEGREES[numeral]
   if (!info) return null
@@ -92,11 +110,12 @@ export function resolveChallengeChord(numeral, keyRoot) {
   const dataKey = toDataKey(degreeRoot, info.quality, 'none')
   const entry = dataKey ? CHORD_DATA[dataKey] : null
   const tonalChord = symbol ? Chord.get(symbol) : null
+  const resolvedSymbol = (tonalChord && tonalChord.symbol) || symbol
   return {
     root: degreeRoot,
     quality: info.quality,
-    symbol: (tonalChord && tonalChord.symbol) || symbol,
+    symbol: resolvedSymbol,
     notes: entry ? entry.notes : [],
-    inSubset: LEARN_ROOTS.includes(degreeRoot) && info.quality !== 'diminished',
+    inSubset: LEARN_CHORD_SUBSET.some(c => c.symbol === resolvedSymbol),
   }
 }
