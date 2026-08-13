@@ -32,7 +32,7 @@ const LOAD_UNDO_WINDOW_MS = 10000
 
 const MODE_TABS = [
   { key: 'build', label: 'Build' },
-  { key: 'find', label: 'Find' },
+  { key: 'find', label: 'Identify' },
   { key: 'templates', label: 'Templates' },
 ]
 
