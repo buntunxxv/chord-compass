@@ -54,6 +54,15 @@ export default async function handler(req, res) {
 
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object
+
+    // Only Chord Compass's own payment link should grant a Chord Compass
+    // entitlement -- other Kynda Stripe payments (e.g. 1:1 lesson bookings)
+    // flow through this same account and would otherwise accidentally
+    // unlock Pro for an unrelated purchase.
+    if (session.payment_link !== 'plink_1TtvPlLfFLqligjkwk3HdZKE') {
+      return res.status(200).json({ received: true })
+    }
+
     const email = (session.customer_details?.email || session.customer_email || '').toLowerCase().trim()
     if (!email) return res.status(200).json({ received: true })
 
