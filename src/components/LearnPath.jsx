@@ -7,6 +7,14 @@ import './LearnPath.css'
 const PREDICT_HOLD_SECONDS = 1.2
 const PATTERN_STEP_SECONDS = 1.3
 
+// A dominant7 step displays as e.g. "V7", not the bare degree "V" --
+// showing the bare numeral while only offering dominant-7th chords in the
+// picker would be its own version of the family-mismatch bug this file was
+// built to avoid (see LEARN_CHALLENGES in learnData.js).
+function formatNumeral(step) {
+  return step.dominant7 ? `${step.numeral}7` : step.numeral
+}
+
 export default function LearnPath({ onBackToBuild }) {
   const [selectedKey, setSelectedKey] = useState('C')
   // The challenge currently in progress, or null when browsing the list --
@@ -49,7 +57,15 @@ export default function LearnPath({ onBackToBuild }) {
   }
 
   const resolvedChords = activeChallenge
-    ? activeChallenge.romanNumerals.map(rn => resolveChallengeChord(rn, selectedKey))
+    ? activeChallenge.romanNumerals.map(step => resolveChallengeChord(step, selectedKey))
+    : []
+
+  const currentStep = activeChallenge ? activeChallenge.romanNumerals[stepIndex] : null
+  // Never mix triads and dominant 7ths in one step's picker -- a plain step
+  // only offers the triads (major/minor), a dominant7 step only offers the
+  // dominant 7ths, regardless of how many roots LEARN_CHORD_SUBSET covers.
+  const pickerOptions = currentStep
+    ? LEARN_CHORD_SUBSET.filter(c => (currentStep.dominant7 ? c.extension === '7' : c.extension === 'none'))
     : []
 
   // The learner's pick plays -- and gets compared against -- whatever they
@@ -151,7 +167,7 @@ export default function LearnPath({ onBackToBuild }) {
             </div>
 
             <div className="learn-path__pattern-strip">
-              {activeChallenge.romanNumerals.map((rn, i) => {
+              {activeChallenge.romanNumerals.map((step, i) => {
                 const g = guesses[i]
                 const isActive = i === stepIndex && !revealed
                 const cls = [
@@ -161,7 +177,7 @@ export default function LearnPath({ onBackToBuild }) {
                 ].filter(Boolean).join(' ')
                 return (
                   <span key={i} className={cls}>
-                    {rn}
+                    {formatNumeral(step)}
                   </span>
                 )
               })}
@@ -174,7 +190,7 @@ export default function LearnPath({ onBackToBuild }) {
                 </p>
 
                 <div className="learn-path__chord-grid" role="group" aria-label="Pick the next chord">
-                  {LEARN_CHORD_SUBSET.map(chord => (
+                  {pickerOptions.map(chord => (
                     <button
                       key={chord.symbol}
                       type="button"
@@ -205,9 +221,9 @@ export default function LearnPath({ onBackToBuild }) {
               <div className="learn-path__reveal">
                 <p className="learn-path__prompt">Here's the full pattern:</p>
                 <ol className="learn-path__reveal-list">
-                  {activeChallenge.romanNumerals.map((rn, i) => (
+                  {activeChallenge.romanNumerals.map((step, i) => (
                     <li key={i} className="learn-path__reveal-item">
-                      <span className="learn-path__reveal-numeral">{rn}</span>
+                      <span className="learn-path__reveal-numeral">{formatNumeral(step)}</span>
                       <span className="learn-path__reveal-chord">{resolvedChords[i]?.symbol ?? '—'}</span>
                     </li>
                   ))}

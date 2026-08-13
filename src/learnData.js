@@ -66,13 +66,56 @@ export const LEARN_CHORD_SUBSET = [...LEARN_ROOTS, ...ACCIDENTAL_CHORD_ROOTS].fl
 
 // Key-agnostic Roman-numeral progression patterns. Seed set only -- flagged
 // to the founder as editable, not final (Decision Log 2026-08-12).
+//
+// Each step carries its own explicit quality (`dominant7: false` for a
+// plain diatonic triad, `true` for a dominant 7th) instead of being a bare
+// numeral string -- a bare "V" was ambiguous about which chord family the
+// predict picker should actually offer, which let a learner pick a
+// dominant 7th (e.g. E7) on a step that only ever meant the plain triad
+// (E), reading as a false "miss" for a musically-valid-but-wrong-family
+// answer. See resolveChallengeChord below for how the flag changes what
+// gets resolved, and LearnPath.jsx for how it filters the picker.
 export const LEARN_CHALLENGES = [
-  { id: 'I-IV-V-I', romanNumerals: ['I', 'IV', 'V', 'I'], label: 'I – IV – V – I' },
-  { id: 'I-V-vi-IV', romanNumerals: ['I', 'V', 'vi', 'IV'], label: 'I – V – vi – IV' },
-  { id: 'ii-V-I', romanNumerals: ['ii', 'V', 'I'], label: 'ii – V – I' },
-  { id: 'I-vi-IV-V', romanNumerals: ['I', 'vi', 'IV', 'V'], label: 'I – vi – IV – V' },
-  { id: 'vi-IV-I-V', romanNumerals: ['vi', 'IV', 'I', 'V'], label: 'vi – IV – I – V' },
-  { id: 'I-IV-I-V', romanNumerals: ['I', 'IV', 'I', 'V'], label: 'I – IV – I – V' },
+  { id: 'I-IV-V-I', label: 'I – IV – V – I', romanNumerals: [
+    { numeral: 'I', dominant7: false },
+    { numeral: 'IV', dominant7: false },
+    { numeral: 'V', dominant7: false },
+    { numeral: 'I', dominant7: false },
+  ] },
+  { id: 'I-V-vi-IV', label: 'I – V – vi – IV', romanNumerals: [
+    { numeral: 'I', dominant7: false },
+    { numeral: 'V', dominant7: false },
+    { numeral: 'vi', dominant7: false },
+    { numeral: 'IV', dominant7: false },
+  ] },
+  { id: 'ii-V-I', label: 'ii – V – I', romanNumerals: [
+    { numeral: 'ii', dominant7: false },
+    { numeral: 'V', dominant7: false },
+    { numeral: 'I', dominant7: false },
+  ] },
+  { id: 'ii-V7-I', label: 'ii – V7 – I', romanNumerals: [
+    { numeral: 'ii', dominant7: false },
+    { numeral: 'V', dominant7: true },
+    { numeral: 'I', dominant7: false },
+  ] },
+  { id: 'I-vi-IV-V', label: 'I – vi – IV – V', romanNumerals: [
+    { numeral: 'I', dominant7: false },
+    { numeral: 'vi', dominant7: false },
+    { numeral: 'IV', dominant7: false },
+    { numeral: 'V', dominant7: false },
+  ] },
+  { id: 'vi-IV-I-V', label: 'vi – IV – I – V', romanNumerals: [
+    { numeral: 'vi', dominant7: false },
+    { numeral: 'IV', dominant7: false },
+    { numeral: 'I', dominant7: false },
+    { numeral: 'V', dominant7: false },
+  ] },
+  { id: 'I-IV-I-V', label: 'I – IV – I – V', romanNumerals: [
+    { numeral: 'I', dominant7: false },
+    { numeral: 'IV', dominant7: false },
+    { numeral: 'I', dominant7: false },
+    { numeral: 'V', dominant7: false },
+  ] },
 ]
 
 // Standard major-key diatonic scale degree -> triad quality, used to resolve
@@ -88,11 +131,18 @@ const ROMAN_NUMERAL_DEGREES = {
   'vii°': { degree: 6, quality: 'diminished' },
 }
 
-// Resolves a Roman numeral into a real chord for the given natural-root
-// major key, using Tonal's own major-scale spelling for the degree root
-// (so e.g. vi in A major correctly resolves to F#m, not some natural-only
-// approximation) and Build mode's existing buildChordSymbol/CHORD_DATA
-// lookup for the actual symbol + playable (octave-bearing) notes.
+// Resolves one challenge step -- { numeral, dominant7 } -- into a real
+// chord for the given natural-root major key, using Tonal's own
+// major-scale spelling for the degree root (so e.g. vi in A major
+// correctly resolves to F#m, not some natural-only approximation) and
+// Build mode's existing buildChordSymbol/CHORD_DATA lookup for the actual
+// symbol + playable (octave-bearing) notes.
+//
+// dominant7 overrides the degree's own diatonic quality (major/minor) with
+// a dominant 7th on the same scale-degree root -- e.g. V in the "ii-V7-I"
+// challenge resolves to a 7th chord, not the plain major triad "V" alone
+// would give. Only meaningful for the challenges that actually set it
+// (today, just that one step); everywhere else this is a no-op.
 //
 // inSubset is checked against LEARN_CHORD_SUBSET's own symbols (rather than
 // re-deriving the root/quality rules) so it can never drift out of sync
@@ -100,20 +150,25 @@ const ROMAN_NUMERAL_DEGREES = {
 // vii° (diminished isn't a picker quality) even now that every seed
 // challenge's degree resolves to a pickable chord in every one of the 7
 // keys (see ACCIDENTAL_CHORD_ROOTS above).
-export function resolveChallengeChord(numeral, keyRoot) {
+export function resolveChallengeChord(step, keyRoot) {
+  const { numeral, dominant7 } = step
   const info = ROMAN_NUMERAL_DEGREES[numeral]
   if (!info) return null
   const scale = Scale.get(`${keyRoot} major`).notes
   const degreeRoot = scale[info.degree]
   if (!degreeRoot) return null
-  const symbol = buildChordSymbol(degreeRoot, info.quality, 'none')
-  const dataKey = toDataKey(degreeRoot, info.quality, 'none')
+  const quality = dominant7 ? 'major' : info.quality
+  const extension = dominant7 ? '7' : 'none'
+  const symbol = buildChordSymbol(degreeRoot, quality, extension)
+  const dataKey = toDataKey(degreeRoot, quality, extension)
   const entry = dataKey ? CHORD_DATA[dataKey] : null
   const tonalChord = symbol ? Chord.get(symbol) : null
   const resolvedSymbol = (tonalChord && tonalChord.symbol) || symbol
   return {
     root: degreeRoot,
-    quality: info.quality,
+    quality,
+    extension,
+    dominant7: !!dominant7,
     symbol: resolvedSymbol,
     notes: entry ? entry.notes : [],
     inSubset: LEARN_CHORD_SUBSET.some(c => c.symbol === resolvedSymbol),
