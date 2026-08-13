@@ -11,14 +11,94 @@
   width: 100%;
   background: var(--bg);
   border: 1.5px solid var(--border);
-  border-radius: 8px;
-  padding: 10px 14px;
+  min-height: 50px;
+  border-radius: 13px;
+  padding: 11px 14px;
   font-family: var(--font);
   font-size: 15px;
   font-weight: 500;
   color: var(--text);
   cursor: pointer;
   transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.dropdown__trigger--described {
+  min-height: 76px;
+  align-items: stretch;
+  padding: 13px 14px 12px;
+}
+
+.dropdown__trigger-copy {
+  min-width: 0;
+  display: flex;
+  align-items: flex-start;
+  flex-direction: column;
+  text-align: left;
+}
+
+.dropdown__trigger:not(.dropdown__trigger--described) .dropdown__trigger-copy {
+  justify-content: center;
+}
+
+.dropdown__label {
+  margin-bottom: 3px;
+  color: var(--text-muted);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.dropdown__value-row {
+  max-width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.dropdown__description {
+  max-width: 100%;
+  margin-top: 3px;
+  overflow: hidden;
+  color: var(--text-muted);
+  font-size: 11.5px;
+  font-weight: 400;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dropdown__trigger-badge {
+  padding: 2px 6px;
+  color: var(--suggest);
+  background: var(--suggest-tint);
+  border-radius: 999px;
+  font-size: 8.5px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+}
+
+.dropdown__chevron-wrap {
+  width: 30px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+@media (max-width: 600px) {
+  .dropdown__trigger--described {
+    min-height: 66px;
+    padding: 9px;
+  }
+
+  .dropdown__description {
+    font-size: 10px;
+  }
+
+  .dropdown__chevron-wrap {
+    width: 18px;
+  }
 }
 
 .dropdown__trigger:hover {
@@ -28,6 +108,10 @@
 .dropdown__trigger:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.dropdown__trigger--described:disabled {
+  opacity: 0.68;
 }
 
 .dropdown__trigger:disabled:hover {
@@ -40,6 +124,8 @@
 }
 
 .dropdown__value {
+  font-size: 16px;
+  font-weight: 700;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

@@ -28,7 +28,7 @@ function nextEnabledIndex(options, from, dir) {
   }
 }
 
-export default function Dropdown({ id, value, options, onChange, disabled }) {
+export default function Dropdown({ id, value, options, onChange, disabled, label, description, badge }) {
   const [open, setOpen] = useState(false)
   const [highlightedIndex, setHighlightedIndex] = useState(-1)
   const rootRef = useRef(null)
@@ -134,18 +134,28 @@ export default function Dropdown({ id, value, options, onChange, disabled }) {
       <button
         type="button"
         ref={triggerRef}
-        className={`dropdown__trigger ${open ? 'dropdown__trigger--open' : ''}`}
+        className={`dropdown__trigger${label || description ? ' dropdown__trigger--described' : ''}${open ? ' dropdown__trigger--open' : ''}`}
         onClick={() => setOpen(o => !o)}
         onKeyDown={handleTriggerKeyDown}
         disabled={disabled}
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-controls={listboxId}
+        aria-label={label ? `${label}: ${selected ? selected.label : ''}. ${description || ''}` : undefined}
       >
-        <span className="dropdown__value">{selected ? selected.label : ''}</span>
-        <svg className="dropdown__chevron" width="12" height="8" viewBox="0 0 12 8" aria-hidden="true">
-          <path d="M1 1l5 5 5-5" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" />
-        </svg>
+        <span className="dropdown__trigger-copy">
+          {label && <span className="dropdown__label">{label}</span>}
+          <span className="dropdown__value-row">
+            <span className="dropdown__value">{selected ? selected.label : ''}</span>
+            {badge && <span className="dropdown__trigger-badge">{badge}</span>}
+          </span>
+          {description && <span className="dropdown__description">{description}</span>}
+        </span>
+        <span className="dropdown__chevron-wrap" aria-hidden="true">
+          <svg className="dropdown__chevron" width="12" height="8" viewBox="0 0 12 8">
+            <path d="M1 1l5 5 5-5" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" />
+          </svg>
+        </span>
       </button>
 
       {open && (

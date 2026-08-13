@@ -462,6 +462,7 @@ export default function ProgressionStrip({ expanded, onExpandedChange, activeCho
         onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') onExpandedChange?.(true) }}
       >
         <div className="progression-strip__collapsed-info">
+          <span className="progression-strip__collapsed-label">Current chord</span>
           <span className="progression-strip__collapsed-chord-name">{activeChordName || '—'}</span>
           {progression.length > 0 && (
             <span className="progression-strip__collapsed-count">

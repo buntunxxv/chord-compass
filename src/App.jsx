@@ -19,7 +19,6 @@ import ReverseVoicingFinder from './components/ReverseVoicingFinder'
 import FeedbackPanel from './components/FeedbackPanel'
 import WalkthroughOverlay from './components/WalkthroughOverlay'
 import ThemeToggle from './components/ThemeToggle'
-import PathToggle from './components/PathToggle'
 import LearnPath from './components/LearnPath'
 import './App.css'
 
@@ -32,9 +31,28 @@ const PROGRESSION_TEASER = 'Longer progressions are coming in Chord Compass Pro.
 const LOAD_UNDO_WINDOW_MS = 10000
 
 const MODE_TABS = [
-  { key: 'build', label: 'Build a Chord' },
-  { key: 'find', label: 'Find Shapes by Notes' },
+  { key: 'build', label: 'Build' },
+  { key: 'find', label: 'Find' },
+  { key: 'templates', label: 'Templates' },
 ]
+
+const MODE_COPY = {
+  build: {
+    eyebrow: 'Build a progression',
+    title: 'Choose where your music goes next',
+    description: 'Start with one chord, hear its character, then explore movements with a clear musical purpose.',
+  },
+  find: {
+    eyebrow: 'Reverse lookup',
+    title: 'Turn the notes you play into chord shapes',
+    description: 'Pick the notes you can hear or play, then explore the closest matching shapes.',
+  },
+  templates: {
+    eyebrow: 'Progression templates',
+    title: 'Start with a progression that already works',
+    description: 'Choose a musical starting point, set its key, then make it your own.',
+  },
+}
 
 // Resolves each displayed note's interval label from what it actually IS
 // (by pitch class), not from its position in the array -- notes get
@@ -70,8 +88,6 @@ export default function App() {
   const [feedbackOpen, setFeedbackOpen] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [onboardingOpen, setOnboardingOpen] = useState(false)
-  // Push-swipe Templates drawer -- not persisted, always starts closed
-  const [templatesDrawerOpen, setTemplatesDrawerOpen] = useState(false)
   // Progression/instrument bottom sheet -- collapsed by default so the
   // chord builder gets the vast majority of a mobile viewport. Lives here
   // (not inside ProgressionStrip) only because App.css's bottom-padding
@@ -581,12 +597,8 @@ export default function App() {
 
   return (
     <div className="app">
-      {/* Same inert pattern the builder/templates panel swap already uses
-          (see app__builder-panel/app__templates-panel below) -- while the
-          feedback panel is open, this is everything "behind" it, so it's
-          the side that goes inert, making FeedbackPanel a genuine modal
-          rather than just a visually-on-top overlay a screen reader or
-          keyboard user could still reach into. */}
+      {/* While feedback is open, everything behind its modal is inert so
+          keyboard and screen-reader focus stays inside the feedback flow. */}
       <div className="app__background" inert={feedbackOpen} aria-hidden={feedbackOpen ? 'true' : undefined}>
       <header className="app__header">
         <div className="app__header-inner">
@@ -594,26 +606,23 @@ export default function App() {
             <a href="https://www.kyndalearning.co.uk" className="app__logo-link">
               <img src={resolvedTheme === 'dark' ? '/kynda-logo-white.png' : '/kynda-logo-full.png'} alt="Kynda Learning" />
             </a>
-            <nav className="app__site-nav">
-              <Link to="/tools" className="app__site-nav-link">Tools</Link>
-              <a href="https://www.kyndalearning.co.uk/courses" className="app__site-nav-link">Courses</a>
-              <a href="https://www.kyndalearning.co.uk/workshops" className="app__site-nav-link">Workshops</a>
-              <a href="https://www.kyndalearning.co.uk/portal" className="app__site-nav-link">Portal</a>
-            </nav>
+            <span className="app__header-divider" aria-hidden="true" />
+            <Link to="/tools" className="app__suite-link">Tools</Link>
           </div>
           <div className="app__header-tool">
-            <div className="app__header-divider" />
-            <span className="app__header-tool-name">Chord Compass</span>
             <button
               type="button"
-              className={`app__header-templates-btn ${templatesDrawerOpen ? 'app__header-templates-btn--active' : ''}`}
-              onClick={() => setTemplatesDrawerOpen(o => !o)}
-              aria-pressed={templatesDrawerOpen}
-              aria-label={templatesDrawerOpen ? 'Back to chord builder' : 'Open progression templates'}
+              className="app__guided-learning-link"
+              onClick={() => setPath(path === 'learn' ? 'build' : 'learn')}
+              aria-current={path === 'learn' ? 'page' : undefined}
             >
-              {templatesDrawerOpen ? '← Chords' : 'Templates'}
+              <span className="app__guided-label app__guided-label--desktop">
+                {path === 'learn' ? '← Chord tool' : 'Guided learning'}
+              </span>
+              <span className="app__guided-label app__guided-label--mobile" aria-hidden="true">
+                {path === 'learn' ? '← Tool' : 'Learn'}
+              </span>
             </button>
-            <div className="app__header-divider" />
             <button
               className="app__header-feedback-btn"
               onClick={() => setFeedbackOpen(true)}
@@ -659,9 +668,6 @@ export default function App() {
             </div>
           </div>
         )}
-        <div className="app__header-path-row">
-          <PathToggle value={path} onChange={setPath} />
-        </div>
       </header>
 
       {path === 'learn' ? (
@@ -670,11 +676,23 @@ export default function App() {
       <>
       <div className="app__drawer-wrapper">
         <main
-          className={`app__panel app__builder-panel ${templatesDrawerOpen ? 'app__builder-panel--hidden' : ''}`}
-          inert={templatesDrawerOpen}
-          aria-hidden={templatesDrawerOpen ? 'true' : undefined}
+          className="app__panel app__builder-panel"
         >
           <div className={`app__panel-inner ${sheetExpanded ? '' : 'app__panel-inner--sheet-collapsed'}`}>
+            <section className="app__builder-intro" aria-labelledby="builder-intro-title">
+              <div className="app__builder-intro-copy">
+                <p className="app__eyebrow">{MODE_COPY[mode].eyebrow}</p>
+                <h1 id="builder-intro-title">{MODE_COPY[mode].title}</h1>
+                <p>{MODE_COPY[mode].description}</p>
+              </div>
+              {mode === 'build' && (
+                <ol className="app__workflow" aria-label="How to build a progression">
+                  <li><span>1</span>Choose</li>
+                  <li><span>2</span>Hear</li>
+                  <li><span>3</span>Add</li>
+                </ol>
+              )}
+            </section>
             <div className="app__mode-tabs" role="tablist" aria-label="Chord tool mode">
               {MODE_TABS.map((tab, index) => (
                 <button
@@ -693,38 +711,34 @@ export default function App() {
               ))}
             </div>
 
-            {mode === 'find' ? (
-              <section className="app__section">
-                <ReverseVoicingFinder
-                  onAddToProgression={addToProgression}
-                  onImportSequence={addProgressionSequence}
-                  progression={progression}
-                  referenceGuitarShape={referenceGuitarShape}
-                  isPro={isPro}
-                />
-              </section>
-            ) : (
-              <>
-                <section className="app__section">
-                  <ChordSelector
-                    root={root}
-                    quality={quality}
-                    extension={extension}
-                    bassNote={bassNote}
-                    isPro={isPro}
-                    onChange={handleBuilderSelectionChange}
-                  />
-                </section>
+            <div className="app__mode-viewport">
+              <div
+                className="app__mode-track"
+                style={{ transform: `translateX(-${MODE_TABS.findIndex(tab => tab.key === mode) * 100}%)` }}
+              >
+                <div className="app__mode-pane" inert={mode !== 'build'} aria-hidden={mode !== 'build'}>
+                <section className="app__section app__builder-workspace" aria-label="Build and preview a chord">
+                  <div className="app__builder-controls">
+                    <ChordSelector
+                      root={root}
+                      quality={quality}
+                      extension={extension}
+                      bassNote={bassNote}
+                      isPro={isPro}
+                      onChange={handleBuilderSelectionChange}
+                    />
+                  </div>
 
-                <section className="app__section">
-                  <ChordOutputPanel
-                    chordName={displayName}
-                    notes={displayedPianoNotes}
-                    intervals={intervals}
-                    available={available}
-                    onAddToProgression={(chord, notes) => addToProgression(chord, notes, guitarPositionIndex, keysPositionIndex)}
-                    isPro={isPro}
-                  />
+                  <div className="app__builder-result">
+                    <ChordOutputPanel
+                      chordName={displayName}
+                      notes={displayedPianoNotes}
+                      intervals={intervals}
+                      available={available}
+                      onAddToProgression={(chord, notes) => addToProgression(chord, notes, guitarPositionIndex, keysPositionIndex)}
+                      isPro={isPro}
+                    />
+                  </div>
                 </section>
 
                 {available && chordEntry?.next && (
@@ -747,28 +761,35 @@ export default function App() {
                     <p>This chord combination is not available in Stage 1. Select one of the 12 seed chords to explore suggestions.</p>
                   </section>
                 )}
-              </>
-            )}
+                </div>
+
+                <div className="app__mode-pane" inert={mode !== 'find'} aria-hidden={mode !== 'find'}>
+                  <section className="app__section">
+                    <ReverseVoicingFinder
+                      onAddToProgression={addToProgression}
+                      onImportSequence={addProgressionSequence}
+                      progression={progression}
+                      referenceGuitarShape={referenceGuitarShape}
+                      isPro={isPro}
+                    />
+                  </section>
+                </div>
+
+                <div className="app__mode-pane" inert={mode !== 'templates'} aria-hidden={mode !== 'templates'}>
+                  <section className="app__section">
+                    <ProgressionTemplates
+                      keyRoot={templateKeyRoot}
+                      keyMode={templateKeyMode}
+                      onKeyRootChange={setTemplateKeyRoot}
+                      onKeyModeChange={setTemplateKeyMode}
+                      onLoad={loadTemplate}
+                    />
+                  </section>
+                </div>
+              </div>
+            </div>
           </div>
         </main>
-
-        <div
-          className={`app__panel app__templates-panel ${templatesDrawerOpen ? 'app__templates-panel--open' : ''}`}
-          inert={!templatesDrawerOpen}
-          aria-hidden={!templatesDrawerOpen ? 'true' : undefined}
-        >
-          <div className={`app__panel-inner ${sheetExpanded ? '' : 'app__panel-inner--sheet-collapsed'}`}>
-            <section className="app__section">
-              <ProgressionTemplates
-                keyRoot={templateKeyRoot}
-                keyMode={templateKeyMode}
-                onKeyRootChange={setTemplateKeyRoot}
-                onKeyModeChange={setTemplateKeyMode}
-                onLoad={loadTemplate}
-              />
-            </section>
-          </div>
-        </div>
       </div>
 
       <ProgressionStrip
