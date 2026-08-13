@@ -1,8 +1,9 @@
 .chord-output {
   background: var(--white);
-  border-radius: var(--radius);
-  padding: 24px;
-  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 28px;
+  box-shadow: none;
 }
 
 .chord-output__title {
@@ -27,38 +28,39 @@
   font-style: italic;
 }
 
-.chord-output__top {
+.chord-output__body {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.chord-output__summary {
+  min-width: 0;
 }
 
 .chord-output__name {
-  font-size: 32px;
-  font-weight: 700;
+  font-size: clamp(2.8rem, 6vw, 4.4rem);
+  font-weight: 800;
   color: var(--teal);
   letter-spacing: -0.02em;
 }
 
-.chord-output__add-row {
+.chord-output__actions {
+  width: 100%;
   display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-top: 8px;
-  margin-bottom: 16px;
+  align-items: stretch;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .chord-output__add-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: transparent;
+  background: var(--teal);
   border: 1.5px solid var(--teal);
-  color: var(--teal);
-  border-radius: 6px;
+  color: var(--on-accent);
+  border-radius: 11px;
   /* 44px minimum touch target (was ~37-39px tall) -- padding/font-size
      unchanged, only the tappable box around the label grows. */
   min-height: 44px;
@@ -70,9 +72,15 @@
   white-space: nowrap;
 }
 
+.chord-output__actions .chord-output__add-btn,
+.chord-output__actions .chord-output__export-btn,
+.chord-output__actions .chord-output__play-btn {
+  width: 100%;
+}
+
 .chord-output__add-btn:hover {
-  background: var(--teal);
-  color: var(--on-accent);
+  background: var(--teal-dark);
+  border-color: var(--teal-dark);
 }
 
 .chord-output__export-btn {
@@ -82,7 +90,7 @@
   background: transparent;
   border: 1.5px solid var(--teal);
   color: var(--teal);
-  border-radius: 6px;
+  border-radius: 11px;
   /* 44px minimum touch target (was ~37-39px tall) -- padding/font-size
      unchanged, only the tappable box around the label grows. */
   min-height: 44px;
@@ -142,10 +150,10 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  background: var(--teal);
-  color: var(--on-accent);
-  border: none;
-  border-radius: 6px;
+  background: var(--teal-tint);
+  color: var(--teal);
+  border: 1px solid transparent;
+  border-radius: 11px;
   /* 44px minimum touch target (was ~37-39px tall) -- padding/font-size
      unchanged, only the tappable box around the icon+label grows. */
   min-height: 44px;
@@ -158,7 +166,7 @@
 }
 
 .chord-output__play-btn:hover:not(:disabled) {
-  background: var(--teal-dark);
+  border-color: var(--teal);
 }
 
 .chord-output__play-btn:disabled {
@@ -167,57 +175,90 @@
 }
 
 .chord-output__play-btn--playing {
-  background: var(--teal-dark);
+  background: var(--teal);
+  color: var(--on-accent);
+}
+
+@media (max-width: 420px) {
+  .chord-output {
+    padding: 0;
+  }
+
 }
 
 .chord-output__play-icon {
   font-size: 14px;
 }
 
-.chord-output__row {
-  display: flex;
+.chord-output__details {
+  display: grid;
+  gap: 0;
+  margin: 24px 0 0;
+}
+
+.chord-output__detail-row {
+  display: grid;
+  grid-template-columns: 76px minmax(0, 1fr);
   align-items: baseline;
-  flex-wrap: wrap;
-  gap: 12px;
-  padding: 8px 0;
+  gap: 14px;
+  padding: 11px 0;
   border-top: 1px solid var(--border);
 }
 
-.chord-output__row:last-child {
-  border-bottom: none;
-}
-
-/* Groups a label with its own value so flex-wrap on the row above only ever
-   breaks BETWEEN a label/value pair, never inside one -- previously "Notes"
-   and "Intervals" were four independent flex items in the same wrap
-   context, so a long Notes value could push "Intervals" onto its own line
-   while its value wrapped separately again after it. Each pair keeps its
-   own internal wrap as a last resort for genuinely unavoidable narrow
-   widths, so a very long value can still spill onto a second line without
-   ever separating from its label. */
-.chord-output__row-pair {
-  display: flex;
-  align-items: baseline;
-  flex-wrap: wrap;
-  gap: 8px;
-  min-width: 0;
-}
-
-.chord-output__row-label {
-  font-size: 13px;
-  font-weight: 600;
+.chord-output__detail-row dt {
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--text-muted);
-  min-width: 68px;
 }
 
-.chord-output__row-label--inline {
-  min-width: auto;
-}
-
-.chord-output__row-value {
-  font-size: 15px;
-  font-weight: 500;
+.chord-output__detail-row dd {
+  min-width: 0;
+  margin: 0;
   color: var(--text);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.45;
+  text-align: right;
+}
+
+@media (max-width: 560px) {
+  .chord-output__title {
+    margin-bottom: 13px;
+    font-size: 11px;
+    letter-spacing: 0.05em;
+  }
+
+  .chord-output__body {
+    gap: 16px;
+  }
+
+  .chord-output__name {
+    font-size: clamp(2rem, 10vw, 2.65rem);
+    line-height: 1;
+  }
+
+  .chord-output__details {
+    margin-top: 16px;
+  }
+
+  .chord-output__detail-row {
+    grid-template-columns: 1fr;
+    gap: 4px;
+    padding: 9px 0;
+  }
+
+  .chord-output__actions {
+    width: 100%;
+    gap: 8px;
+  }
+
+  .chord-output__actions .chord-output__add-btn,
+  .chord-output__actions .chord-output__export-btn,
+  .chord-output__actions .chord-output__play-btn {
+    padding-right: 8px;
+    padding-left: 8px;
+    font-size: 11px;
+  }
 }

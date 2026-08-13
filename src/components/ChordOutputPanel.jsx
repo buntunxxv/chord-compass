@@ -107,29 +107,42 @@ export default function ChordOutputPanel({ chordName, notes, intervals, availabl
   return (
     <div className="chord-output" id="wt-chord-output">
       <h2 className="chord-output__title">Your Chord</h2>
-      <div className="chord-output__top">
-        <div className="chord-output__name">{chordName}</div>
-        <button
-          id="wt-play-btn"
-          className={`chord-output__play-btn ${playing ? 'chord-output__play-btn--playing' : ''}`}
-          onClick={handlePlay}
-          disabled={playing || !notes || notes.length === 0}
-          aria-label="Play chord"
-        >
-          <span className="chord-output__play-icon">{playing ? '♪' : '▶'}</span>
-          {playing ? 'Playing…' : 'Play Chord'}
-        </button>
-      </div>
-      <div className="chord-output__add-row">
-        <button
-          id="wt-add-btn"
-          className="chord-output__add-btn"
-          onClick={() => onAddToProgression(chordName, notes)}
-          aria-label={`Add ${chordName} to progression`}
-        >
-          + Add current chord
-        </button>
-        {isPro ? (
+      <div className="chord-output__body">
+        <div className="chord-output__summary">
+          <div className="chord-output__name">{chordName}</div>
+          <dl className="chord-output__details">
+            <div className="chord-output__detail-row">
+              <dt>Notes</dt>
+              <dd>{noteNames.join(' · ')}</dd>
+            </div>
+            {intervals && intervals.length > 0 && (
+              <div className="chord-output__detail-row">
+                <dt title="The distance between each note — Root is the tonic, 3 is the third, 5 is the fifth">Intervals</dt>
+                <dd>{intervals.map(formatInterval).join(' · ')}</dd>
+              </div>
+            )}
+          </dl>
+        </div>
+        <div className="chord-output__actions">
+          <button
+            id="wt-play-btn"
+            className={`chord-output__play-btn ${playing ? 'chord-output__play-btn--playing' : ''}`}
+            onClick={handlePlay}
+            disabled={playing || !notes || notes.length === 0}
+            aria-label="Play chord"
+          >
+            <span className="chord-output__play-icon">{playing ? '♪' : '▶'}</span>
+            {playing ? 'Playing…' : 'Play Chord'}
+          </button>
+          <button
+            id="wt-add-btn"
+            className="chord-output__add-btn"
+            onClick={() => onAddToProgression(chordName, notes)}
+            aria-label={`Add ${chordName} to progression`}
+          >
+            + Add current chord
+          </button>
+          {isPro ? (
           <button
             type="button"
             className={`chord-output__export-btn ${exportStatus === 'error' ? 'chord-output__export-btn--error' : ''}`}
@@ -141,31 +154,16 @@ export default function ChordOutputPanel({ chordName, notes, intervals, availabl
                 : exportStatus === 'error' ? 'Export failed'
                   : 'Export MIDI'}
           </button>
-        ) : (
-          <button type="button" className="chord-output__export-btn chord-output__export-btn--locked" disabled>
-            Export MIDI <span className="chord-output__pro-badge">PRO</span>
-          </button>
-        )}
+          ) : (
+            <button type="button" className="chord-output__export-btn chord-output__export-btn--locked" disabled>
+              Export MIDI <span className="chord-output__pro-badge">PRO</span>
+            </button>
+          )}
+        </div>
       </div>
       {exportStatus === 'error' && (
         <p className="chord-output__export-error" role="status">{exportError}</p>
       )}
-      <div className="chord-output__row">
-        <span className="chord-output__row-pair">
-          <span className="chord-output__row-label">Notes</span>
-          <span className="chord-output__row-value">
-            {noteNames.join(' · ')}
-          </span>
-        </span>
-        {intervals && intervals.length > 0 && (
-          <span className="chord-output__row-pair">
-            <span className="chord-output__row-label chord-output__row-label--inline" title="The distance between each note — Root is the tonic, 3 is the third, 5 is the fifth">Intervals</span>
-            <span className="chord-output__row-value">
-              {intervals.map(formatInterval).join(' · ')}
-            </span>
-          </span>
-        )}
-      </div>
     </div>
   )
 }

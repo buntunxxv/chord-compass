@@ -152,9 +152,9 @@ export default function ChordSelector({ root, quality, extension, bassNote, isPr
       <h2 className="chord-selector__title">Build a Chord</h2>
       <div className="chord-selector__dropdowns">
         <div className="chord-selector__field" id="wt-root">
-          <label className="chord-selector__label">Root</label>
-          <span className="chord-selector__hint">The note the chord is named after</span>
           <Dropdown
+            label="Root"
+            description="The note the chord is named after"
             value={root}
             onChange={v => handleChange('root', v)}
             options={ROOTS.map((r, i) => ({
@@ -166,9 +166,9 @@ export default function ChordSelector({ root, quality, extension, bassNote, isPr
         </div>
 
         <div className="chord-selector__field" id="wt-quality">
-          <label className="chord-selector__label">Quality</label>
-          <span className="chord-selector__hint">Major sounds bright, minor is darker</span>
           <Dropdown
+            label="Quality"
+            description="Changes the chord's basic mood"
             value={quality}
             onChange={v => handleChange('quality', v)}
             options={QUALITIES.map(q => ({
@@ -180,9 +180,9 @@ export default function ChordSelector({ root, quality, extension, bassNote, isPr
         </div>
 
         <div className="chord-selector__field">
-          <label className="chord-selector__label">Extension</label>
-          <span className="chord-selector__hint">Extra notes that add colour — start with None</span>
           <Dropdown
+            label="Extension"
+            description="Adds colour with extra notes"
             value={extension}
             onChange={v => handleChange('extension', v)}
             options={EXTENSIONS.map(e => ({
@@ -194,23 +194,19 @@ export default function ChordSelector({ root, quality, extension, bassNote, isPr
           />
         </div>
 
-        {bassEligible && (
-          <div className="chord-selector__field" id="wt-bass-note">
-            <label className="chord-selector__label">Bass note</label>
-            <span className="chord-selector__hint">
-              {isPro ? 'Play this chord over a different bass note (slash chord)' : 'Slash chords and inversions are a Pro feature'}
-            </span>
-            <div className="chord-selector__bass-row">
-              <Dropdown
-                value={bassNote}
-                onChange={v => handleChange('bassNote', v)}
-                disabled={!isPro}
-                options={BASS_NOTE_OPTIONS}
-              />
-              {!isPro && <span className="chord-selector__pro-badge">PRO</span>}
-            </div>
+        <div className="chord-selector__field" id="wt-bass-note">
+          <div className="chord-selector__bass-row">
+            <Dropdown
+              label="Bass note"
+              description={bassEligible ? 'Places a different note underneath' : 'Not available for this chord type'}
+              badge={!bassEligible ? 'N/A' : !isPro ? 'PRO' : undefined}
+              value={bassNote}
+              onChange={v => handleChange('bassNote', v)}
+              disabled={!isPro || !bassEligible}
+              options={BASS_NOTE_OPTIONS}
+            />
           </div>
-        )}
+        </div>
       </div>
     </div>
   )

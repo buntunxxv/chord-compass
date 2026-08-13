@@ -1,8 +1,9 @@
 .chord-selector {
   background: var(--white);
-  border-radius: var(--radius);
-  padding: 24px;
-  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 28px;
+  box-shadow: none;
 }
 
 .chord-selector__title {
@@ -15,32 +16,35 @@
 }
 
 .chord-selector__dropdowns {
-  display: flex;
-  gap: 16px;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+@media (max-width: 600px) {
+  .chord-selector__title {
+    margin-bottom: 13px;
+    font-size: 11px;
+    letter-spacing: 0.05em;
+  }
+
+  .chord-selector__dropdowns {
+    gap: 8px;
+  }
 }
 
 .chord-selector__field {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  flex: 1;
-  min-width: 120px;
+  min-width: 0;
 }
 
-.chord-selector__label {
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-}
+@media (max-width: 420px) {
+  .chord-selector {
+    padding: 0;
+  }
 
-.chord-selector__hint {
-  font-size: 13px;
-  color: var(--text-muted);
-  line-height: 1.45;
-  margin-top: -2px;
 }
 
 .chord-selector__bass-row {
@@ -52,16 +56,3 @@
 .chord-selector__bass-row .dropdown {
   flex: 1;
 }
-
-.chord-selector__pro-badge {
-  font-size: 9.5px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  padding: 2px 6px;
-  border-radius: 20px;
-  background: var(--suggest-tint);
-  color: var(--suggest);
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-

@@ -6,7 +6,8 @@
   z-index: 90;
   background: var(--white);
   box-shadow: 0 -2px 16px rgba(0,0,0,0.1);
-  padding: 10px 20px calc(10px + env(safe-area-inset-bottom));
+  padding: 6px 20px calc(7px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--border);
 }
 
 /* ─── Cap expanded height to the viewport ───────────────────────────────────
@@ -14,14 +15,19 @@
    content push its top edge as far up as it needs, including off-screen on
    short/landscape viewports (e.g. 844x390) -- dvh (not vh) tracks the real
    visible height as mobile browser chrome shows/hides, and the header's own
-   133px (.app__header-inner's 64px + .app__header-path-row's 69px) is
-   reserved so the sheet never grows above it. The container itself doesn't
+   height is reserved so the sheet never grows above it. The container itself doesn't
    scroll; only expanded-content does, so the handle above it stays fixed in
    place and always reachable. */
 .progression-strip--expanded {
   display: flex;
   flex-direction: column;
-  max-height: calc(100dvh - 133px);
+  max-height: calc(100dvh - 72px);
+}
+
+@media (max-width: 600px) {
+  .progression-strip--expanded {
+    max-height: calc(100dvh - 64px);
+  }
 }
 
 /* ─── Collapsible bottom sheet ──────────────────────────────────────────────
@@ -37,7 +43,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 22px;
+  height: 15px;
   flex-shrink: 0;
   cursor: pointer;
   touch-action: none;
@@ -56,10 +62,10 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  max-width: 860px;
+  max-width: 1040px;
   margin: 0 auto;
-  min-height: 44px;
-  padding: 4px 0 8px;
+  min-height: 48px;
+  padding: 2px 0 5px;
   cursor: pointer;
 }
 
@@ -75,9 +81,18 @@
   overflow: hidden;
 }
 
+.progression-strip__collapsed-label {
+  color: var(--text-faint);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
 .progression-strip__collapsed-chord-name {
-  font-size: 19px;
-  font-weight: 700;
+  font-size: 18px;
+  font-weight: 800;
   color: var(--teal);
   letter-spacing: -0.01em;
   overflow: hidden;
@@ -148,7 +163,7 @@
 }
 
 .progression-strip__bar {
-  max-width: 860px;
+  max-width: 1040px;
   margin: 0 auto;
   display: flex;
   align-items: center;
