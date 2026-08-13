@@ -1,25 +1,22 @@
 .learn-path {
   flex: 1;
   min-height: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 28px 20px;
+  overflow-y: auto;
 }
 
 .learn-path__inner {
-  max-width: 420px;
+  max-width: 860px;
+  margin: 0 auto;
+  width: 100%;
+  padding: 28px 20px 60px;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 20px;
-  text-align: center;
+  gap: 16px;
 }
 
-.learn-path__message {
-  font-size: 15px;
-  color: var(--text-muted);
-  line-height: 1.5;
+.learn-path__topbar {
+  display: flex;
+  justify-content: flex-end;
 }
 
 .learn-path__back-btn {
@@ -27,15 +24,335 @@
   color: var(--on-accent);
   border: none;
   border-radius: 999px;
-  padding: 10px 24px;
+  padding: 8px 20px;
   font-family: var(--font);
   font-size: 13px;
   font-weight: 700;
   cursor: pointer;
-  transition: background 0.2s, transform 0.2s;
+  transition: background 0.2s;
 }
 
 .learn-path__back-btn:hover {
   background: var(--teal-dark);
-  transform: translateY(-1px);
+}
+
+.learn-path__section {
+  background: var(--white);
+  border-radius: var(--radius);
+  padding: 24px;
+  box-shadow: var(--shadow);
+}
+
+.learn-path__section-title {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+}
+
+/* ─── Key picker ─────────────────────────────────────────────────────────── */
+
+.learn-path__key-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.learn-path__key-btn {
+  min-height: 44px;
+  min-width: 44px;
+  padding: 8px 16px;
+  background: var(--bg);
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  font-family: var(--font);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+}
+
+.learn-path__key-btn:hover {
+  border-color: var(--teal);
+}
+
+.learn-path__key-btn--active {
+  background: var(--teal);
+  border-color: var(--teal);
+  color: var(--on-accent);
+}
+
+/* ─── Challenge list ─────────────────────────────────────────────────────── */
+
+.learn-path__challenge-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.learn-path__challenge-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--bg);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+}
+
+.learn-path__challenge-label {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.01em;
+}
+
+.learn-path__start-btn {
+  min-height: 44px;
+  background: transparent;
+  border: 1.5px solid var(--teal);
+  color: var(--teal);
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  transition: background 0.15s, color 0.15s;
+}
+
+.learn-path__start-btn:hover {
+  background: var(--teal);
+  color: var(--on-accent);
+}
+
+/* ─── Active challenge ───────────────────────────────────────────────────── */
+
+.learn-path__challenge-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+/* Not .learn-path__section-title -- that class uppercases text, which would
+   destroy the I/IV/V vs ii/vi case distinction (major vs minor degree) that
+   makes a Roman-numeral label meaningful. */
+.learn-path__challenge-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.01em;
+  margin-bottom: 4px;
+}
+
+.learn-path__key-note {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.learn-path__exit-btn {
+  min-height: 44px;
+  background: transparent;
+  border: 1.5px solid var(--border);
+  color: var(--text-muted);
+  border-radius: 6px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.learn-path__exit-btn:hover {
+  border-color: var(--teal);
+  color: var(--teal);
+}
+
+.learn-path__pattern-strip {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.learn-path__numeral {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  background: var(--bg);
+  border: 1.5px solid var(--border);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.learn-path__numeral--active {
+  border-color: var(--gold);
+  background: rgba(245, 184, 46, 0.14);
+  color: var(--text);
+}
+
+.learn-path__numeral--correct {
+  border-color: var(--teal);
+  background: var(--teal-tint);
+  color: var(--teal);
+}
+
+.learn-path__numeral--guessed {
+  border-color: var(--border);
+  background: var(--bg);
+  color: var(--text-muted);
+}
+
+.learn-path__prompt {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+.learn-path__chord-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+  gap: 8px;
+}
+
+.learn-path__chord-btn {
+  min-height: 44px;
+  padding: 8px 10px;
+  background: var(--bg);
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  font-family: var(--font);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+}
+
+.learn-path__chord-btn:hover:not(:disabled) {
+  border-color: var(--teal);
+}
+
+.learn-path__chord-btn--picked {
+  border-color: var(--gold);
+  background: rgba(245, 184, 46, 0.14);
+}
+
+.learn-path__chord-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.learn-path__feedback {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.learn-path__feedback p {
+  font-size: 14px;
+  color: var(--text);
+}
+
+.learn-path__feedback--correct strong {
+  color: var(--teal);
+}
+
+.learn-path__feedback--miss strong {
+  color: var(--gold);
+}
+
+.learn-path__next-btn {
+  align-self: flex-start;
+  min-height: 44px;
+  background: var(--teal);
+  color: var(--on-accent);
+  border: none;
+  border-radius: 6px;
+  padding: 8px 18px;
+  font-size: 13px;
+  font-weight: 700;
+  transition: background 0.2s;
+}
+
+.learn-path__next-btn:hover {
+  background: var(--teal-dark);
+}
+
+/* ─── Reveal ─────────────────────────────────────────────────────────────── */
+
+.learn-path__reveal-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.learn-path__reveal-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 14px;
+  background: var(--bg);
+  border-radius: 8px;
+}
+
+.learn-path__reveal-numeral {
+  min-width: 32px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.learn-path__reveal-chord {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--teal);
+}
+
+.learn-path__reveal-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.learn-path__play-btn {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--teal);
+  color: var(--on-accent);
+  border: none;
+  border-radius: 6px;
+  padding: 8px 18px;
+  font-size: 13px;
+  font-weight: 700;
+  transition: background 0.2s;
+}
+
+.learn-path__play-btn:hover:not(:disabled) {
+  background: var(--teal-dark);
+}
+
+.learn-path__play-btn--playing {
+  background: var(--teal-dark);
+}
+
+.learn-path__play-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
 }
