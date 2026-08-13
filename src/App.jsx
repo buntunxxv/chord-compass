@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from 'react'
+import { Link } from 'react-router-dom'
 import { Chord, Note } from 'tonal'
 import { CHORD_DATA } from './chordData'
 import { GUITAR_SHAPES } from './guitarData'
@@ -594,6 +595,7 @@ export default function App() {
               <img src={resolvedTheme === 'dark' ? '/kynda-logo-white.png' : '/kynda-logo-full.png'} alt="Kynda Learning" />
             </a>
             <nav className="app__site-nav">
+              <Link to="/tools" className="app__site-nav-link">Tools</Link>
               <a href="https://www.kyndalearning.co.uk/courses" className="app__site-nav-link">Courses</a>
               <a href="https://www.kyndalearning.co.uk/workshops" className="app__site-nav-link">Workshops</a>
               <a href="https://www.kyndalearning.co.uk/portal" className="app__site-nav-link">Portal</a>
@@ -641,6 +643,7 @@ export default function App() {
         </div>
         {menuOpen && (
           <div className="app__mobile-menu">
+            <Link to="/tools" className="app__mobile-menu-link" onClick={() => setMenuOpen(false)}>All tools</Link>
             <a href="https://www.kyndalearning.co.uk/courses" className="app__mobile-menu-link" onClick={() => setMenuOpen(false)}>Courses</a>
             <a href="https://www.kyndalearning.co.uk/workshops" className="app__mobile-menu-link" onClick={() => setMenuOpen(false)}>Workshops</a>
             <a href="https://www.kyndalearning.co.uk/portal" className="app__mobile-menu-link" onClick={() => setMenuOpen(false)}>Portal</a>

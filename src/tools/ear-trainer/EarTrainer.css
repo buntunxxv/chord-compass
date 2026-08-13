@@ -1,0 +1,159 @@
+.ear-trainer__lede,
+.chord-scales__lede {
+  max-width: 670px;
+  margin: -12px 0 30px;
+  color: var(--text-muted);
+  font-size: 1.05rem;
+  line-height: 1.65;
+}
+
+.ear-trainer {
+  width: min(780px, 100%);
+}
+
+.ear-trainer__status {
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.ear-trainer__prompt {
+  padding: clamp(28px, 6vw, 52px);
+  text-align: center;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  box-shadow: var(--shadow);
+}
+
+.ear-trainer__sound-icon {
+  width: 66px;
+  height: 66px;
+  margin: 0 auto 20px;
+  display: grid;
+  place-items: center;
+  color: var(--teal);
+  background: var(--teal-tint);
+  border-radius: 50%;
+  font-size: 30px;
+}
+
+.ear-trainer__sound-icon--live {
+  box-shadow: 0 0 0 8px color-mix(in srgb, var(--teal) 12%, transparent);
+}
+
+.ear-trainer__prompt h2 {
+  margin-bottom: 7px;
+  font-size: clamp(1.35rem, 4vw, 1.8rem);
+}
+
+.ear-trainer__prompt p,
+.ear-trainer__feedback span {
+  color: var(--text-muted);
+}
+
+.ear-trainer__prompt-actions {
+  margin-top: 24px;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.ear-trainer__primary,
+.ear-trainer__secondary {
+  min-width: 128px;
+  min-height: 48px;
+  padding: 0 20px;
+  border-radius: 12px;
+  font-weight: 800;
+}
+
+.ear-trainer__primary {
+  color: var(--on-accent);
+  background: var(--teal);
+  border: 1px solid var(--teal);
+}
+
+.ear-trainer__secondary {
+  color: var(--teal);
+  background: transparent;
+  border: 1px solid var(--teal);
+}
+
+.ear-trainer__answers {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.ear-trainer__answers button {
+  min-height: 72px;
+  padding: 14px 18px;
+  display: flex;
+  align-items: flex-start;
+  flex-direction: column;
+  color: var(--text);
+  text-align: left;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 13px;
+}
+
+.ear-trainer__answers button:not(:disabled):hover {
+  border-color: var(--teal);
+}
+
+.ear-trainer__answers button:disabled {
+  cursor: default;
+  opacity: 0.72;
+}
+
+.ear-trainer__answers span {
+  margin-top: 3px;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.ear-trainer__answers .ear-trainer__answer--correct {
+  color: var(--teal-dark);
+  background: var(--teal-tint);
+  border-color: var(--teal);
+  opacity: 1;
+}
+
+.ear-trainer__answers .ear-trainer__answer--incorrect {
+  color: #a33a3a;
+  border-color: #d97878;
+  opacity: 1;
+}
+
+.ear-trainer__feedback {
+  margin-top: 14px;
+  padding: 16px 18px;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  background: var(--warn-bg);
+  border-radius: 12px;
+}
+
+.ear-trainer__feedback--correct {
+  background: var(--teal-tint);
+}
+
+@media (max-width: 560px) {
+  .ear-trainer__answers {
+    grid-template-columns: 1fr;
+  }
+
+  .ear-trainer__feedback {
+    flex-direction: column;
+  }
+}

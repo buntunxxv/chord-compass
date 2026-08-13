@@ -1,0 +1,156 @@
+.chord-scales {
+  width: min(820px, 100%);
+}
+
+.chord-scales__tabs {
+  width: fit-content;
+  margin-bottom: 18px;
+  padding: 4px;
+  display: flex;
+  gap: 4px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 13px;
+}
+
+.chord-scales__tabs button {
+  min-height: 44px;
+  padding: 0 18px;
+  color: var(--text-muted);
+  background: transparent;
+  border: none;
+  border-radius: 9px;
+  font-weight: 800;
+}
+
+.chord-scales__tabs .chord-scales__tab--active {
+  color: var(--on-accent);
+  background: var(--teal);
+}
+
+.chord-scales__picker {
+  padding: 24px;
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 16px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 17px;
+  box-shadow: var(--shadow);
+}
+
+.chord-scales__picker label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.chord-scales__picker select {
+  width: 100%;
+  min-height: 50px;
+  padding: 0 14px;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.chord-scales__summary {
+  margin: 22px 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--text-muted);
+}
+
+.chord-scales__summary span {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  color: var(--on-accent);
+  background: var(--teal);
+  border-radius: 50%;
+  font-weight: 800;
+}
+
+.chord-scales__results {
+  display: grid;
+  gap: 10px;
+}
+
+.chord-scales__result {
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+}
+
+.chord-scales__result h2 {
+  margin-bottom: 5px;
+  font-size: 1.08rem;
+}
+
+.chord-scales__notes {
+  color: var(--teal);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.chord-scales__why {
+  margin-top: 7px;
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.chord-scales__result button {
+  min-width: 72px;
+  min-height: 44px;
+  color: var(--teal);
+  background: transparent;
+  border: 1px solid var(--teal);
+  border-radius: 10px;
+  font-weight: 800;
+}
+
+.chord-scales__result button:hover {
+  color: var(--on-accent);
+  background: var(--teal);
+}
+
+@media (max-width: 560px) {
+  .chord-scales__tabs {
+    width: 100%;
+  }
+
+  .chord-scales__tabs button {
+    flex: 1;
+    padding: 0 8px;
+    font-size: 12px;
+  }
+
+  .chord-scales__picker {
+    grid-template-columns: 1fr;
+  }
+
+  .chord-scales__result {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .chord-scales__result button {
+    width: 100%;
+  }
+}

@@ -1,0 +1,196 @@
+.metronome__lede {
+  max-width: 640px;
+  margin: -12px 0 30px;
+  color: var(--text-muted);
+  font-size: 1.05rem;
+  line-height: 1.65;
+}
+
+.metronome {
+  width: min(700px, 100%);
+  padding: clamp(24px, 5vw, 48px);
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  box-shadow: var(--shadow);
+}
+
+.metronome__display {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.metronome__number {
+  font-size: clamp(4.5rem, 16vw, 8rem);
+  font-weight: 800;
+  line-height: 0.95;
+  letter-spacing: -0.07em;
+}
+
+.metronome__unit,
+.metronome__section-label {
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.metronome__stepper {
+  margin: 30px auto 20px;
+  display: grid;
+  grid-template-columns: 48px 1fr 48px;
+  align-items: center;
+  gap: 14px;
+}
+
+.metronome__stepper button,
+.metronome__signatures button {
+  min-height: 46px;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  font-weight: 700;
+}
+
+.metronome__stepper button {
+  font-size: 24px;
+}
+
+.metronome__stepper input {
+  width: 100%;
+  accent-color: var(--teal);
+}
+
+.metronome__beats {
+  min-height: 42px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+}
+
+.metronome__beat {
+  width: 13px;
+  height: 13px;
+  background: var(--border);
+  border-radius: 50%;
+  transition: transform 0.06s, background 0.06s;
+}
+
+.metronome__beat--downbeat {
+  width: 17px;
+  height: 17px;
+  border: 2px solid var(--gold);
+}
+
+.metronome__beat--active {
+  background: var(--teal);
+  transform: scale(1.35);
+}
+
+.metronome__beat--downbeat.metronome__beat--active {
+  background: var(--gold);
+}
+
+.metronome__play {
+  width: 100%;
+  min-height: 58px;
+  margin: 18px 0 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: var(--on-accent);
+  background: var(--teal);
+  border: none;
+  border-radius: 14px;
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.metronome__play:hover,
+.metronome__play--active {
+  background: var(--teal-dark);
+}
+
+.metronome__section {
+  padding-top: 26px;
+  border-top: 1px solid var(--border);
+}
+
+.metronome__section-label {
+  margin-bottom: 12px;
+}
+
+.metronome__signatures {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+.metronome__signatures .metronome__signature--active {
+  color: var(--on-accent);
+  background: var(--teal);
+  border-color: var(--teal);
+}
+
+.metronome__tap-panel {
+  margin-top: 28px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  background: var(--teal-tint);
+  border-radius: 16px;
+}
+
+.metronome__tap-panel h2 {
+  margin-bottom: 5px;
+  font-size: 1rem;
+}
+
+.metronome__tap-panel p {
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.metronome__tap {
+  min-width: 150px;
+  min-height: 68px;
+  padding: 10px 18px;
+  color: var(--text);
+  background: var(--white);
+  border: 2px solid var(--teal);
+  border-radius: 13px;
+  font-weight: 800;
+}
+
+.metronome__tap span {
+  margin-top: 3px;
+  display: block;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+@media (max-width: 520px) {
+  .metronome__signatures {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .metronome__tap-panel {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .metronome__tap {
+    width: 100%;
+  }
+}
