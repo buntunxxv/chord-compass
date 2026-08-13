@@ -831,8 +831,8 @@
      to guarantee a genuine 44px touch target per white key; shrinking it
      back down on short viewports would silently undo that. It scrolls
      horizontally instead (piano-display__keys-scroll). */
-  .progression-strip__expanded-content .guitar-display--compact .guitar-display__svg {
-    max-width: 150px;
+  .progression-strip__expanded-content .guitar-display__legend {
+    margin-top: 8px;
   }
 
   .progression-strip__expanded-content .instrument-dock__keys-position-selector {
