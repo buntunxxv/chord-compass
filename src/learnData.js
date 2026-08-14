@@ -76,41 +76,41 @@ export const LEARN_CHORD_SUBSET = [...LEARN_ROOTS, ...ACCIDENTAL_CHORD_ROOTS].fl
 // answer. See resolveChallengeChord below for how the flag changes what
 // gets resolved, and LearnPath.jsx for how it filters the picker.
 export const LEARN_CHALLENGES = [
-  { id: 'I-IV-V-I', label: 'I – IV – V – I', romanNumerals: [
+  { id: 'I-IV-V-I', label: 'I – IV – V – I', why: `The foundational cadence of Western harmony — IV opens the sound away from home, V creates strong pull, and returning to I resolves it completely. You'll hear this shape everywhere from folk to rock.`, romanNumerals: [
     { numeral: 'I', dominant7: false },
     { numeral: 'IV', dominant7: false },
     { numeral: 'V', dominant7: false },
     { numeral: 'I', dominant7: false },
   ] },
-  { id: 'I-V-vi-IV', label: 'I – V – vi – IV', romanNumerals: [
+  { id: 'I-V-vi-IV', label: 'I – V – vi – IV', why: `Pop's most-used four chords. V creates motion, but instead of resolving to I it deceptively lands on vi — the relative minor — before IV opens things out again. That deceptive move gives it an anthemic, uplifting feel rather than a simple resolution.`, romanNumerals: [
     { numeral: 'I', dominant7: false },
     { numeral: 'V', dominant7: false },
     { numeral: 'vi', dominant7: false },
     { numeral: 'IV', dominant7: false },
   ] },
-  { id: 'ii-V-I', label: 'ii – V – I', romanNumerals: [
+  { id: 'ii-V-I', label: 'ii – V – I', why: `The backbone of jazz harmony. ii quietly sets up V, V creates strong dominant tension, and I resolves it — each chord mainly existing to prepare the next.`, romanNumerals: [
     { numeral: 'ii', dominant7: false },
     { numeral: 'V', dominant7: false },
     { numeral: 'I', dominant7: false },
   ] },
-  { id: 'ii-V7-I', label: 'ii – V7 – I', romanNumerals: [
+  { id: 'ii-V7-I', label: 'ii – V7 – I', why: `Same shape as ii-V-I, but V7's added seventh sharpens the pull toward I. This is the exact cadence most real jazz standards use, not just the theory-class version.`, romanNumerals: [
     { numeral: 'ii', dominant7: false },
     { numeral: 'V', dominant7: true },
     { numeral: 'I', dominant7: false },
   ] },
-  { id: 'I-vi-IV-V', label: 'I – vi – IV – V', romanNumerals: [
+  { id: 'I-vi-IV-V', label: 'I – vi – IV – V', why: `The doo-wop/50s progression — I and vi share two notes, so the first move feels gentle, almost like a variation on home, before IV opens out and V pushes back to the top.`, romanNumerals: [
     { numeral: 'I', dominant7: false },
     { numeral: 'vi', dominant7: false },
     { numeral: 'IV', dominant7: false },
     { numeral: 'V', dominant7: false },
   ] },
-  { id: 'vi-IV-I-V', label: 'vi – IV – I – V', romanNumerals: [
+  { id: 'vi-IV-I-V', label: 'vi – IV – I – V', why: `The same four chords as the pop progression above, but starting on vi instead of I — because it opens in the minor-feeling chord, the whole loop reads as more wistful, even though the chords haven't changed.`, romanNumerals: [
     { numeral: 'vi', dominant7: false },
     { numeral: 'IV', dominant7: false },
     { numeral: 'I', dominant7: false },
     { numeral: 'V', dominant7: false },
   ] },
-  { id: 'I-IV-I-V', label: 'I – IV – I – V', romanNumerals: [
+  { id: 'I-IV-I-V', label: 'I – IV – I – V', why: `A simpler cousin of I-IV-V-I — IV lifts away from home, returns briefly, then V creates tension before the phrase repeats rather than fully resolving. Common in verses that want momentum without full closure.`, romanNumerals: [
     { numeral: 'I', dominant7: false },
     { numeral: 'IV', dominant7: false },
     { numeral: 'I', dominant7: false },
