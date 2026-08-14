@@ -499,6 +499,25 @@ export default function App() {
     setKeysPositionIndex(entry?.keysPositionIndex ?? 0)
   }
 
+  // NextChordSuggestions' "+ Add to progression" adds a chord the builder
+  // never actually built (it's a suggestion, not the live selection), so
+  // unlike ChordOutputPanel's own Add -- which already reflects whatever's
+  // in the builder -- nothing here otherwise syncs the builder to match.
+  // Chains this onto addToProgression the same way handleSelectChord synced
+  // the builder for a tapped chip, so a suggestion just added behaves as if
+  // its chip had been tapped immediately after: the builder/suggestions
+  // panel picks it up without a trip to the progression strip, letting a
+  // user keep chaining suggestion-to-suggestion. addToProgression always
+  // inserts suggestion entries at guitar/keys position 0, so those are the
+  // values restored here rather than read back off the just-inserted entry.
+  function handleAddSuggestionToProgression(chord, notes) {
+    addToProgression(chord, notes)
+    const sel = chordNameToSelection(chord)
+    if (sel) setSelection({ ...sel, bassNote: 'none' })
+    setGuitarPositionIndex(0)
+    setKeysPositionIndex(0)
+  }
+
   // The ChordSelector's own dropdowns (Root/Quality/Extension/Bass note) are
   // the one place a genuinely NEW chord gets built from scratch -- unlike
   // handleSelectChord (tapping a progression chip), there's no prior
@@ -749,7 +768,7 @@ export default function App() {
                       bpm={bpm}
                       previewIndex={previewIndex}
                       onPreviewChange={setPreviewIndex}
-                      onAddToProgression={addToProgression}
+                      onAddToProgression={handleAddSuggestionToProgression}
                       theme={resolvedTheme}
                       isPro={isPro}
                     />
