@@ -25,6 +25,95 @@
   gap: 20px;
 }
 
+.tool-shell__header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.tool-shell__learning-link {
+  min-height: 42px;
+  padding: 0 10px;
+  color: var(--teal);
+  background: transparent;
+  border: 0;
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.tool-shell__learning-link:hover {
+  color: var(--teal-dark);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.tool-shell__learning-label--mobile {
+  display: none;
+}
+
+.tool-shell__hamburger {
+  width: 44px;
+  height: 44px;
+  padding: 8px;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius);
+}
+
+.tool-shell__hamburger:hover {
+  background: rgba(17, 147, 146, 0.08);
+}
+
+.tool-shell__hamburger-line {
+  width: 22px;
+  height: 2px;
+  display: block;
+  background: var(--text-muted);
+  border-radius: 2px;
+}
+
+.tool-shell__mobile-menu {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 0;
+  background: var(--white);
+  border-top: 1px solid var(--border);
+}
+
+.tool-shell__mobile-menu-link {
+  padding: 12px 24px;
+  color: var(--text-muted);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.tool-shell__mobile-menu-link:hover {
+  color: var(--teal);
+  background: rgba(17, 147, 146, 0.06);
+}
+
+.tool-shell__mobile-menu-theme {
+  margin-top: 4px;
+  padding: 10px 24px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid var(--border);
+}
+
+.tool-shell__mobile-menu-theme > span {
+  color: var(--text-muted);
+  font-size: 14px;
+  font-weight: 600;
+}
+
 .tool-shell__brand {
   display: flex;
   align-items: center;
@@ -75,6 +164,16 @@
   letter-spacing: -0.035em;
 }
 
+@media (max-width: 900px) {
+  .tool-shell__header-actions > .theme-toggle {
+    display: none;
+  }
+
+  .tool-shell__hamburger {
+    display: flex;
+  }
+}
+
 @media (max-width: 560px) {
   .tool-shell__header,
   .tool-shell__main {
@@ -89,5 +188,20 @@
 
   .tool-shell__brand img {
     height: 31px;
+  }
+}
+
+@media (max-width: 480px) {
+  .tool-shell__brand-divider,
+  .tool-shell__brand-name {
+    display: none;
+  }
+
+  .tool-shell__learning-label--desktop {
+    display: none;
+  }
+
+  .tool-shell__learning-label--mobile {
+    display: inline;
   }
 }

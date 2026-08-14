@@ -1,5 +1,191 @@
+.chord-scales__lede {
+  max-width: 680px;
+  margin: -12px 0 26px;
+  color: var(--text-muted);
+  font-size: 1.05rem;
+  line-height: 1.65;
+}
+
 .chord-scales {
   width: min(820px, 100%);
+}
+
+.chord-scales__lesson {
+  width: min(820px, 100%);
+  overflow: hidden;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  box-shadow: var(--shadow);
+}
+
+.chord-scales__lesson-heading,
+.chord-scales__lesson-footer,
+.chord-scales__note-demo-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.chord-scales__lesson-heading {
+  padding: clamp(24px, 5vw, 38px) clamp(22px, 5vw, 40px) 18px;
+}
+
+.chord-scales__lesson-heading h2 {
+  margin-top: 5px;
+  font-size: clamp(1.45rem, 4vw, 2rem);
+  line-height: 1.2;
+}
+
+.chord-scales__lesson-number,
+.chord-scales__demo-label {
+  color: var(--teal);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.chord-scales__lesson-badge {
+  flex: 0 0 auto;
+  padding: 8px 12px;
+  color: var(--teal);
+  background: var(--teal-tint);
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.chord-scales__lesson-copy {
+  max-width: 700px;
+  padding: 0 clamp(22px, 5vw, 40px) 30px;
+  color: var(--text-muted);
+  line-height: 1.7;
+}
+
+.chord-scales__note-demo {
+  margin: 0 clamp(22px, 5vw, 40px);
+  padding: 22px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+}
+
+.chord-scales__note-demo-heading p {
+  margin-top: 3px;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.chord-scales__hear-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.chord-scales__hear-actions button {
+  min-height: 40px;
+  padding: 0 13px;
+  color: var(--teal);
+  background: var(--white);
+  border: 1px solid var(--teal);
+  border-radius: 9px;
+  font-weight: 800;
+}
+
+.chord-scales__lesson-notes {
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+}
+
+.chord-scales__lesson-notes span {
+  min-width: 0;
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  color: var(--text-muted);
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  font-size: clamp(0.75rem, 2.5vw, 1rem);
+  font-weight: 800;
+}
+
+.chord-scales__lesson-notes .chord-scales__lesson-note--chord {
+  color: var(--on-accent);
+  background: var(--teal);
+  border-color: var(--teal);
+  box-shadow: 0 0 0 4px var(--teal-tint);
+}
+
+.chord-scales__guided-try {
+  padding: 30px clamp(22px, 5vw, 40px) 34px;
+}
+
+.chord-scales__guided-try h3 {
+  margin: 5px 0 16px;
+  font-size: 1.1rem;
+}
+
+.chord-scales__answers {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.chord-scales__answers button {
+  min-height: 50px;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  font-weight: 800;
+}
+
+.chord-scales__answers .chord-scales__answer--selected {
+  color: var(--teal);
+  background: var(--teal-tint);
+  border-color: var(--teal);
+}
+
+.chord-scales__lesson-feedback {
+  margin-top: 14px;
+  padding: 14px 16px;
+  color: var(--warn-text);
+  background: var(--warn-bg);
+  border-radius: 11px;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.chord-scales__lesson-feedback--correct {
+  color: var(--teal);
+  background: var(--teal-tint);
+}
+
+.chord-scales__lesson-footer {
+  padding: 20px clamp(22px, 5vw, 40px);
+  background: var(--teal-tint);
+  border-top: 1px solid var(--border);
+}
+
+.chord-scales__lesson-footer p {
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.chord-scales__lesson-footer button {
+  flex: 0 0 auto;
+  min-height: 46px;
+  padding: 0 18px;
+  color: var(--on-accent);
+  background: var(--teal);
+  border: none;
+  border-radius: 11px;
+  font-weight: 800;
 }
 
 .chord-scales__tabs {
@@ -131,6 +317,27 @@
 }
 
 @media (max-width: 560px) {
+  .chord-scales__lesson-heading,
+  .chord-scales__lesson-footer,
+  .chord-scales__note-demo-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .chord-scales__hear-actions,
+  .chord-scales__lesson-footer button {
+    width: 100%;
+  }
+
+  .chord-scales__hear-actions button {
+    flex: 1;
+  }
+
+  .chord-scales__answers {
+    grid-template-columns: 1fr;
+  }
+
   .chord-scales__tabs {
     width: 100%;
   }
