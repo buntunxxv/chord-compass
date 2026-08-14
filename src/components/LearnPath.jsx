@@ -2,6 +2,12 @@ import { useState, useRef } from 'react'
 import * as Tone from 'tone'
 import { createKeysSynth, startAudioContext } from '../audio/synth'
 import { LEARN_ROOTS, LEARN_CHORD_SUBSET, LEARN_CHALLENGES, resolveChallengeChord } from '../learnData'
+import {
+  didPassLearnChallenge,
+  learnCompletionId,
+  markLearnChallengeComplete,
+  readLearnCompletions,
+} from '../utils/learnProgress'
 import './LearnPath.css'
 
 const PREDICT_HOLD_SECONDS = 1.2
@@ -29,6 +35,10 @@ export default function LearnPath({ onBackToBuild }) {
   const [guesses, setGuesses] = useState([])
   const [revealed, setRevealed] = useState(false)
   const [playingSequence, setPlayingSequence] = useState(false)
+  // Completion is local-only and per key: completing I-IV-V-I in C does
+  // not mark the same pattern complete in G. A Set keeps list lookups cheap
+  // while the helper owns JSON persistence and malformed-data recovery.
+  const [completedChallenges, setCompletedChallenges] = useState(() => readLearnCompletions(localStorage))
   const synthRef = useRef(null)
 
   function ensureSynth() {
@@ -51,6 +61,12 @@ export default function LearnPath({ onBackToBuild }) {
 
   function backToList() {
     setActiveChallenge(null)
+    setStepIndex(0)
+    setGuesses([])
+    setRevealed(false)
+  }
+
+  function repeatChallenge() {
     setStepIndex(0)
     setGuesses([])
     setRevealed(false)
@@ -88,6 +104,11 @@ export default function LearnPath({ onBackToBuild }) {
       setStepIndex(i => i + 1)
     } else {
       setRevealed(true)
+      if (didPassLearnChallenge(guesses, activeChallenge.romanNumerals.length)) {
+        setCompletedChallenges(previous => (
+          markLearnChallengeComplete(localStorage, previous, selectedKey, activeChallenge.id)
+        ))
+      }
     }
   }
 
@@ -107,6 +128,9 @@ export default function LearnPath({ onBackToBuild }) {
   }
 
   const currentGuess = guesses[stepIndex]
+  const challengePassed = activeChallenge
+    ? didPassLearnChallenge(guesses, activeChallenge.romanNumerals.length)
+    : false
 
   return (
     <div className="learn-path">
@@ -139,18 +163,28 @@ export default function LearnPath({ onBackToBuild }) {
             <section className="learn-path__section">
               <h2 className="learn-path__section-title">Challenges</h2>
               <ul id="wt-learn-challenge-list" className="learn-path__challenge-list">
-                {LEARN_CHALLENGES.map(challenge => (
-                  <li key={challenge.id} className="learn-path__challenge-card">
-                    <span className="learn-path__challenge-label">{challenge.label}</span>
-                    <button
-                      type="button"
-                      className="learn-path__start-btn"
-                      onClick={() => startChallenge(challenge)}
-                    >
-                      Start
-                    </button>
-                  </li>
-                ))}
+                {LEARN_CHALLENGES.map(challenge => {
+                  const isCompleted = completedChallenges.has(learnCompletionId(selectedKey, challenge.id))
+                  return (
+                    <li key={challenge.id} className={`learn-path__challenge-card ${isCompleted ? 'learn-path__challenge-card--completed' : ''}`}>
+                      <div className="learn-path__challenge-info">
+                        <span className="learn-path__challenge-label">{challenge.label}</span>
+                        {isCompleted && (
+                          <span className="learn-path__completed" aria-label={`Completed in ${selectedKey} major`}>
+                            <span aria-hidden="true">✓</span> Completed in {selectedKey}
+                          </span>
+                        )}
+                      </div>
+                      <button
+                        type="button"
+                        className="learn-path__start-btn"
+                        onClick={() => startChallenge(challenge)}
+                      >
+                        Start
+                      </button>
+                    </li>
+                  )
+                })}
               </ul>
             </section>
           </>
@@ -228,6 +262,18 @@ export default function LearnPath({ onBackToBuild }) {
                     </li>
                   ))}
                 </ol>
+                <div className={`learn-path__completion-result ${challengePassed ? 'learn-path__completion-result--passed' : 'learn-path__completion-result--retry'}`} role="status">
+                  <strong>{challengePassed ? '✓ Challenge complete' : 'Not complete yet'}</strong>
+                  <p>
+                    {challengePassed
+                      ? `You identified every chord correctly in ${selectedKey} major.`
+                      : 'One or more chords were missed. Repeat the challenge and identify every step correctly to complete it.'}
+                  </p>
+                </div>
+                <div className="learn-path__why">
+                  <h3>Why this works</h3>
+                  <p>{activeChallenge.why}</p>
+                </div>
                 <div className="learn-path__reveal-actions">
                   <button
                     type="button"
@@ -236,6 +282,14 @@ export default function LearnPath({ onBackToBuild }) {
                     disabled={playingSequence}
                   >
                     {playingSequence ? '♪ Playing…' : '▶ Play pattern'}
+                  </button>
+                  <button
+                    type="button"
+                    className="learn-path__repeat-btn"
+                    onClick={repeatChallenge}
+                    disabled={playingSequence}
+                  >
+                    ↻ Repeat
                   </button>
                   <button type="button" className="learn-path__exit-btn" onClick={backToList}>
                     Back to challenges

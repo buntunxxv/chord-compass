@@ -104,11 +104,30 @@
   border-radius: 10px;
 }
 
+.learn-path__challenge-card--completed {
+  background: var(--teal-tint);
+  border-color: color-mix(in srgb, var(--teal) 48%, var(--border));
+}
+
+.learn-path__challenge-info {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
 .learn-path__challenge-label {
   font-size: 16px;
   font-weight: 700;
   color: var(--text);
   letter-spacing: -0.01em;
+}
+
+.learn-path__completed {
+  color: var(--teal);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
 }
 
 .learn-path__start-btn {
@@ -323,6 +342,55 @@
   color: var(--teal);
 }
 
+.learn-path__completion-result {
+  margin-bottom: 12px;
+  padding: 14px 16px;
+  border-radius: 10px;
+}
+
+.learn-path__completion-result strong {
+  font-size: 14px;
+}
+
+.learn-path__completion-result p {
+  margin-top: 3px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.learn-path__completion-result--passed {
+  color: var(--teal);
+  background: var(--teal-tint);
+}
+
+.learn-path__completion-result--retry {
+  color: var(--warn-text);
+  background: var(--warn-bg);
+}
+
+.learn-path__why {
+  margin-bottom: 20px;
+  padding: 18px;
+  color: var(--text);
+  background: var(--teal-tint);
+  border: 1px solid color-mix(in srgb, var(--teal) 35%, var(--border));
+  border-radius: 10px;
+}
+
+.learn-path__why h3 {
+  margin-bottom: 7px;
+  color: var(--teal);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.learn-path__why p {
+  font-size: 14px;
+  line-height: 1.65;
+}
+
 .learn-path__reveal-actions {
   display: flex;
   gap: 10px;
@@ -342,6 +410,28 @@
   font-size: 13px;
   font-weight: 700;
   transition: background 0.2s;
+}
+
+.learn-path__repeat-btn {
+  min-height: 44px;
+  padding: 8px 18px;
+  color: var(--teal);
+  background: transparent;
+  border: 1.5px solid var(--teal);
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  transition: background 0.15s, color 0.15s;
+}
+
+.learn-path__repeat-btn:hover:not(:disabled) {
+  color: var(--on-accent);
+  background: var(--teal);
+}
+
+.learn-path__repeat-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 
 .learn-path__play-btn:hover:not(:disabled) {
