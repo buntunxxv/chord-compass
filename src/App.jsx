@@ -10,6 +10,7 @@ import { applyDrop2, applyLeftHandSplit } from './utils/pianoVoicings'
 import { useTheme } from './hooks/useTheme'
 import { getAdjacentTabIndex } from './utils/tabsKeyboardNav'
 import { toDataKey, chordNameToSelection, resolveGuitarPositions, guitarShapeForChordName } from './utils/chordSelectionLookup'
+import { shouldAutoOpenWalkthrough, walkthroughFlowForPath } from './utils/walkthroughs'
 import ChordSelector from './components/ChordSelector'
 import ChordOutputPanel from './components/ChordOutputPanel'
 import NextChordSuggestions from './components/NextChordSuggestions'
@@ -87,7 +88,7 @@ export default function App() {
   const [bpm, setBpm] = useState(90)
   const [feedbackOpen, setFeedbackOpen] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
-  const [onboardingOpen, setOnboardingOpen] = useState(false)
+  const [walkthroughFlow, setWalkthroughFlow] = useState(null)
   // Progression/instrument bottom sheet -- collapsed by default so the
   // chord builder gets the vast majority of a mobile viewport. Lives here
   // (not inside ProgressionStrip) only because App.css's bottom-padding
@@ -121,10 +122,9 @@ export default function App() {
   }
 
   useEffect(() => {
-    if (!localStorage.getItem('kcc_seen_intro_v2')) {
-      setOnboardingOpen(true)
-    }
-  }, [])
+    const flow = walkthroughFlowForPath(path)
+    setWalkthroughFlow(shouldAutoOpenWalkthrough(path, localStorage) ? flow : null)
+  }, [path])
   const [previewIndex, setPreviewIndex] = useState(null)
   const [progression, setProgression] = useState(() => {
     try {
@@ -662,8 +662,8 @@ export default function App() {
             </button>
             <button
               className="app__help-btn"
-              onClick={() => setOnboardingOpen(true)}
-              aria-label="How to use Chord Compass"
+              onClick={() => setWalkthroughFlow(walkthroughFlowForPath(path))}
+              aria-label={path === 'learn' ? 'How to use Learn' : 'How to use Chord Compass'}
             >
               ?
             </button>
@@ -855,8 +855,9 @@ export default function App() {
       />
 
       <WalkthroughOverlay
-        isOpen={onboardingOpen}
-        onClose={() => setOnboardingOpen(false)}
+        flow={walkthroughFlow ?? walkthroughFlowForPath(path)}
+        isOpen={walkthroughFlow !== null}
+        onClose={() => setWalkthroughFlow(null)}
       />
     </div>
   )

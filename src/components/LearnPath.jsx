@@ -121,7 +121,7 @@ export default function LearnPath({ onBackToBuild }) {
           <>
             <section className="learn-path__section">
               <h2 className="learn-path__section-title">Choose a key</h2>
-              <div className="learn-path__key-row" role="group" aria-label="Starting key">
+              <div id="wt-learn-key-picker" className="learn-path__key-row" role="group" aria-label="Starting key">
                 {LEARN_ROOTS.map(root => (
                   <button
                     key={root}
@@ -138,7 +138,7 @@ export default function LearnPath({ onBackToBuild }) {
 
             <section className="learn-path__section">
               <h2 className="learn-path__section-title">Challenges</h2>
-              <ul className="learn-path__challenge-list">
+              <ul id="wt-learn-challenge-list" className="learn-path__challenge-list">
                 {LEARN_CHALLENGES.map(challenge => (
                   <li key={challenge.id} className="learn-path__challenge-card">
                     <span className="learn-path__challenge-label">{challenge.label}</span>
@@ -189,7 +189,7 @@ export default function LearnPath({ onBackToBuild }) {
                   What's the next chord — step {stepIndex + 1} of {activeChallenge.romanNumerals.length}?
                 </p>
 
-                <div className="learn-path__chord-grid" role="group" aria-label="Pick the next chord">
+                <div id="wt-learn-step-picker" className="learn-path__chord-grid" role="group" aria-label="Pick the next chord">
                   {pickerOptions.map(chord => (
                     <button
                       key={chord.symbol}
