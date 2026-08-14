@@ -1,53 +1,34 @@
 import { useState, useEffect } from 'react'
+import { WALKTHROUGH_CONFIGS } from '../utils/walkthroughs'
 import './WalkthroughOverlay.css'
 
 const PAD = 6
 
-// The core loop, one step per beat -- pick a chord, hear it, see a
-// suggestion, add it to a progression. Trimmed from 8 steps down to these
-// 4: the old version also spent a step each narrating the chord-output
-// display, the piano diagram, and the progression strip without asking for
-// any interaction, which just delayed getting to the first real action.
-const STEPS = [
-  {
-    selector: '#wt-root',
-    text: 'Pick a Root and Quality to build your chord.',
-    action: false,
-  },
-  {
-    selector: '#wt-play-btn',
-    text: 'Tap Play Chord to hear how it sounds.',
-    action: true,
-  },
-  {
-    selector: '#wt-next-chords',
-    text: 'These suggestion cards show where your song could go next.',
-    action: false,
-  },
-  {
-    selector: '#wt-add-btn',
-    text: 'Add the current chord to start building a progression. Tap it now to try.',
-    action: true,
-  },
-]
-
-export default function WalkthroughOverlay({ isOpen, onClose }) {
+export default function WalkthroughOverlay({ isOpen, onClose, flow = 'build' }) {
   const [step, setStep] = useState(0)
   const [rect, setRect] = useState(null)
+  const config = WALKTHROUGH_CONFIGS[flow] ?? WALKTHROUGH_CONFIGS.build
+  const steps = config.steps
 
   useEffect(() => {
     if (isOpen) setStep(0)
     else setRect(null)
-  }, [isOpen])
+  }, [isOpen, flow])
 
   useEffect(() => {
     if (!isOpen) return
 
-    const stepDef = STEPS[step]
+    const stepDef = steps[step]
+    let frameId = null
 
     function updateRect() {
+      frameId = null
       const el = document.querySelector(stepDef.selector)
       setRect(el ? el.getBoundingClientRect() : null)
+    }
+
+    function scheduleRectUpdate() {
+      if (frameId === null) frameId = requestAnimationFrame(updateRect)
     }
 
     const el = document.querySelector(stepDef.selector)
@@ -58,21 +39,32 @@ export default function WalkthroughOverlay({ isOpen, onClose }) {
       }
     }
 
-    requestAnimationFrame(updateRect)
+    scheduleRectUpdate()
 
-    window.addEventListener('resize', updateRect)
-    window.addEventListener('scroll', updateRect, { passive: true })
+    window.addEventListener('resize', scheduleRectUpdate)
+    window.addEventListener('scroll', scheduleRectUpdate, { passive: true })
+    // Scroll events do not bubble. Capture them at document level so the
+    // spotlight also follows nested/mobile scroll containers, not only the
+    // main window viewport.
+    document.addEventListener('scroll', scheduleRectUpdate, { passive: true, capture: true })
+    window.visualViewport?.addEventListener('resize', scheduleRectUpdate)
+    window.visualViewport?.addEventListener('scroll', scheduleRectUpdate)
     return () => {
-      window.removeEventListener('resize', updateRect)
-      window.removeEventListener('scroll', updateRect)
+      if (frameId !== null) cancelAnimationFrame(frameId)
+      window.removeEventListener('resize', scheduleRectUpdate)
+      window.removeEventListener('scroll', scheduleRectUpdate)
+      document.removeEventListener('scroll', scheduleRectUpdate, true)
+      window.visualViewport?.removeEventListener('resize', scheduleRectUpdate)
+      window.visualViewport?.removeEventListener('scroll', scheduleRectUpdate)
     }
-  }, [isOpen, step])
+  }, [isOpen, step, flow])
 
   // Auto-advance when user taps the spotlighted element on action steps
   useEffect(() => {
-    if (!isOpen || !STEPS[step]?.action) return
-    const el = document.querySelector(STEPS[step].selector)
-    if (!el) return
+    const stepDef = steps[step]
+    if (!isOpen || !stepDef?.action) return
+    const elements = document.querySelectorAll(stepDef.actionSelector ?? stepDef.selector)
+    if (elements.length === 0) return
 
     let done = false
     function onAction() {
@@ -80,30 +72,30 @@ export default function WalkthroughOverlay({ isOpen, onClose }) {
       done = true
       // advance() (not a raw setStep(s => s + 1)) so clicking the
       // spotlighted element on the FINAL step closes the walkthrough
-      // instead of pushing step past the end of STEPS -- the last step is
+      // instead of pushing step past the end of the current step list -- the last step is
       // itself action-gated now (Add to progression), which the original
       // 8-step version never had to handle since its last step was always
       // a plain narration screen.
       setTimeout(() => advance(), 350)
     }
-    el.addEventListener('click', onAction)
-    return () => el.removeEventListener('click', onAction)
-  }, [isOpen, step])
+    elements.forEach(el => el.addEventListener('click', onAction))
+    return () => elements.forEach(el => el.removeEventListener('click', onAction))
+  }, [isOpen, step, flow])
 
   function advance() {
-    if (step >= STEPS.length - 1) close()
+    if (step >= steps.length - 1) close()
     else setStep(s => s + 1)
   }
 
   function close() {
-    localStorage.setItem('kcc_seen_intro_v2', '1')
+    localStorage.setItem(config.storageKey, '1')
     onClose()
   }
 
   if (!isOpen) return null
 
-  const stepDef = STEPS[step]
-  const isLast = step === STEPS.length - 1
+  const stepDef = steps[step]
+  const isLast = step === steps.length - 1
   const isAction = stepDef.action
 
   const spotlightStyle = rect
@@ -131,9 +123,9 @@ export default function WalkthroughOverlay({ isOpen, onClose }) {
     <>
       <div className="wt-spotlight" style={spotlightStyle} />
       {rect && (
-        <div className="wt-tooltip" style={tooltipStyle} role="dialog" aria-label={`Walkthrough step ${step + 1} of ${STEPS.length}`}>
+        <div className="wt-tooltip" style={tooltipStyle} role="dialog" aria-label={`Walkthrough step ${step + 1} of ${steps.length}`}>
           <div className="wt-tooltip__meta">
-            <span className="wt-tooltip__counter">{step + 1} / {STEPS.length}</span>
+            <span className="wt-tooltip__counter">{step + 1} / {steps.length}</span>
             <button className="wt-skip" onClick={close}>Skip</button>
           </div>
           <p className="wt-tooltip__text">{stepDef.text}</p>
