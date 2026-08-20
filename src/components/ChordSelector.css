@@ -56,3 +56,72 @@
 .chord-selector__bass-row .dropdown {
   flex: 1;
 }
+
+.chord-selector__advanced {
+  margin-top: 2px;
+  border-top: 1px solid var(--border);
+}
+
+.chord-selector__advanced-toggle {
+  width: 100%;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 2px 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.chord-selector__advanced-toggle:hover {
+  color: var(--teal);
+}
+
+.chord-selector__active-dot {
+  width: 7px;
+  height: 7px;
+  display: inline-block;
+  margin-left: 8px;
+  border-radius: 50%;
+  background: var(--teal);
+  vertical-align: middle;
+}
+
+.chord-selector__chevron {
+  font-size: 18px;
+  line-height: 1;
+  transition: transform 0.18s ease;
+}
+
+.chord-selector__advanced-fields {
+  display: grid;
+  gap: 10px;
+  padding-top: 0;
+}
+
+.chord-selector__advanced-inline {
+  display: none;
+}
+
+/* These controls stack vertically, so usable height—not desktop width—is
+   what determines whether they fit without displacing anything. */
+@media (min-height: 760px) {
+  .chord-selector__advanced {
+    margin-top: 0;
+    border-top: 0;
+  }
+
+  .chord-selector__advanced-toggle {
+    display: none;
+  }
+
+  .chord-selector__advanced-inline {
+    display: block;
+  }
+}

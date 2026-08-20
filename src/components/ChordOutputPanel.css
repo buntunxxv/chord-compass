@@ -74,13 +74,32 @@
 
 .chord-output__actions .chord-output__add-btn,
 .chord-output__actions .chord-output__export-btn,
-.chord-output__actions .chord-output__play-btn {
+.chord-output__actions .chord-output__play-btn,
+.chord-output__actions .chord-output__next-btn {
   width: 100%;
 }
 
 .chord-output__add-btn:hover {
   background: var(--teal-dark);
   border-color: var(--teal-dark);
+}
+
+.chord-output__next-btn {
+  min-height: 44px;
+  padding: 8px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: 11px;
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.chord-output__next-btn:hover {
+  border-color: var(--teal);
+  color: var(--teal);
 }
 
 .chord-output__export-btn {
@@ -196,6 +215,53 @@
   margin: 24px 0 0;
 }
 
+.chord-output__details-toggle {
+  width: 100%;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 16px;
+  padding: 8px 0;
+  border: 0;
+  border-top: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.chord-output__details-toggle:hover {
+  color: var(--teal);
+}
+
+.chord-output__details-panel .chord-output__details {
+  margin-top: 0;
+}
+
+.chord-output__details-panel .chord-output__export-btn {
+  width: 100%;
+  margin-top: 10px;
+}
+
+.chord-output__details-inline {
+  display: none;
+}
+
+/* Chord details also consume vertical space only; reveal them whenever that
+   space exists, including tall phone screens. */
+@media (min-height: 760px) {
+  .chord-output__details-toggle {
+    display: none;
+  }
+
+  .chord-output__details-inline {
+    display: block;
+  }
+}
+
 .chord-output__detail-row {
   display: grid;
   grid-template-columns: 76px minmax(0, 1fr);
@@ -256,7 +322,8 @@
 
   .chord-output__actions .chord-output__add-btn,
   .chord-output__actions .chord-output__export-btn,
-  .chord-output__actions .chord-output__play-btn {
+  .chord-output__actions .chord-output__play-btn,
+  .chord-output__actions .chord-output__next-btn {
     padding-right: 8px;
     padding-left: 8px;
     font-size: 11px;

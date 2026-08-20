@@ -107,6 +107,70 @@
   font-weight: 600;
   color: var(--text-muted);
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.progression-strip__collapsed-open {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  flex-shrink: 0;
+  padding: 8px 15px;
+  border-radius: 999px;
+  background: var(--teal-tint);
+  color: var(--teal);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.progression-strip__page-header {
+  display: none;
+}
+
+.progression-strip--expanded .progression-strip__page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.progression-strip__page-eyebrow {
+  display: block;
+  margin-bottom: 3px;
+  color: var(--teal);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.progression-strip__page-header h2 {
+  font-size: clamp(1.2rem, 3vw, 1.65rem);
+  line-height: 1.1;
+}
+
+.progression-strip__page-close {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--bg);
+  color: var(--text-muted);
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.progression-strip__page-close:hover {
+  border-color: var(--teal);
+  color: var(--teal);
 }
 
 .progression-strip__collapsed-play-btn {
@@ -270,6 +334,12 @@
   background: var(--teal);
   border-color: var(--teal);
   color: var(--on-accent);
+}
+
+.progression-strip__slot--selected:not(.progression-strip__slot--active) {
+  border-color: var(--teal);
+  background: var(--teal-tint);
+  color: var(--teal-dark);
 }
 
 .progression-strip__slot--tappable {
@@ -818,6 +888,10 @@
     padding: 6px 20px calc(6px + env(safe-area-inset-bottom));
   }
 
+  .progression-strip__handle {
+    height: 6px;
+  }
+
   .progression-strip__expanded-content .instrument-dock {
     margin: 0 auto 6px;
   }
@@ -837,5 +911,30 @@
 
   .progression-strip__expanded-content .instrument-dock__keys-position-selector {
     margin-top: 6px;
+  }
+}
+
+/* Expanded progression is a focused overlay page, not a second layout that
+   pushes or covers the builder unpredictably. */
+.progression-strip--expanded {
+  left: 50%;
+  right: auto;
+  bottom: 18px;
+  width: min(980px, calc(100% - 36px));
+  max-height: calc(100dvh - 96px);
+  transform: translateX(-50%);
+  z-index: 260;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  box-shadow: 0 0 0 100vmax rgba(8, 27, 32, 0.56), 0 24px 70px rgba(5, 23, 28, 0.3);
+  overflow: hidden;
+}
+
+@media (max-width: 600px) {
+  .progression-strip--expanded {
+    bottom: 10px;
+    width: calc(100% - 20px);
+    max-height: calc(100dvh - 78px);
+    border-radius: 18px;
   }
 }
