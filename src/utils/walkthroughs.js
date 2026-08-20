@@ -9,18 +9,13 @@ export const WALKTHROUGH_CONFIGS = {
       },
       {
         selector: '#wt-play-btn',
-        text: 'Tap Play Chord to hear how it sounds.',
+        text: 'Use the centre Play control to hear the current chord from Build or Explore.',
         action: true,
       },
       {
-        selector: '#wt-next-chords',
-        text: 'These suggestion cards show where your song could go next.',
+        selector: '#wt-progression',
+        text: 'Your progression is always visible here. Open it to arrange chords and view the piano or fretboard.',
         action: false,
-      },
-      {
-        selector: '#wt-add-btn',
-        text: 'Add the current chord to start building a progression. Tap it now to try.',
-        action: true,
       },
     ],
   },
