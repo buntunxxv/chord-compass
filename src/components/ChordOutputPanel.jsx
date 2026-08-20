@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
-import { createKeysSynth, startAudioContext } from '../audio/synth'
 import { formatNoteNames } from '../utils/formatNotes'
 import { buildChordMidiBytes, downloadMidiFile, sanitizeFilename } from '../utils/midiExport'
+import OverlayPage from './OverlayPage'
 import './ChordOutputPanel.css'
 
 // Every interval Session 30's extended/altered chord types can actually
@@ -36,33 +36,18 @@ function formatInterval(interval) {
 const HOLD_SECONDS = 1.5
 const CONFIRMATION_MS = 1500
 
-export default function ChordOutputPanel({ chordName, notes, intervals, available, onAddToProgression, isPro }) {
-  const [playing, setPlaying] = useState(false)
+export default function ChordOutputPanel({ chordName, notes, intervals, available, onAddToProgression, onOpenSuggestions, hasSuggestions, isPro }) {
+  const [detailsOpen, setDetailsOpen] = useState(false)
   // 'idle' | 'exporting' | 'success' | 'error' -- gives the button itself a
   // brief, visible state for each phase, instead of the previous
   // build-and-download happening with no feedback at all if it fails.
   const [exportStatus, setExportStatus] = useState('idle')
   const [exportError, setExportError] = useState('')
-  const synthRef = useRef(null)
   const exportResetRef = useRef(null)
 
   useEffect(() => () => {
     if (exportResetRef.current) clearTimeout(exportResetRef.current)
   }, [])
-
-  async function handlePlay() {
-    if (playing || !notes || notes.length === 0) return
-    setPlaying(true)
-
-    await startAudioContext()
-
-    if (!synthRef.current) {
-      synthRef.current = createKeysSynth()
-    }
-
-    synthRef.current.triggerAttackRelease(notes, HOLD_SECONDS)
-    setTimeout(() => setPlaying(false), HOLD_SECONDS * 1000 + 200)
-  }
 
   // Exports the currently displayed voicing (already Close/Drop-2/Split and
   // slash/inversion-aware -- `notes` is the exact array Play itself sounds,
@@ -94,7 +79,7 @@ export default function ChordOutputPanel({ chordName, notes, intervals, availabl
   if (!available) {
     return (
       <div className="chord-output">
-        <h2 className="chord-output__title">Your Chord</h2>
+        <h2 className="chord-output__title">Explore chord</h2>
         <div className="chord-output--unavailable">
           <p className="chord-output__unavailable-msg">Chord not available in Stage 1</p>
         </div>
@@ -104,45 +89,22 @@ export default function ChordOutputPanel({ chordName, notes, intervals, availabl
 
   const noteNames = formatNoteNames(notes)
 
-  return (
-    <div className="chord-output" id="wt-chord-output">
-      <h2 className="chord-output__title">Your Chord</h2>
-      <div className="chord-output__body">
-        <div className="chord-output__summary">
-          <div className="chord-output__name">{chordName}</div>
-          <dl className="chord-output__details">
+  function renderDetailsPanel() {
+    return (
+      <div className="chord-output__details-panel">
+        <dl className="chord-output__details">
+          <div className="chord-output__detail-row">
+            <dt>Notes</dt>
+            <dd>{noteNames.join(' · ')}</dd>
+          </div>
+          {intervals && intervals.length > 0 && (
             <div className="chord-output__detail-row">
-              <dt>Notes</dt>
-              <dd>{noteNames.join(' · ')}</dd>
+              <dt title="The distance between each note — Root is the tonic, 3 is the third, 5 is the fifth">Intervals</dt>
+              <dd>{intervals.map(formatInterval).join(' · ')}</dd>
             </div>
-            {intervals && intervals.length > 0 && (
-              <div className="chord-output__detail-row">
-                <dt title="The distance between each note — Root is the tonic, 3 is the third, 5 is the fifth">Intervals</dt>
-                <dd>{intervals.map(formatInterval).join(' · ')}</dd>
-              </div>
-            )}
-          </dl>
-        </div>
-        <div className="chord-output__actions">
-          <button
-            id="wt-play-btn"
-            className={`chord-output__play-btn ${playing ? 'chord-output__play-btn--playing' : ''}`}
-            onClick={handlePlay}
-            disabled={playing || !notes || notes.length === 0}
-            aria-label="Play chord"
-          >
-            <span className="chord-output__play-icon">{playing ? '♪' : '▶'}</span>
-            {playing ? 'Playing…' : 'Play Chord'}
-          </button>
-          <button
-            id="wt-add-btn"
-            className="chord-output__add-btn"
-            onClick={() => onAddToProgression(chordName, notes)}
-            aria-label={`Add ${chordName} to progression`}
-          >
-            + Add current chord
-          </button>
-          {isPro ? (
+          )}
+        </dl>
+        {isPro ? (
           <button
             type="button"
             className={`chord-output__export-btn ${exportStatus === 'error' ? 'chord-output__export-btn--error' : ''}`}
@@ -154,9 +116,53 @@ export default function ChordOutputPanel({ chordName, notes, intervals, availabl
                 : exportStatus === 'error' ? 'Export failed'
                   : 'Export MIDI'}
           </button>
-          ) : (
-            <button type="button" className="chord-output__export-btn chord-output__export-btn--locked" disabled>
-              Export MIDI <span className="chord-output__pro-badge">PRO</span>
+        ) : (
+          <button type="button" className="chord-output__export-btn chord-output__export-btn--locked" disabled>
+            Export MIDI <span className="chord-output__pro-badge">PRO</span>
+          </button>
+        )}
+      </div>
+    )
+  }
+
+  return (
+    <div className="chord-output" id="wt-chord-output">
+      <h2 className="chord-output__title">Explore {chordName}</h2>
+      <div className="chord-output__body">
+        <div className="chord-output__summary">
+          <div className="chord-output__name">{chordName}</div>
+          <button
+            type="button"
+            className="chord-output__details-toggle"
+            aria-expanded={detailsOpen}
+            onClick={() => setDetailsOpen(open => !open)}
+          >
+            Notes &amp; actions <span aria-hidden="true">{detailsOpen ? '−' : '+'}</span>
+          </button>
+          <div className="chord-output__details-inline" aria-label="Chord notes, intervals and export">
+            {renderDetailsPanel()}
+          </div>
+          <OverlayPage
+            isOpen={detailsOpen}
+            onClose={() => setDetailsOpen(false)}
+            eyebrow={chordName}
+            title="Chord details"
+          >
+            {renderDetailsPanel()}
+          </OverlayPage>
+        </div>
+        <div className="chord-output__actions">
+          <button
+            id="wt-add-btn"
+            className="chord-output__add-btn"
+            onClick={() => onAddToProgression(chordName, notes)}
+            aria-label={`Add ${chordName} to progression`}
+          >
+            + Add current chord
+          </button>
+          {hasSuggestions && (
+            <button type="button" className="chord-output__next-btn" onClick={onOpenSuggestions}>
+              Explore next chords →
             </button>
           )}
         </div>

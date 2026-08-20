@@ -7,10 +7,10 @@ import { GUITAR_INVERSION_SHAPES } from './guitarInversions'
 import { buildChordSymbol } from './components/ChordSelector'
 import { isSlashEligible, computeSlashNotes, appendSlashSymbol, isInChordTone } from './utils/slashChord'
 import { applyDrop2, applyLeftHandSplit } from './utils/pianoVoicings'
+import { createKeysSynth, startAudioContext } from './audio/synth'
 import { useTheme } from './hooks/useTheme'
-import { getAdjacentTabIndex } from './utils/tabsKeyboardNav'
 import { toDataKey, chordNameToSelection, resolveGuitarPositions, guitarShapeForChordName } from './utils/chordSelectionLookup'
-import { shouldAutoOpenWalkthrough, walkthroughFlowForPath } from './utils/walkthroughs'
+import { walkthroughFlowForPath } from './utils/walkthroughs'
 import ChordSelector from './components/ChordSelector'
 import ChordOutputPanel from './components/ChordOutputPanel'
 import NextChordSuggestions from './components/NextChordSuggestions'
@@ -21,6 +21,7 @@ import FeedbackPanel from './components/FeedbackPanel'
 import WalkthroughOverlay from './components/WalkthroughOverlay'
 import ThemeToggle from './components/ThemeToggle'
 import LearnPath from './components/LearnPath'
+import OverlayPage from './components/OverlayPage'
 import './App.css'
 
 const PROGRESSION_LIMIT = 4
@@ -30,30 +31,13 @@ const PROGRESSION_TEASER = 'Longer progressions are coming in Chord Compass Pro.
 // it silently expires -- it also clears sooner, immediately, on any other
 // progression-mutating action (see clearLoadUndo's call sites below).
 const LOAD_UNDO_WINDOW_MS = 10000
+const CHORD_AUDITION_SECONDS = 1.5
 
-const MODE_TABS = [
-  { key: 'build', label: 'Build' },
+const WORKSPACE_PAGES = [
+  { key: null, label: 'Build' },
   { key: 'find', label: 'Identify' },
   { key: 'templates', label: 'Templates' },
 ]
-
-const MODE_COPY = {
-  build: {
-    eyebrow: 'Build a progression',
-    title: 'Choose where your music goes next',
-    description: 'Start with one chord, hear its character, then explore movements with a clear musical purpose.',
-  },
-  find: {
-    eyebrow: 'Reverse lookup',
-    title: 'Turn the notes you play into chord shapes',
-    description: 'Pick the notes you can hear or play, then explore the closest matching shapes.',
-  },
-  templates: {
-    eyebrow: 'Progression templates',
-    title: 'Start with a progression that already works',
-    description: 'Choose a musical starting point, set its key, then make it your own.',
-  },
-}
 
 // Resolves each displayed note's interval label from what it actually IS
 // (by pitch class), not from its position in the array -- notes get
@@ -89,6 +73,7 @@ export default function App() {
   const [feedbackOpen, setFeedbackOpen] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [walkthroughFlow, setWalkthroughFlow] = useState(null)
+  const [introOpen, setIntroOpen] = useState(true)
   // Progression/instrument bottom sheet -- collapsed by default so the
   // chord builder gets the vast majority of a mobile viewport. Lives here
   // (not inside ProgressionStrip) only because App.css's bottom-padding
@@ -101,8 +86,8 @@ export default function App() {
   // reverse voicing lookup (Phase 1 -- pick notes, get ranked guitar shapes
   // that contain them). A tab inside the existing panel, not a separate
   // route or modal, and not persisted -- always starts back on the builder.
-  const [mode, setMode] = useState('build')
-  const modeTabRefs = useRef([])
+  const [activePage, setActivePage] = useState(null)
+  const [phonePanel, setPhonePanel] = useState('build')
 
   // Top-level Learn/Build path (distinct from `mode`, the build/find tab
   // inside the builder panel above) -- persisted so the choice survives a
@@ -113,18 +98,6 @@ export default function App() {
     localStorage.setItem('kcc_path', path)
   }, [path])
 
-  function handleModeTabKeyDown(e, index) {
-    const nextIndex = getAdjacentTabIndex(MODE_TABS, index, e.key)
-    if (nextIndex === index) return
-    e.preventDefault()
-    setMode(MODE_TABS[nextIndex].key)
-    modeTabRefs.current[nextIndex]?.focus()
-  }
-
-  useEffect(() => {
-    const flow = walkthroughFlowForPath(path)
-    setWalkthroughFlow(shouldAutoOpenWalkthrough(path, localStorage) ? flow : null)
-  }, [path])
   const [previewIndex, setPreviewIndex] = useState(null)
   const [progression, setProgression] = useState(() => {
     try {
@@ -200,6 +173,13 @@ export default function App() {
   // whichever chord the builder happens to have selected (see
   // playingGuitarShape below). null whenever nothing is playing.
   const [playingChordName, setPlayingChordName] = useState(null)
+  const [auditionPlaying, setAuditionPlaying] = useState(false)
+  const auditionSynthRef = useRef(null)
+  const auditionTimeoutRef = useRef(null)
+
+  useEffect(() => () => {
+    if (auditionTimeoutRef.current) clearTimeout(auditionTimeoutRef.current)
+  }, [])
   const [keysPositionIndex, setKeysPositionIndex] = useState(0)
   // Lifted out of InstrumentDock (which used to own this locally) so the
   // reverse-lookup's "closest to the last progression chord" ranking can
@@ -223,6 +203,8 @@ export default function App() {
 
   const dataKey = useMemo(() => toDataKey(root, quality, extension), [root, quality, extension])
   const chordEntry = dataKey ? CHORD_DATA[dataKey] : null
+
+  useEffect(() => setPreviewIndex(null), [dataKey])
 
   // Slash chords/inversions are Pro-gated and don't apply to the symmetric
   // diminished/augmented/dim7 chord types (see src/utils/slashChord.js) --
@@ -590,6 +572,19 @@ export default function App() {
   const activeKeysIndex = Math.min(keysPositionIndex, maxAllowedKeysIndex)
   const displayedPianoNotes = keysPositions[activeKeysIndex]
 
+  async function handleAuditionChord() {
+    if (auditionPlaying || displayedPianoNotes.length === 0) return
+    setAuditionPlaying(true)
+    try {
+      await startAudioContext()
+      if (!auditionSynthRef.current) auditionSynthRef.current = createKeysSynth()
+      auditionSynthRef.current.triggerAttackRelease(displayedPianoNotes, CHORD_AUDITION_SECONDS)
+      auditionTimeoutRef.current = setTimeout(() => setAuditionPlaying(false), CHORD_AUDITION_SECONDS * 1000 + 200)
+    } catch {
+      setAuditionPlaying(false)
+    }
+  }
+
   // See intervalsForNotes above -- resolved against whichever notes are
   // actually on screen (Close/Drop-2/Split, slash bass and all), not
   // tonalChord's own root-position array.
@@ -613,6 +608,11 @@ export default function App() {
   // see handlePlayingChordChange); live, it's chordNotes[0] before any
   // voicing transform.
   const pianoRootNote = playingChordNotes ? playingRootNote : (chordNotes[0] ?? null)
+
+  function openWorkspacePage(page) {
+    setSheetExpanded(false)
+    setActivePage(page)
+  }
 
   return (
     <div className="app">
@@ -694,128 +694,135 @@ export default function App() {
       ) : (
       <>
       <div className="app__drawer-wrapper">
-        <main
-          className="app__panel app__builder-panel"
-        >
+        <main className="app__panel app__builder-panel">
           <div className={`app__panel-inner ${sheetExpanded ? '' : 'app__panel-inner--sheet-collapsed'}`}>
             <section className="app__builder-intro" aria-labelledby="builder-intro-title">
               <div className="app__builder-intro-copy">
-                <p className="app__eyebrow">{MODE_COPY[mode].eyebrow}</p>
-                <h1 id="builder-intro-title">{MODE_COPY[mode].title}</h1>
-                <p>{MODE_COPY[mode].description}</p>
+                <p className="app__eyebrow">Chord Compass</p>
+                <h1 id="builder-intro-title">Build, hear and save a chord</h1>
               </div>
-              {mode === 'build' && (
-                <ol className="app__workflow" aria-label="How to build a progression">
-                  <li><span>1</span>Choose</li>
-                  <li><span>2</span>Hear</li>
-                  <li><span>3</span>Add</li>
-                </ol>
-              )}
+              <div className="app__workspace-actions">
+                <nav className="app__mode-tabs" aria-label="Chord Compass pages">
+                  {WORKSPACE_PAGES.map(page => (
+                    <button
+                      key={page.label}
+                      type="button"
+                      className={`app__mode-tab ${page.key === null ? 'app__mode-tab--active' : ''}`}
+                      aria-current={page.key === null ? 'page' : undefined}
+                      onClick={() => page.key ? openWorkspacePage(page.key) : setActivePage(null)}
+                    >
+                      {page.label}
+                    </button>
+                  ))}
+                  <button type="button" className="app__mode-tab app__mode-tab--progression" onClick={() => setSheetExpanded(true)}>
+                    Progression
+                    {progression.length > 0 && <span className="app__mode-count">{progression.length}</span>}
+                  </button>
+                </nav>
+                {!isPro && <Link to="/upgrade" className="app__upgrade-link">Upgrade <span>to Pro</span></Link>}
+              </div>
             </section>
-            <div className="app__mode-tabs" role="tablist" aria-label="Chord tool mode">
-              {MODE_TABS.map((tab, index) => (
+
+            <section className="app__section app__builder-workspace" aria-label="Build and preview a chord">
+              <div className="app__phone-panel-tabs" role="group" aria-label="Build or explore the current chord">
                 <button
-                  key={tab.key}
-                  ref={el => { modeTabRefs.current[index] = el }}
                   type="button"
-                  role="tab"
-                  aria-selected={mode === tab.key}
-                  tabIndex={mode === tab.key ? 0 : -1}
-                  className={`app__mode-tab ${mode === tab.key ? 'app__mode-tab--active' : ''}`}
-                  onClick={() => setMode(tab.key)}
-                  onKeyDown={e => handleModeTabKeyDown(e, index)}
+                  aria-pressed={phonePanel === 'build'}
+                  className={phonePanel === 'build' ? 'app__phone-panel-tab app__phone-panel-tab--active' : 'app__phone-panel-tab'}
+                  onClick={() => setPhonePanel('build')}
                 >
-                  {tab.label}
+                  Build a chord
                 </button>
-              ))}
-            </div>
-
-            <div className="app__mode-viewport">
-              <div
-                className="app__mode-track"
-                style={{ transform: `translateX(-${MODE_TABS.findIndex(tab => tab.key === mode) * 100}%)` }}
-              >
-                <div className="app__mode-pane" inert={mode !== 'build'} aria-hidden={mode !== 'build'}>
-                <section className="app__section app__builder-workspace" aria-label="Build and preview a chord">
-                  <div className="app__builder-controls">
-                    <ChordSelector
-                      root={root}
-                      quality={quality}
-                      extension={extension}
-                      bassNote={bassNote}
-                      isPro={isPro}
-                      onChange={handleBuilderSelectionChange}
-                    />
-                  </div>
-
-                  <div className="app__builder-result">
-                    <ChordOutputPanel
-                      chordName={displayName}
-                      notes={displayedPianoNotes}
-                      intervals={intervals}
-                      available={available}
-                      onAddToProgression={(chord, notes) => addToProgression(chord, notes, guitarPositionIndex, keysPositionIndex)}
-                      isPro={isPro}
-                    />
-                  </div>
-                </section>
-
-                {available && chordEntry?.next && (
-                  <section className="app__section">
-                    <NextChordSuggestions
-                      suggestions={chordEntry.next}
-                      currentNotes={chordNotes}
-                      bpm={bpm}
-                      previewIndex={previewIndex}
-                      onPreviewChange={setPreviewIndex}
-                      onAddToProgression={handleAddSuggestionToProgression}
-                      theme={resolvedTheme}
-                      isPro={isPro}
-                    />
-                  </section>
-                )}
-
-                {!available && (
-                  <section className="app__section app__unavailable">
-                    <p>This chord combination is not available in Stage 1. Select one of the 12 seed chords to explore suggestions.</p>
-                  </section>
-                )}
-                </div>
-
-                <div className="app__mode-pane" inert={mode !== 'find'} aria-hidden={mode !== 'find'}>
-                  <section className="app__section">
-                    <ReverseVoicingFinder
-                      onAddToProgression={addToProgression}
-                      onImportSequence={addProgressionSequence}
-                      progression={progression}
-                      referenceGuitarShape={referenceGuitarShape}
-                      isPro={isPro}
-                    />
-                  </section>
-                </div>
-
-                <div className="app__mode-pane" inert={mode !== 'templates'} aria-hidden={mode !== 'templates'}>
-                  <section className="app__section">
-                    <ProgressionTemplates
-                      keyRoot={templateKeyRoot}
-                      keyMode={templateKeyMode}
-                      onKeyRootChange={setTemplateKeyRoot}
-                      onKeyModeChange={setTemplateKeyMode}
-                      onLoad={loadTemplate}
-                    />
-                  </section>
-                </div>
+                <button
+                  id="wt-play-btn"
+                  type="button"
+                  className={`app__audition-button ${auditionPlaying ? 'app__audition-button--playing' : ''}`}
+                  onClick={handleAuditionChord}
+                  disabled={auditionPlaying || displayedPianoNotes.length === 0}
+                  aria-label={`Play ${displayName}`}
+                >
+                  <span aria-hidden="true">{auditionPlaying ? '♪' : '▶'}</span> {displayName}
+                </button>
+                <button
+                  type="button"
+                  aria-pressed={phonePanel === 'chord'}
+                  className={phonePanel === 'chord' ? 'app__phone-panel-tab app__phone-panel-tab--active' : 'app__phone-panel-tab'}
+                  onClick={() => setPhonePanel('chord')}
+                >
+                  Explore
+                </button>
               </div>
-            </div>
+
+              <div className={`app__builder-controls app__phone-panel ${phonePanel === 'build' ? 'app__phone-panel--active' : ''}`}>
+                <ChordSelector
+                  root={root}
+                  quality={quality}
+                  extension={extension}
+                  bassNote={bassNote}
+                  isPro={isPro}
+                  onChange={handleBuilderSelectionChange}
+                />
+              </div>
+
+              <div className={`app__builder-result app__phone-panel ${phonePanel === 'chord' ? 'app__phone-panel--active' : ''}`}>
+                <ChordOutputPanel
+                  chordName={displayName}
+                  notes={displayedPianoNotes}
+                  intervals={intervals}
+                  available={available}
+                  onAddToProgression={(chord, notes) => addToProgression(chord, notes, guitarPositionIndex, keysPositionIndex)}
+                  onOpenSuggestions={() => openWorkspacePage('suggestions')}
+                  hasSuggestions={!!chordEntry?.next}
+                  isPro={isPro}
+                />
+              </div>
+            </section>
+
+            <p className="app__workspace-hint">Use the buttons above to open another page. Your current chord stays in place underneath.</p>
           </div>
         </main>
       </div>
 
+      <OverlayPage isOpen={activePage === 'find'} onClose={() => setActivePage(null)} eyebrow="Identify" title="Find a chord from its notes" wide>
+        <ReverseVoicingFinder
+          onAddToProgression={addToProgression}
+          onImportSequence={addProgressionSequence}
+          progression={progression}
+          referenceGuitarShape={referenceGuitarShape}
+          isPro={isPro}
+        />
+      </OverlayPage>
+
+      <OverlayPage isOpen={activePage === 'templates'} onClose={() => setActivePage(null)} eyebrow="Templates" title="Start with a proven progression" wide>
+        <ProgressionTemplates
+          keyRoot={templateKeyRoot}
+          keyMode={templateKeyMode}
+          onKeyRootChange={setTemplateKeyRoot}
+          onKeyModeChange={setTemplateKeyMode}
+          onLoad={(entries, template) => { loadTemplate(entries, template); setActivePage(null) }}
+        />
+      </OverlayPage>
+
+      <OverlayPage isOpen={activePage === 'suggestions'} onClose={() => setActivePage(null)} eyebrow={displayName} title="Choose where this chord goes next" wide>
+        {available && chordEntry?.next && (
+          <NextChordSuggestions
+            suggestions={chordEntry.next}
+            currentNotes={chordNotes}
+            bpm={bpm}
+            previewIndex={previewIndex}
+            onPreviewChange={setPreviewIndex}
+            onAddToProgression={handleAddSuggestionToProgression}
+            theme={resolvedTheme}
+            isPro={isPro}
+          />
+        )}
+      </OverlayPage>
+
       <ProgressionStrip
         expanded={sheetExpanded}
         onExpandedChange={setSheetExpanded}
-        activeChordName={displayName}
         progression={progression}
+        selectedChordIndex={tappedChordIndex}
         bpm={bpm}
         onBpmChange={setBpm}
         onClear={clearProgression}
@@ -846,6 +853,24 @@ export default function App() {
       </>
       )}
       </div>
+
+      <OverlayPage isOpen={introOpen} intro eyebrow="Welcome to Chord Compass" title="Find the next chord without losing your place">
+        <div className="app__intro-page">
+          <p className="app__intro-lead">Build a chord, hear it, and collect the chords you like into a progression—all from one screen.</p>
+          <ol className="app__intro-steps">
+            <li><span>1</span><div><strong>Build</strong><p>Choose a root and quality on the main screen.</p></div></li>
+            <li><span>2</span><div><strong>Explore</strong><p>Hear the chord, inspect its notes, and choose where it could go next.</p></div></li>
+            <li><span>3</span><div><strong>Progress</strong><p>Add chords, then open Progression to arrange, play and view them on an instrument.</p></div></li>
+          </ol>
+          <button
+            type="button"
+            className="app__intro-start"
+            onClick={() => { setPath('build'); setIntroOpen(false) }}
+          >
+            Start building
+          </button>
+        </div>
+      </OverlayPage>
 
       {/* Feedback panel — state persists while closed */}
       <FeedbackPanel

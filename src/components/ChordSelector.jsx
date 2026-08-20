@@ -1,8 +1,10 @@
+import { useState } from 'react'
 import { Chord } from 'tonal'
 import { CHORD_DATA } from '../chordData'
 import { BASS_NOTE_PITCH_CLASSES, isSlashEligible } from '../utils/slashChord'
 import { toUnicodeAccidentals } from '../utils/formatNotes'
 import Dropdown from './Dropdown'
+import OverlayPage from './OverlayPage'
 import './ChordSelector.css'
 
 function toDataKey(root, quality, extension) {
@@ -142,9 +144,46 @@ export default function ChordSelector({ root, quality, extension, bassNote, isPr
   const symbol = buildChordSymbol(root, quality, extension)
   const chord = symbol ? Chord.get(symbol) : null
   const bassEligible = isSlashEligible(quality, extension)
+  const hasAdvancedSelection = extension !== 'none' || bassNote !== 'none'
+  const [advancedOpen, setAdvancedOpen] = useState(false)
 
   function handleChange(field, value) {
     onChange({ root, quality, extension, bassNote, [field]: value })
+  }
+
+  function renderAdvancedFields(idSuffix) {
+    return (
+      <div className="chord-selector__advanced-fields">
+        <div className="chord-selector__field">
+          <Dropdown
+            label="Extension"
+            description="Adds colour with extra notes"
+            value={extension}
+            onChange={v => handleChange('extension', v)}
+            options={EXTENSIONS.map(e => ({
+              value: e.value,
+              label: e.label,
+              disabled: !hasData(root, quality, e.value, isPro),
+              badge: e.proOnly && !isPro ? 'PRO' : undefined,
+            }))}
+          />
+        </div>
+
+        <div className="chord-selector__field" id={`wt-bass-note-${idSuffix}`}>
+          <div className="chord-selector__bass-row">
+            <Dropdown
+              label="Bass note"
+              description={bassEligible ? 'Places a different note underneath' : 'Not available for this chord type'}
+              badge={!bassEligible ? 'N/A' : !isPro ? 'PRO' : undefined}
+              value={bassNote}
+              onChange={v => handleChange('bassNote', v)}
+              disabled={!isPro || !bassEligible}
+              options={BASS_NOTE_OPTIONS}
+            />
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -179,33 +218,32 @@ export default function ChordSelector({ root, quality, extension, bassNote, isPr
           />
         </div>
 
-        <div className="chord-selector__field">
-          <Dropdown
-            label="Extension"
-            description="Adds colour with extra notes"
-            value={extension}
-            onChange={v => handleChange('extension', v)}
-            options={EXTENSIONS.map(e => ({
-              value: e.value,
-              label: e.label,
-              disabled: !hasData(root, quality, e.value, isPro),
-              badge: e.proOnly && !isPro ? 'PRO' : undefined,
-            }))}
-          />
-        </div>
+        <div className="chord-selector__advanced">
+          <button
+            type="button"
+            className="chord-selector__advanced-toggle"
+            aria-expanded={advancedOpen}
+            onClick={() => setAdvancedOpen(open => !open)}
+          >
+            <span>
+              More options
+              {hasAdvancedSelection && <span className="chord-selector__active-dot" aria-label="Advanced option active" />}
+            </span>
+            <span className="chord-selector__chevron" aria-hidden="true">→</span>
+          </button>
 
-        <div className="chord-selector__field" id="wt-bass-note">
-          <div className="chord-selector__bass-row">
-            <Dropdown
-              label="Bass note"
-              description={bassEligible ? 'Places a different note underneath' : 'Not available for this chord type'}
-              badge={!bassEligible ? 'N/A' : !isPro ? 'PRO' : undefined}
-              value={bassNote}
-              onChange={v => handleChange('bassNote', v)}
-              disabled={!isPro || !bassEligible}
-              options={BASS_NOTE_OPTIONS}
-            />
+          <div className="chord-selector__advanced-inline" aria-label="Extensions and bass">
+            {renderAdvancedFields('inline')}
           </div>
+
+          <OverlayPage
+            isOpen={advancedOpen}
+            onClose={() => setAdvancedOpen(false)}
+            eyebrow="Chord builder"
+            title="Extensions & bass"
+          >
+            {renderAdvancedFields('overlay')}
+          </OverlayPage>
         </div>
       </div>
     </div>

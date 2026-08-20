@@ -4,7 +4,6 @@ import { createKeysSynth, startAudioContext } from '../audio/synth'
 import { computePlaybackProgression } from '../utils/voiceLeading'
 import { buildProgressionMidiBytes, downloadMidiFile } from '../utils/midiExport'
 import InstrumentDock from './InstrumentDock'
-import PianoDisplay from './PianoDisplay'
 import './ProgressionStrip.css'
 
 const BPM_MIN = 60
@@ -50,41 +49,10 @@ function snapBpm(val) {
   return Math.abs(val - BPM_MID) <= SNAP_THRESHOLD ? BPM_MID : val
 }
 
-export default function ProgressionStrip({ expanded, onExpandedChange, activeChordName, progression, bpm, onBpmChange, onClear, onRemoveLast, onSelectChord, onReorder, onLoadSaved, teaserMessage, onPlayingChordChange, chordNotes, previewNotes, bassHighlightNote, keysRootNote, keysPositionIndex, onKeysPositionChange, guitarPositionIndex, onGuitarPositionChange, root, guitarShape, guitarSlashNotice, guitarInversionUnavailable, guitarPositions, templateInfo, canUndoLoad, onUndoLoad, isPro }) {
+export default function ProgressionStrip({ expanded, onExpandedChange, progression, selectedChordIndex, bpm, onBpmChange, onClear, onRemoveLast, onSelectChord, onReorder, onLoadSaved, teaserMessage, onPlayingChordChange, chordNotes, previewNotes, bassHighlightNote, keysRootNote, keysPositionIndex, onKeysPositionChange, guitarPositionIndex, onGuitarPositionChange, root, guitarShape, guitarSlashNotice, guitarInversionUnavailable, guitarPositions, templateInfo, canUndoLoad, onUndoLoad, isPro }) {
   const [activeIndex, setActiveIndex] = useState(null)
   const [isPlaying, setIsPlaying] = useState(false)
   const synthRef = useRef(null)
-
-  // Bottom-sheet collapse/expand: the handle (a standard iOS/Android pill)
-  // supports both a plain tap and a swipe up/down, same threshold-based
-  // tap-vs-gesture split the progression chips already use below. expanded
-  // state itself lives in App.jsx (it needs to affect layout padding
-  // outside this component too), so this only ever calls onExpandedChange
-  // -- it never decides on its own to open or close.
-  const handleDragStartYRef = useRef(null)
-
-  function handleHandlePointerDown(e) {
-    e.currentTarget.setPointerCapture(e.pointerId)
-    handleDragStartYRef.current = e.clientY
-  }
-
-  function handleHandlePointerUp(e) {
-    const startY = handleDragStartYRef.current
-    if (startY == null) return
-    handleDragStartYRef.current = null
-    const deltaY = e.clientY - startY
-    if (Math.abs(deltaY) < DRAG_THRESHOLD_PX) {
-      onExpandedChange?.(!expanded)
-    } else if (deltaY < 0) {
-      onExpandedChange?.(true) // swiped up
-    } else {
-      onExpandedChange?.(false) // swiped down
-    }
-  }
-
-  function handleHandlePointerCancel() {
-    handleDragStartYRef.current = null
-  }
 
   // Drag-to-reorder (Pointer Events, not HTML5 DnD -- consistent, reliable
   // touch support is the whole reason for that choice on a mobile-first
@@ -237,6 +205,15 @@ export default function ProgressionStrip({ expanded, onExpandedChange, activeCho
     if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current)
     releaseDragTouchBlock()
   }, [])
+
+  // The progression page always brings the relevant chord into view: the
+  // sounding chord during playback, otherwise the chord the user selected.
+  useEffect(() => {
+    if (!expanded) return
+    const indexToReveal = activeIndex ?? selectedChordIndex
+    if (indexToReveal == null) return
+    chipRefs.current[indexToReveal]?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' })
+  }, [activeIndex, selectedChordIndex, expanded])
 
   const [savedProgressions, setSavedProgressions] = useState(() => {
     try {
@@ -440,53 +417,32 @@ export default function ProgressionStrip({ expanded, onExpandedChange, activeCho
   return (
     <div className={`progression-strip ${expanded ? 'progression-strip--expanded' : 'progression-strip--collapsed'}`} id="wt-progression">
       <div
-        className="progression-strip__handle"
-        onPointerDown={handleHandlePointerDown}
-        onPointerUp={handleHandlePointerUp}
-        onPointerCancel={handleHandlePointerCancel}
-        role="button"
-        tabIndex={0}
-        aria-label={expanded ? 'Collapse chord tools' : 'Expand chord tools'}
-        aria-expanded={expanded}
-        onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') onExpandedChange?.(!expanded) }}
-      >
-        <span className="progression-strip__handle-pill" />
-      </div>
-
-      <div
         className="progression-strip__collapsed-bar"
         onClick={() => onExpandedChange?.(true)}
         role="button"
         tabIndex={0}
-        aria-label="Expand chord tools"
+        aria-label={`Open progression workspace, ${progression.length} chord${progression.length === 1 ? '' : 's'}`}
         onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') onExpandedChange?.(true) }}
       >
         <div className="progression-strip__collapsed-info">
-          <span className="progression-strip__collapsed-label">Current chord</span>
-          <span className="progression-strip__collapsed-chord-name">{activeChordName || '—'}</span>
-          {progression.length > 0 && (
-            <span className="progression-strip__collapsed-count">
-              {progression.length} chord{progression.length === 1 ? '' : 's'}
-            </span>
-          )}
+          <span className="progression-strip__collapsed-label">Progression</span>
+          <span className="progression-strip__collapsed-chord-name">
+            {progression.length === 0 ? 'No chords yet' : `${progression.length} chord${progression.length === 1 ? '' : 's'}`}
+          </span>
+          <span className="progression-strip__collapsed-count">
+            {progression.length === 0 ? 'Add a chord, then arrange it here' : progression.map(entry => entry.chord).join(' · ')}
+          </span>
         </div>
-        <PianoDisplay
-          chordNotes={chordNotes}
-          previewNotes={previewNotes}
-          bassHighlightNote={bassHighlightNote}
-          rootNote={keysRootNote}
-          miniature
-        />
-        <button
-          type="button"
-          className={`progression-strip__collapsed-play-btn ${isPlaying ? 'progression-strip__collapsed-play-btn--playing' : ''}`}
-          onClick={e => { e.stopPropagation(); handlePlay() }}
-          disabled={isPlaying || progression.length === 0}
-          aria-label={isPlaying ? 'Playing' : 'Play progression'}
-        >
-          {isPlaying ? '♪' : '▶'}
-        </button>
+        <span className="progression-strip__collapsed-open">Open <span aria-hidden="true">→</span></span>
       </div>
+
+      <header className="progression-strip__page-header">
+        <div>
+          <span className="progression-strip__page-eyebrow">Progression workspace</span>
+          <h2>{progression.length === 0 ? 'Build your progression' : `${progression.length}-chord progression`}</h2>
+        </div>
+        <button type="button" className="progression-strip__page-close" onClick={() => onExpandedChange?.(false)} aria-label="Close progression workspace">×</button>
+      </header>
 
       <div className="progression-strip__expanded-content">
       <InstrumentDock
@@ -555,7 +511,7 @@ export default function ProgressionStrip({ expanded, onExpandedChange, activeCho
                   <span
                     key={index}
                     ref={el => { chipRefs.current[index] = el }}
-                    className={`progression-strip__slot ${activeIndex === index ? 'progression-strip__slot--active' : ''} ${tappable ? 'progression-strip__slot--tappable' : ''} ${isDragSource ? 'progression-strip__slot--dragging' : ''} ${isDropTarget ? 'progression-strip__slot--drag-over' : ''}`}
+                    className={`progression-strip__slot ${activeIndex === index ? 'progression-strip__slot--active' : ''} ${activeIndex == null && selectedChordIndex === index ? 'progression-strip__slot--selected' : ''} ${tappable ? 'progression-strip__slot--tappable' : ''} ${isDragSource ? 'progression-strip__slot--dragging' : ''} ${isDropTarget ? 'progression-strip__slot--drag-over' : ''}`}
                     onPointerDown={tappable ? e => handleChipPointerDown(e, index) : undefined}
                     onPointerMove={tappable ? handleChipPointerMove : undefined}
                     onPointerUp={tappable ? e => endDrag(e, index, entry.chord, true) : undefined}
