@@ -246,18 +246,81 @@
   width: 100%;
 }
 
-/* ─── Build / Find / Templates mode switcher ──────────────────────────────── */
+/* ─── Build / Identify / Templates workspace navigation ─────────────────────
+   Three ways to create or find a chord -- and only those three. Progression
+   is not a peer of them: it's the project they feed, and it lives
+   permanently in the bottom dock. See App.jsx's WORKSPACE_PAGES.
 
-.app__mode-tabs {
+   Desktop renders them as physical folder tabs down the left edge of the
+   workspace surface: unrotated labels at a readable size, in normal document
+   flow beside the content (never floating over it like browser-extension
+   chrome), with the active tab's own right border painted in the surface
+   colour so the two literally merge into one sheet. Below 900px the same
+   three buttons become an ordinary horizontal segmented selector -- see the
+   media query further down. */
+
+.app__workspace-shell {
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  align-items: stretch;
+}
+
+.app__workspace-nav {
+  /* Above the surface so the active tab's border can paint over the
+     surface's own left border, which is what makes them read as connected
+     rather than merely adjacent. */
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex-shrink: 0;
+  padding-top: 20px;
+  margin-right: -1px;
+}
+
+.app__workspace-tab {
+  min-height: 48px;
+  min-width: 128px;
   display: flex;
   align-items: center;
-  align-self: flex-start;
-  background: var(--white);
+  justify-content: flex-start;
+  padding: 10px 16px;
   border: 1px solid var(--border);
-  border-radius: 20px;
-  padding: 3px;
-  gap: 2px;
-  box-shadow: var(--shadow);
+  border-radius: 12px 0 0 12px;
+  background: var(--bg);
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.app__workspace-tab:hover {
+  color: var(--teal);
+  border-color: var(--teal);
+}
+
+/* The front folder in the stack: same fill as the workspace surface, and a
+   right border in that same fill colour sitting exactly on top of the
+   surface's left border (via the nav's -1px margin), so the seam between
+   tab and surface disappears. */
+.app__workspace-tab--active {
+  background: var(--white);
+  border-color: var(--border);
+  border-right-color: var(--white);
+  color: var(--teal);
+}
+
+.app__workspace-shell .app__builder-workspace {
+  flex: 1;
+  min-width: 0;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
 }
 
 .app__workspace-actions {
@@ -268,10 +331,14 @@
 }
 
 .app__upgrade-link {
-  min-height: 42px;
+  min-height: 44px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  /* "Upgrade" and its <span>to Pro</span> are separate flex items, and flex
+     drops the whitespace between them -- without this the label renders as
+     "Upgradeto Pro". */
+  gap: 0.28em;
   padding: 8px 14px;
   border-radius: 11px;
   background: var(--suggest);
@@ -284,36 +351,6 @@
 
 .app__upgrade-link:hover {
   filter: brightness(0.94);
-}
-
-.app__mode-tab {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
-  border: none;
-  border-radius: 16px;
-  /* 44px minimum touch target (was ~35px tall) -- horizontal padding
-     unchanged, the label stays the same font-size. */
-  min-height: 44px;
-  min-width: 44px;
-  padding: 8px 16px;
-  font-family: var(--font);
-  font-size: 12.5px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  color: var(--text-muted);
-  white-space: nowrap;
-  transition: background 0.15s, color 0.15s;
-}
-
-.app__mode-tab:hover {
-  color: var(--teal);
-}
-
-.app__mode-tab--active {
-  background: var(--teal);
-  color: var(--on-accent);
 }
 
 .app__mode-viewport {
@@ -341,16 +378,6 @@
 @media (prefers-reduced-motion: reduce) {
   .app__mode-track {
     transition: none;
-  }
-}
-
-@media (max-width: 480px) {
-  .app__mode-tabs {
-    align-self: stretch;
-  }
-
-  .app__mode-tab {
-    flex: 1;
   }
 }
 
@@ -410,7 +437,7 @@
 }
 
 .app__guided-learning-link {
-  min-height: 42px;
+  min-height: 44px;
   padding: 0 10px;
   background: transparent;
   border: 0;
@@ -458,7 +485,7 @@
    Placed last so it wins the specificity tie against both the base rule
    above and the 700px media query rule, regardless of viewport width. */
 .app__panel-inner--sheet-collapsed {
-  padding-bottom: calc(104px + env(safe-area-inset-bottom));
+  padding-bottom: calc(var(--dock-h) + 12px);
 }
 
 /* ─── Suite-aligned visual system ───────────────────────────────────────────
@@ -529,8 +556,8 @@
 }
 
 .app__help-btn {
-  width: 42px;
-  height: 42px;
+  width: 44px;
+  height: 44px;
   border: 1px solid var(--border);
   background: var(--bg);
 }
@@ -681,15 +708,6 @@
   font-size: 11px;
 }
 
-.app__mode-tabs {
-  box-shadow: none;
-  border-radius: 13px;
-}
-
-.app__mode-tab {
-  border-radius: 9px;
-}
-
 .app__builder-workspace {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -701,41 +719,14 @@
   border-radius: 18px;
 }
 
+/* Build/Explore is a phone-only affordance: the desktop workspace shows both
+   panels side by side, so there is nothing to switch between. It used to
+   stay mounted at desktop widths purely to host the chord Play control in
+   its middle slot -- which is precisely what made that control read as a
+   third navigation tab. Play now has its own labelled home (the dock, plus
+   ChordOutputPanel on desktop), so the group can simply go away here. */
 .app__phone-panel-tabs {
-  position: absolute;
-  z-index: 2;
-  top: 16px;
-  left: 50%;
-  display: block;
-  transform: translateX(-50%);
-}
-
-.app__phone-panel-tab {
   display: none;
-}
-
-.app__audition-button {
-  min-width: 112px;
-  min-height: 46px;
-  padding: 8px 16px;
-  border: 1px solid var(--teal);
-  border-radius: 999px;
-  background: var(--white);
-  color: var(--teal);
-  font: inherit;
-  font-size: 14px;
-  font-weight: 800;
-  cursor: pointer;
-  box-shadow: 0 5px 18px rgba(17, 147, 146, 0.14);
-}
-
-.app__audition-button--playing {
-  background: var(--teal);
-  color: var(--on-accent);
-}
-
-.app__audition-button:disabled {
-  cursor: default;
 }
 
 .app__builder-controls,
@@ -770,7 +761,7 @@
 }
 
 .app__panel-inner--sheet-collapsed {
-  padding-bottom: calc(88px + env(safe-area-inset-bottom));
+  padding-bottom: calc(var(--dock-h) + 12px);
 }
 
 @media (max-width: 900px) {
@@ -830,7 +821,7 @@
   }
 
   .app__panel-inner--sheet-collapsed {
-    padding-bottom: calc(84px + env(safe-area-inset-bottom));
+    padding-bottom: calc(var(--dock-h) + 12px);
   }
 
   .app__builder-workspace {
@@ -865,9 +856,6 @@
     margin-left: 4px;
   }
 
-  .app__mode-tabs {
-    width: 100%;
-  }
 }
 
 /* ─── Single-screen workspace ────────────────────────────────────────────── */
@@ -889,7 +877,7 @@
 .app__panel-inner,
 .app__panel-inner--sheet-collapsed {
   height: 100%;
-  padding: clamp(14px, 2.5vh, 24px) 20px calc(76px + env(safe-area-inset-bottom));
+  padding: clamp(14px, 2.5vh, 24px) 20px calc(var(--dock-h) + 10px);
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
   gap: clamp(10px, 2vh, 18px);
@@ -918,37 +906,9 @@
   font-size: 10px;
 }
 
-.app__mode-tabs {
-  align-self: center;
-  flex-wrap: nowrap;
-  flex-shrink: 0;
-}
-
-.app__mode-tab {
-  min-height: 40px;
-  padding: 7px 13px;
-}
-
-.app__mode-tab:disabled {
+.app__workspace-tab:disabled {
   opacity: 0.4;
   cursor: not-allowed;
-}
-
-.app__mode-tab--progression {
-  gap: 4px;
-}
-
-.app__mode-count {
-  min-width: 16px;
-  height: 16px;
-  display: inline-grid;
-  place-items: center;
-  padding-inline: 4px;
-  border-radius: 999px;
-  background: var(--teal-tint);
-  color: var(--teal);
-  font-size: 9px;
-  font-weight: 800;
 }
 
 .app__builder-workspace {
@@ -1061,44 +1021,10 @@
     gap: 10px;
   }
 
-  .app__workspace-actions {
-    display: contents;
-  }
-
-  .app__mode-tabs {
-    grid-column: 1 / -1;
-    grid-row: 2;
-    min-width: 0;
-    width: 100%;
-    flex: 1;
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-
   .app__upgrade-link {
     grid-column: 2;
     grid-row: 1;
     align-self: end;
-  }
-
-  .app__mode-tab {
-    min-width: 0;
-    padding-inline: 6px;
-    font-size: 11px;
-    line-height: 1.1;
-    white-space: normal;
-  }
-
-  .app__mode-tab--progression {
-    padding-inline: 2px;
-    font-size: 10px;
-  }
-
-  .app__mode-count {
-    min-width: 13px;
-    height: 13px;
-    padding-inline: 2px;
-    font-size: 8px;
   }
 
   .app__builder-workspace {
@@ -1116,7 +1042,7 @@
     transform: none;
     grid-column: 1 / -1;
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 4px;
     padding: 4px;
     border: 1px solid var(--border);
@@ -1127,7 +1053,7 @@
   .app__phone-panel-tab {
     display: block;
     min-width: 0;
-    min-height: 42px;
+    min-height: 44px;
     padding: 7px 8px;
     border: 0;
     border-radius: 8px;
@@ -1153,29 +1079,6 @@
     background: var(--white);
     color: var(--text);
     box-shadow: 0 1px 5px rgba(0, 0, 0, 0.08);
-  }
-
-  .app__audition-button {
-    min-width: 60px;
-    min-height: 44px;
-    padding: 7px 10px;
-    border: 0;
-    border-radius: 9px;
-    background: var(--teal);
-    color: var(--on-accent);
-    font: inherit;
-    font-size: 13px;
-    font-weight: 800;
-    cursor: pointer;
-    box-shadow: none;
-  }
-
-  .app__audition-button--playing {
-    background: var(--teal-dark);
-  }
-
-  .app__audition-button:disabled {
-    cursor: default;
   }
 
   .app__phone-panel {
@@ -1206,7 +1109,7 @@
 
   .app__panel-inner,
   .app__panel-inner--sheet-collapsed {
-    padding: 12px 12px calc(74px + env(safe-area-inset-bottom));
+    padding: 12px 12px calc(var(--dock-h) + 10px);
     gap: 10px;
   }
 
@@ -1283,17 +1186,8 @@
     gap: 8px;
   }
 
-  .app__mode-tab {
-    min-height: 36px;
-  }
-
   .app__builder-workspace {
     padding-block: 8px;
-  }
-
-  .app__phone-panel-tab {
-    min-height: 38px;
-    padding-block: 5px;
   }
 
   .app__builder-workspace .dropdown__trigger--described {
@@ -1324,9 +1218,56 @@
   }
 }
 
-@media (max-width: 360px) {
-  .app__mode-tab {
-    padding-inline: 3px;
-    font-size: 10px;
+
+/* ─── Workspace navigation below 900px ──────────────────────────────────────
+   The folder metaphor needs real horizontal room for readable, unrotated
+   labels; below tablet width there isn't any, so the same three buttons
+   become a conventional horizontal segmented selector above the workspace.
+   Every label stays at 12.5px and every target at 44px all the way down to
+   320px -- the redesign explicitly rules out shrinking primary navigation
+   into unreadable, un-tappable chrome, so there are deliberately NO
+   narrower-viewport overrides shaving these down further. */
+@media (max-width: 899px) {
+  .app__workspace-shell {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .app__workspace-nav {
+    flex-direction: row;
+    gap: 4px;
+    margin: 0;
+    padding: 4px;
+    border: 1px solid var(--border);
+    border-radius: 13px;
+    background: var(--bg);
+  }
+
+  .app__workspace-tab {
+    flex: 1;
+    min-width: 0;
+    min-height: 44px;
+    justify-content: center;
+    padding: 8px 6px;
+    border: 0;
+    border-radius: 9px;
+    background: transparent;
+    font-size: 12.5px;
+  }
+
+  .app__workspace-tab:hover {
+    border: 0;
+  }
+
+  .app__workspace-tab--active {
+    border: 0;
+    background: var(--white);
+    color: var(--teal);
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.08);
+  }
+
+  .app__workspace-shell .app__builder-workspace {
+    min-height: 0;
+    border-radius: 18px;
   }
 }

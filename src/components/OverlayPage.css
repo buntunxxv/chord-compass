@@ -102,3 +102,17 @@
     right: 13px;
   }
 }
+
+/* ─── Docked overlay pages ──────────────────────────────────────────────────
+   Identify, Templates and the suggestions page are ways to FIND a chord;
+   the progression dock at the bottom of the screen is where found chords
+   go. Ending the overlay (backdrop included) above the dock instead of
+   covering it keeps that destination — its current-chord readout, its
+   miniature keyboard and its Play chord button — continuously visible and
+   usable while any of those pages is open, which is the whole point of it
+   being a persistent dock rather than another page. The intro/welcome
+   overlay deliberately does NOT get this: it's a first-run cover, not a
+   working surface. */
+.overlay-page--docked {
+  bottom: var(--dock-h);
+}

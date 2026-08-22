@@ -1,3 +1,16 @@
+/* ─── Persistent bottom dock ────────────────────────────────────────────────
+   Collapsed, this is the app's permanent Progression destination: it stays on
+   screen while the user builds, identifies or browses templates (the overlay
+   pages for those end above it rather than covering it -- see
+   .overlay-page--docked), so the current chord, its miniature keyboard and a
+   Play chord button are always one glance away.
+
+   Expanded, the same element becomes the Progression workspace: a floating
+   card on desktop, a full-screen focused page on phones. Everything inside
+   stays mounted while collapsed -- only visibility toggles -- so nothing
+   loses its own state (which instrument tab is selected, an open Save input,
+   an in-progress chip drag) just because the workspace closed. */
+
 .progression-strip {
   position: fixed;
   left: 0;
@@ -5,83 +18,39 @@
   bottom: 0;
   z-index: 90;
   background: var(--white);
-  box-shadow: 0 -2px 16px rgba(0,0,0,0.1);
-  padding: 6px 20px calc(7px + env(safe-area-inset-bottom));
+  box-shadow: 0 -2px 16px rgba(0, 0, 0, 0.1);
   border-top: 1px solid var(--border);
 }
 
-/* ─── Cap expanded height to the viewport ───────────────────────────────────
-   position:fixed + bottom:0 with no height constraint lets the sheet's own
-   content push its top edge as far up as it needs, including off-screen on
-   short/landscape viewports (e.g. 844x390) -- dvh (not vh) tracks the real
-   visible height as mobile browser chrome shows/hides, and the header's own
-   height is reserved so the sheet never grows above it. The container itself doesn't
-   scroll; only expanded-content does, so the handle above it stays fixed in
-   place and always reachable. */
-.progression-strip--expanded {
-  display: flex;
-  flex-direction: column;
-  max-height: calc(100dvh - 72px);
-}
+/* ─── Collapsed dock ────────────────────────────────────────────────────── */
 
-@media (max-width: 600px) {
-  .progression-strip--expanded {
-    max-height: calc(100dvh - 64px);
-  }
-}
-
-/* ─── Collapsible bottom sheet ──────────────────────────────────────────────
-   Everything below (Keys/Guitar tabs, the instrument display, voicing
-   selector, BPM, Play, Save/Export/Clear, Saved) stays mounted at all
-   times -- collapsing only toggles CSS visibility, never unmounts it, so
-   nothing inside loses its own state (which tab was selected, an open
-   Save input, an in-progress chip drag) just because the sheet closed.
-   Collapsed by default; only the user's own tap/swipe on the handle or the
-   collapsed bar ever changes it -- see App.jsx's sheetExpanded state. */
-
-.progression-strip__handle {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 15px;
-  flex-shrink: 0;
-  cursor: pointer;
-  touch-action: none;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.progression-strip__handle-pill {
-  width: 36px;
-  height: 4px;
-  border-radius: 2px;
-  background: var(--border);
-}
-
-.progression-strip__collapsed-bar {
+.progression-strip__dock {
   display: none;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+}
+
+.progression-strip--collapsed .progression-strip__dock {
+  box-sizing: border-box;
+  /* Kept in lockstep with the same token the builder panel reserves space
+     with and docked overlay pages stop above, so the three can't drift. */
+  min-height: var(--dock-h);
   max-width: 1040px;
   margin: 0 auto;
-  min-height: 48px;
-  padding: 2px 0 5px;
-  cursor: pointer;
-}
-
-.progression-strip--collapsed .progression-strip__collapsed-bar {
+  padding: 8px 20px calc(8px + env(safe-area-inset-bottom));
   display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
-.progression-strip__collapsed-info {
+.progression-strip__dock-current {
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: 2px;
+  flex: 1 1 auto;
   min-width: 0;
-  overflow: hidden;
 }
 
-.progression-strip__collapsed-label {
+.progression-strip__dock-label {
   color: var(--text-faint);
   font-size: 9px;
   font-weight: 800;
@@ -90,46 +59,145 @@
   text-transform: uppercase;
 }
 
-.progression-strip__collapsed-chord-name {
+.progression-strip__dock-chord {
   font-size: 18px;
   font-weight: 800;
   color: var(--teal);
   letter-spacing: -0.01em;
+  line-height: 1.2;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-/* Visible even collapsed, so a long progression's existence isn't hidden
-   behind whatever the current/last chord happens to be. */
-.progression-strip__collapsed-count {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-muted);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.progression-strip__dock-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  /* Phones: the chord name and the miniature keyboard already fill the first
+     line, so the two 44px actions take a row of their own rather than being
+     squeezed (or, as the design brief rules out, the keyboard being dropped
+     at ordinary phone widths). */
+  flex: 1 0 100%;
 }
 
-.progression-strip__collapsed-open {
+.progression-strip__dock-play,
+.progression-strip__dock-open {
   min-height: 44px;
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  flex-shrink: 0;
-  padding: 8px 15px;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 16px;
   border-radius: 999px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+/* The chord-preview action. It says "Play chord" in words at every size --
+   a bare triangle plus a chord symbol reads as a label, not a verb, which is
+   exactly how the old segmented-control version came to look like a third
+   navigation tab. */
+.progression-strip__dock-play {
+  flex: 1 1 auto;
+  border: 0;
+  background: var(--teal);
+  color: var(--on-accent);
+}
+
+.progression-strip__dock-play:hover:not(:disabled) {
+  background: var(--teal-dark);
+}
+
+.progression-strip__dock-play--playing {
+  background: var(--teal-dark);
+}
+
+.progression-strip__dock-play:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.progression-strip__dock-open {
+  flex: 1 1 auto;
+  border: 1px solid var(--teal);
   background: var(--teal-tint);
   color: var(--teal);
-  font-size: 13px;
+}
+
+.progression-strip__dock-open:hover {
+  background: var(--teal);
+  color: var(--on-accent);
+}
+
+.progression-strip__dock-count {
+  min-width: 18px;
+  height: 18px;
+  display: inline-grid;
+  place-items: center;
+  padding-inline: 5px;
+  border-radius: 999px;
+  background: color-mix(in srgb, currentColor 16%, transparent);
+  font-size: 11px;
   font-weight: 800;
 }
 
-.progression-strip__page-header {
+/* The miniature keyboard shrinks proportionally rather than being clipped or
+   dropped if a long chord name squeezes the row (see PianoDisplay.css's
+   own max-width/height:auto pair). */
+.progression-strip__dock .piano-display--miniature {
+  flex: 0 1 auto;
+  min-width: 88px;
+}
+
+/* From here up the dock fits on one line, so the actions rejoin it. */
+@media (min-width: 760px) {
+  .progression-strip__dock-actions {
+    flex: 0 0 auto;
+    margin-left: auto;
+  }
+
+  .progression-strip__dock-play,
+  .progression-strip__dock-open {
+    flex: 0 0 auto;
+  }
+
+  .progression-strip__dock-current {
+    flex: 0 1 auto;
+  }
+}
+
+/* ─── Expanded workspace shell ──────────────────────────────────────────── */
+
+.progression-strip--collapsed .progression-strip__page-header,
+.progression-strip--collapsed .progression-strip__expanded-content {
   display: none;
 }
 
-.progression-strip--expanded .progression-strip__page-header {
+.progression-strip--expanded {
+  display: flex;
+  flex-direction: column;
+  /* A focused overlay page, not a second layout that pushes or partly covers
+     the builder underneath it. */
+  left: 50%;
+  right: auto;
+  bottom: 18px;
+  width: min(1100px, calc(100% - 36px));
+  max-height: calc(100dvh - 96px);
+  transform: translateX(-50%);
+  z-index: 260;
+  border: 1px solid var(--border);
+  border-top: 1px solid var(--border);
+  border-radius: 20px;
+  box-shadow: 0 0 0 100vmax rgba(8, 27, 32, 0.56), 0 24px 70px rgba(5, 23, 28, 0.3);
+  overflow: hidden;
+}
+
+.progression-strip__page-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -143,7 +211,7 @@
   display: block;
   margin-bottom: 3px;
   color: var(--teal);
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 800;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -155,8 +223,8 @@
 }
 
 .progression-strip__page-close {
-  width: 42px;
-  height: 42px;
+  width: 44px;
+  height: 44px;
   display: grid;
   place-items: center;
   flex-shrink: 0;
@@ -173,41 +241,6 @@
   color: var(--teal);
 }
 
-.progression-strip__collapsed-play-btn {
-  flex-shrink: 0;
-  /* 44x44 minimum touch target (was 40x40) -- the icon stays the same
-     font-size, only the tappable circle around it grows. */
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  background: var(--teal);
-  color: var(--on-accent);
-  border: none;
-  font-size: 15px;
-  line-height: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.15s;
-}
-
-.progression-strip__collapsed-play-btn:hover:not(:disabled) {
-  background: var(--teal-dark);
-}
-
-.progression-strip__collapsed-play-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.progression-strip__collapsed-play-btn--playing {
-  background: var(--teal-dark);
-}
-
-.progression-strip--collapsed .progression-strip__expanded-content {
-  display: none;
-}
-
 .progression-strip--expanded .progression-strip__expanded-content {
   flex: 1;
   min-height: 0;
@@ -215,49 +248,82 @@
   -webkit-overflow-scrolling: touch;
 }
 
-/* Keys/Guitar tabs are the controls that switch what's on screen and sit
-   right below the handle -- pin them to the top of the scrollable area so
-   they (like the handle above it) never scroll out of reach, no matter how
-   far down the rest of the expanded content the user has scrolled. */
-.progression-strip__expanded-content .instrument-dock__tabs {
-  position: sticky;
-  top: 0;
-  z-index: 1;
-  background: var(--white);
+/* ─── Section layout ────────────────────────────────────────────────────────
+   Phones read the DOM order straight down: arrangement, transport, the
+   instrument (collapsed), then the secondary Manage and destructive
+   sections. Desktop re-places those same regions into a split via named grid
+   areas below -- one set of markup, and the reading order a screen reader
+   follows always matches what a phone shows. */
+.progression-strip__layout {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 14px 16px calc(18px + env(safe-area-inset-bottom));
 }
 
-.progression-strip__bar {
-  max-width: 1040px;
-  margin: 0 auto;
+.progression-strip__section {
+  min-width: 0;
+}
+
+.progression-strip__notices:empty {
+  display: none;
+}
+
+.progression-strip__section-head {
   display: flex;
   align-items: center;
-  gap: 14px;
-  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
 }
 
-.progression-strip__label {
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
+.progression-strip__section-title {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.progression-strip__section-head .progression-strip__section-title {
+  margin-bottom: 0;
+}
+
+.progression-strip__section-meta {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-faint);
   white-space: nowrap;
 }
+
+/* Phone-only disclosure for the instrument section -- hidden on desktop,
+   where the instrument is a permanent side inspector and there is nothing to
+   disclose. */
+.progression-strip__disclosure {
+  min-height: 36px;
+  flex-shrink: 0;
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--teal);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.progression-strip__disclosure:hover {
+  border-color: var(--teal);
+}
+
+/* ─── 1. Arrangement ────────────────────────────────────────────────────── */
 
 .progression-strip__empty {
   font-size: 13px;
   color: var(--text-muted);
   font-style: italic;
-  flex: 1;
-  min-width: 140px;
-}
-
-.progression-strip__chart-group {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  flex: 1;
-  min-width: 140px;
 }
 
 /* Single horizontally-scrollable row (not a wrapped multi-row grid) --
@@ -287,16 +353,23 @@
   scroll-snap-type: none;
 }
 
+/* A real <button>, not a pointer-only <span>: chips are the primary way to
+   choose which chord the builder and instrument display are showing, so they
+   have to be reachable and operable from a keyboard. The long-press drag
+   behaviour below is unchanged and still pointer-driven. */
 .progression-strip__slot {
   display: flex;
   align-items: center;
   gap: 6px;
   flex: 0 0 auto;
   min-width: 68px;
+  min-height: 44px;
   padding: 8px 12px;
+  font: inherit;
   font-size: 14px;
   font-weight: 700;
   color: var(--text);
+  background: var(--white);
   border: 1.5px solid var(--border);
   border-radius: 8px;
   white-space: nowrap;
@@ -316,11 +389,11 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 16px;
-  height: 16px;
+  width: 17px;
+  height: 17px;
   border-radius: 50%;
   background: color-mix(in srgb, currentColor 15%, transparent);
-  font-size: 9px;
+  font-size: 9.5px;
   font-weight: 700;
   color: inherit;
 }
@@ -362,6 +435,14 @@
   background: color-mix(in srgb, var(--teal) 10%, transparent);
 }
 
+/* Chips are disabled only while the progression is sounding, and the one
+   that IS sounding is highlighted -- so this must not read as the usual
+   "unavailable" dimming. */
+.progression-strip__slot:disabled {
+  cursor: default;
+  opacity: 1;
+}
+
 .progression-strip__slot--dragging {
   opacity: 0.45;
   /* Applied only once a long-press has armed drag mode -- Pointer Events
@@ -374,15 +455,104 @@
   box-shadow: inset 0 0 0 2px var(--teal);
 }
 
-.progression-strip__clear-group {
+/* The keyboard route to reordering. Long-press drag stays available for
+   pointer users; this is the alternative for everyone else, not a
+   replacement for it. */
+.progression-strip__reorder {
   display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
   gap: 8px;
+  margin-top: 4px;
+}
+
+.progression-strip__reorder-status {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.progression-strip__reorder-buttons {
+  display: flex;
+  gap: 6px;
+}
+
+.progression-strip__reorder-btn {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.progression-strip__reorder-btn:hover:not(:disabled) {
+  border-color: var(--teal);
+  color: var(--teal);
+}
+
+.progression-strip__reorder-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ─── 2. Transport ──────────────────────────────────────────────────────── */
+
+.progression-strip__transport-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.progression-strip__play-btn {
+  min-height: 48px;
+  flex: 1 1 200px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--teal);
+  color: var(--on-accent);
+  border: none;
+  border-radius: 10px;
+  padding: 12px 22px;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 800;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.progression-strip__play-btn:hover:not(:disabled) {
+  background: var(--teal-dark);
+}
+
+.progression-strip__play-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.progression-strip__play-btn--playing {
+  background: var(--teal-dark);
 }
 
 .progression-strip__bpm {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex: 1 1 190px;
 }
 
 .progression-strip__bpm-value {
@@ -399,7 +569,8 @@
 
 .progression-strip__bpm-slider {
   appearance: none;
-  width: 100px;
+  flex: 1;
+  min-width: 100px;
   height: 28px;
   background: transparent;
   cursor: pointer;
@@ -443,54 +614,16 @@
   cursor: pointer;
 }
 
-.progression-strip__play-btn {
-  background: var(--teal);
-  color: var(--on-accent);
-  border: none;
-  border-radius: 6px;
-  padding: 10px 18px;
-  font-size: 13px;
-  font-weight: 700;
-  white-space: nowrap;
-  text-align: center;
-  transition: background 0.2s;
+/* ─── 3. Selected chord (instrument) ────────────────────────────────────── */
+
+.progression-strip__inspector .instrument-dock {
+  margin-bottom: 0;
 }
 
-.progression-strip__play-btn:hover:not(:disabled) {
-  background: var(--teal-dark);
-}
-
-.progression-strip__play-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.progression-strip__play-btn--playing {
-  background: var(--teal-dark);
-}
-
-.progression-strip__clear-btn {
-  background: transparent;
-  border: 1.5px solid var(--border);
-  color: var(--text-muted);
-  border-radius: 6px;
-  padding: 10px 16px;
-  font-size: 13px;
-  font-weight: 600;
-  white-space: nowrap;
-  text-align: center;
-  transition: border-color 0.15s, color 0.15s;
-}
-
-.progression-strip__clear-btn:hover:not(:disabled) {
-  border-color: var(--text-muted);
-  color: var(--text);
-}
-
-.progression-strip__clear-btn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
+/* ─── 4. Manage ─────────────────────────────────────────────────────────────
+   Save, Export and the saved-progression library are deliberately quieter
+   than the transport above: outlined, secondary-weight controls, never a
+   second field of solid teal competing with Play. */
 
 .progression-strip__pro-group {
   display: flex;
@@ -500,6 +633,7 @@
 }
 
 .progression-strip__pro-btn {
+  min-height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -507,12 +641,14 @@
   background: transparent;
   border: 1.5px solid var(--border);
   color: var(--text-muted);
-  border-radius: 6px;
-  padding: 10px 14px;
+  border-radius: 8px;
+  padding: 10px 16px;
+  font: inherit;
   font-size: 13px;
   font-weight: 600;
   white-space: nowrap;
   text-align: center;
+  cursor: pointer;
   transition: border-color 0.15s, color 0.15s;
 }
 
@@ -532,27 +668,25 @@
 }
 
 .progression-strip__pro-btn--error {
-  border-color: #c0392b;
-  color: #c0392b;
+  border-color: var(--danger);
+  color: var(--danger);
 }
 
 .progression-strip__pro-btn--error:hover:not(:disabled) {
-  border-color: #c0392b;
-  color: #c0392b;
+  border-color: var(--danger);
+  color: var(--danger);
 }
 
 .progression-strip__export-error {
-  flex: 1 0 100%;
   font-size: 13px;
-  color: #c0392b;
-  margin: -2px 0 0;
+  color: var(--danger);
+  margin: 8px 0 0;
 }
 
 .progression-strip__save-status {
-  flex: 1 0 100%;
   font-size: 13px;
   color: var(--teal);
-  margin: -2px 0 0;
+  margin: 8px 0 0;
 }
 
 .progression-strip__pro-badge {
@@ -569,16 +703,19 @@
   display: flex;
   align-items: center;
   gap: 6px;
+  flex: 1 1 240px;
 }
 
 .progression-strip__save-input {
+  flex: 1;
+  min-width: 0;
   border: 1.5px solid var(--border);
-  border-radius: 6px;
-  padding: 9px 10px;
+  border-radius: 8px;
+  padding: 11px 10px;
+  font-family: var(--font);
   font-size: 13px;
   color: var(--text);
   background: var(--white);
-  min-width: 160px;
 }
 
 .progression-strip__save-input:focus {
@@ -588,14 +725,19 @@
 
 .progression-strip__save-confirm-btn,
 .progression-strip__save-cancel-btn {
+  min-width: 44px;
+  min-height: 44px;
+  flex-shrink: 0;
   background: transparent;
   border: 1.5px solid var(--border);
-  border-radius: 6px;
+  border-radius: 8px;
   padding: 8px 12px;
+  font: inherit;
   font-size: 13px;
   font-weight: 700;
   line-height: 1;
   text-align: center;
+  cursor: pointer;
 }
 
 .progression-strip__save-confirm-btn {
@@ -620,14 +762,19 @@
 }
 
 .progression-strip__saved-toggle {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   background: transparent;
-  border: none;
+  border: 0;
   color: var(--teal);
+  font: inherit;
   font-size: 12.5px;
-  font-weight: 600;
-  padding: 4px 2px;
+  font-weight: 700;
+  padding: 4px 8px;
   white-space: nowrap;
-  text-align: center;
+  cursor: pointer;
 }
 
 .progression-strip__saved-toggle:hover {
@@ -635,12 +782,11 @@
 }
 
 .progression-strip__saved-panel {
-  max-width: 860px;
-  margin: 0 auto 8px;
-  max-height: 220px;
+  margin: 10px 0 0;
+  max-height: 240px;
   overflow-y: auto;
   border: 1.5px solid var(--border);
-  border-radius: 8px;
+  border-radius: 10px;
 }
 
 .progression-strip__saved-list {
@@ -697,15 +843,18 @@
 }
 
 .progression-strip__saved-load-btn {
+  min-height: 44px;
   flex-shrink: 0;
   background: transparent;
   border: 1.5px solid var(--teal);
   color: var(--teal);
-  border-radius: 6px;
-  padding: 7px 14px;
+  border-radius: 8px;
+  padding: 7px 16px;
+  font: inherit;
   font-size: 12.5px;
-  font-weight: 600;
+  font-weight: 700;
   text-align: center;
+  cursor: pointer;
   transition: background 0.15s, color 0.15s;
 }
 
@@ -717,7 +866,7 @@
 .progression-strip__saved-edit-input {
   min-width: 0;
   width: 100%;
-  padding: 5px 8px;
+  padding: 7px 8px;
   font-size: 13px;
 }
 
@@ -729,15 +878,18 @@
 }
 
 .progression-strip__saved-rename-btn {
+  min-height: 44px;
   flex-shrink: 0;
   background: transparent;
   border: 1.5px solid var(--border);
   color: var(--text-muted);
-  border-radius: 6px;
-  padding: 7px 12px;
+  border-radius: 8px;
+  padding: 7px 14px;
+  font: inherit;
   font-size: 12.5px;
   font-weight: 600;
   text-align: center;
+  cursor: pointer;
   transition: border-color 0.15s, color 0.15s;
 }
 
@@ -747,42 +899,103 @@
 }
 
 .progression-strip__saved-delete-btn {
+  min-height: 44px;
   flex-shrink: 0;
   background: transparent;
-  border: 1.5px solid #c0392b;
-  color: #c0392b;
-  border-radius: 6px;
-  padding: 7px 12px;
+  border: 1.5px solid var(--danger);
+  color: var(--danger);
+  border-radius: 8px;
+  padding: 7px 14px;
+  font: inherit;
   font-size: 12.5px;
   font-weight: 600;
   text-align: center;
+  cursor: pointer;
 }
 
 .progression-strip__saved-delete-btn:hover {
-  background: #c0392b;
-  color: var(--on-accent);
+  background: var(--danger);
+  color: #fff;
 }
 
+/* ─── 5. Destructive actions ────────────────────────────────────────────────
+   Fenced into their own labelled, tinted region at the very end of the
+   workspace so they can't be mistaken for peers of Play: outlined in the
+   danger colour, never filled, and never sharing a row with the transport. */
+
+.progression-strip__danger {
+  padding: 12px 14px;
+  border: 1px solid var(--danger-border);
+  border-radius: 12px;
+  background: var(--danger-tint);
+}
+
+.progression-strip__danger .progression-strip__section-title {
+  color: var(--danger);
+}
+
+.progression-strip__danger-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.progression-strip__clear-btn {
+  min-height: 44px;
+  background: transparent;
+  border: 1.5px solid var(--danger-border);
+  color: var(--text-muted);
+  border-radius: 8px;
+  padding: 10px 16px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+
+.progression-strip__clear-btn:hover:not(:disabled) {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.progression-strip__clear-btn--all {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.progression-strip__clear-btn--all:hover:not(:disabled) {
+  background: var(--danger);
+  color: #fff;
+}
+
+.progression-strip__clear-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ─── Notices ───────────────────────────────────────────────────────────── */
+
 .progression-strip__teaser {
-  max-width: 860px;
-  margin: 0 auto 8px;
+  margin: 0 0 8px;
   font-size: 13px;
   font-weight: 500;
   color: var(--warn-text);
   background: var(--warn-bg);
   border-radius: 8px;
-  padding: 8px 14px;
+  padding: 9px 14px;
 }
 
 .progression-strip__template-banner {
-  max-width: 860px;
-  margin: 0 auto 8px;
+  margin: 0 0 8px;
   font-size: 13px;
   line-height: 1.4;
   color: var(--text-muted);
   background: var(--suggest-tint);
   border-radius: 8px;
-  padding: 8px 14px;
+  padding: 9px 14px;
 }
 
 .progression-strip__template-banner strong {
@@ -790,8 +1003,7 @@
 }
 
 .progression-strip__undo-banner {
-  max-width: 860px;
-  margin: 0 auto 8px;
+  margin: 0 0 8px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -804,15 +1016,18 @@
 }
 
 .progression-strip__undo-btn {
+  min-height: 40px;
   flex-shrink: 0;
   background: transparent;
   border: 1.5px solid var(--teal);
-  border-radius: 6px;
-  padding: 5px 12px;
+  border-radius: 8px;
+  padding: 5px 14px;
+  font: inherit;
   font-size: 13px;
   font-weight: 700;
   color: var(--teal);
   line-height: 1;
+  cursor: pointer;
 }
 
 .progression-strip__undo-btn:hover {
@@ -820,121 +1035,101 @@
   color: var(--on-accent);
 }
 
-@media (max-width: 700px) {
-  .progression-strip__label {
+/* ─── Phone workspace ───────────────────────────────────────────────────────
+   A focused, near-full-screen page rather than an overcrowded bottom sheet:
+   the timeline and transport are on screen the moment it opens, and the
+   instrument is one clearly-labelled tap away instead of occupying the whole
+   first viewport ahead of them. */
+@media (max-width: 899px) {
+  .progression-strip--expanded {
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 100%;
+    max-height: none;
+    transform: none;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  /* The transport is the control users come back to most while scrolling
+     through a long progression, so it stays pinned to the top of the
+     scrolling area rather than disappearing above it. Sticky resolves
+     against .progression-strip__layout here (a flex column, so the whole
+     scrollable run) -- it deliberately is NOT applied to the desktop grid
+     below, where a grid item's containing block is its own single row and
+     sticky would have nowhere to travel. */
+  .progression-strip__transport {
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    padding: 10px 12px;
+    margin-inline: -4px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--white);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+  }
+
+  .progression-strip__section-body--collapsed {
     display: none;
   }
+}
 
-  .progression-strip__chart-group,
-  .progression-strip__empty {
-    flex: 1 0 100%;
-    order: 1;
+@media (min-width: 900px) {
+  /* Desktop: arrangement + transport are the primary column, the instrument
+     is a secondary inspector beside them, and Manage/destructive actions sit
+     below the primary work rather than alongside it. */
+  .progression-strip__layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+    grid-template-areas:
+      "notices     notices"
+      "arrangement inspector"
+      "transport   inspector"
+      "manage      inspector"
+      "danger      inspector";
+    align-content: start;
+    gap: 16px 22px;
+    padding: 18px 20px 22px;
   }
 
-  .progression-strip__bpm {
-    flex: 1 0 100%;
-    order: 2;
-  }
+  .progression-strip__notices { grid-area: notices; }
+  .progression-strip__arrangement { grid-area: arrangement; }
+  .progression-strip__transport { grid-area: transport; }
+  .progression-strip__inspector { grid-area: inspector; align-self: start; }
+  .progression-strip__manage { grid-area: manage; }
+  .progression-strip__danger { grid-area: danger; }
 
-  .progression-strip__play-btn {
-    order: 3;
-    flex: 1 0 100%;
-  }
-
-  /* Promote Save/Export and Clear/Clear all up into the bar's own flex row
-     (instead of each group claiming a full-width row of its own), so all
-     four buttons sit together on one line */
-  .progression-strip__pro-group,
-  .progression-strip__clear-group {
-    display: contents;
-  }
-
-  .progression-strip__pro-btn,
-  .progression-strip__clear-btn {
-    order: 4;
-    flex: 1;
-    min-width: 0;
-    padding: 9px 6px;
-    font-size: 11.5px;
-    gap: 3px;
-  }
-
-  .progression-strip__pro-badge {
-    font-size: 8.5px;
-    padding: 1px 4px;
-  }
-
-  .progression-strip__save-inline {
-    order: 4;
-    flex: 1 0 100%;
-  }
-
-  .progression-strip__saved-toggle {
-    order: 5;
-    flex: 1 0 100%;
-    text-align: center;
+  /* Nothing to disclose here -- the inspector is always visible. */
+  .progression-strip__disclosure {
+    display: none;
   }
 }
 
 /* ─── Very short / landscape phones ─────────────────────────────────────────
-   The dvh cap above already keeps the sheet on-screen at any height, but on
-   very short viewports (landscape phones, ~390px and under) that still
-   leaves little breathing room before the user hits the internal scroll --
-   tighten padding/gaps and shrink the instrument diagrams so the reachable,
-   above-the-scroll area (handle + tabs + a usable amount of content) stays
-   comfortable rather than merely non-negative. */
+   Tighten gaps so the reachable area above the internal scroll stays
+   comfortable rather than merely non-negative. No piano max-width override:
+   the keyboard renders at a fixed intrinsic size to guarantee a genuine 44px
+   touch target per white key (see PianoDisplay.css) and scrolls horizontally
+   inside its own container instead of shrinking. */
 @media (max-height: 500px) {
-  .progression-strip {
-    padding: 6px 20px calc(6px + env(safe-area-inset-bottom));
-  }
-
-  .progression-strip__handle {
-    height: 6px;
-  }
-
-  .progression-strip__expanded-content .instrument-dock {
-    margin: 0 auto 6px;
+  .progression-strip__layout {
+    gap: 10px;
+    padding-block: 10px;
   }
 
   .progression-strip__expanded-content .instrument-dock__tabs {
     margin-bottom: 4px;
   }
 
-  /* No equivalent piano-display__svg max-width override here -- the piano
-     keyboard now renders at a fixed intrinsic size (see PianoDisplay.css)
-     to guarantee a genuine 44px touch target per white key; shrinking it
-     back down on short viewports would silently undo that. It scrolls
-     horizontally instead (piano-display__keys-scroll). */
   .progression-strip__expanded-content .guitar-display__legend {
     margin-top: 8px;
   }
 
   .progression-strip__expanded-content .instrument-dock__keys-position-selector {
     margin-top: 6px;
-  }
-}
-
-/* Expanded progression is a focused overlay page, not a second layout that
-   pushes or covers the builder unpredictably. */
-.progression-strip--expanded {
-  left: 50%;
-  right: auto;
-  bottom: 18px;
-  width: min(980px, calc(100% - 36px));
-  max-height: calc(100dvh - 96px);
-  transform: translateX(-50%);
-  z-index: 260;
-  border: 1px solid var(--border);
-  border-radius: 20px;
-  box-shadow: 0 0 0 100vmax rgba(8, 27, 32, 0.56), 0 24px 70px rgba(5, 23, 28, 0.3);
-  overflow: hidden;
-}
-
-@media (max-width: 600px) {
-  .progression-strip--expanded {
-    bottom: 10px;
-    width: calc(100% - 20px);
-    max-height: calc(100dvh - 78px);
-    border-radius: 18px;
   }
 }

@@ -9,12 +9,12 @@ export const WALKTHROUGH_CONFIGS = {
       },
       {
         selector: '#wt-play-btn',
-        text: 'Use the centre Play control to hear the current chord from Build or Explore.',
+        text: 'Play chord, in the bar at the bottom, hears whatever chord is selected right now.',
         action: true,
       },
       {
         selector: '#wt-progression',
-        text: 'Your progression is always visible here. Open it to arrange chords and view the piano or fretboard.',
+        text: 'Your progression lives in this bar. Open it to arrange chords, set the tempo and play them back.',
         action: false,
       },
     ],

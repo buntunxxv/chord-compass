@@ -36,7 +36,7 @@ function formatInterval(interval) {
 const HOLD_SECONDS = 1.5
 const CONFIRMATION_MS = 1500
 
-export default function ChordOutputPanel({ chordName, notes, intervals, available, onAddToProgression, onOpenSuggestions, hasSuggestions, isPro }) {
+export default function ChordOutputPanel({ chordName, notes, intervals, available, onAddToProgression, onOpenSuggestions, hasSuggestions, isPro, onPlayChord, isPlayingChord, canPlayChord }) {
   const [detailsOpen, setDetailsOpen] = useState(false)
   // 'idle' | 'exporting' | 'success' | 'error' -- gives the button itself a
   // brief, visible state for each phase, instead of the previous
@@ -130,7 +130,29 @@ export default function ChordOutputPanel({ chordName, notes, intervals, availabl
       <h2 className="chord-output__title">Explore {chordName}</h2>
       <div className="chord-output__body">
         <div className="chord-output__summary">
-          <div className="chord-output__name">{chordName}</div>
+          {/* Play sits beside the chord it plays, at desktop widths only.
+              It reads as an action here because it's attached to the thing
+              being acted on and says so in words -- unlike the version this
+              replaces, which sat between two navigation tabs wearing nothing
+              but a triangle and the chord symbol, and duly read as a third
+              tab. Phones hide it: the dock's own Play chord button is always
+              on screen there, and two identical buttons a thumb apart is
+              worse than one. */}
+          <div className="chord-output__name-row">
+            <div className="chord-output__name">{chordName}</div>
+            {onPlayChord && (
+              <button
+                type="button"
+                className={`chord-output__play-btn ${isPlayingChord ? 'chord-output__play-btn--playing' : ''}`}
+                onClick={onPlayChord}
+                disabled={isPlayingChord || !canPlayChord}
+                aria-label={`Play chord ${chordName}`}
+              >
+                <span aria-hidden="true">{isPlayingChord ? '♪' : '▶'}</span>
+                {isPlayingChord ? 'Playing…' : 'Play chord'}
+              </button>
+            )}
+          </div>
           <button
             type="button"
             className="chord-output__details-toggle"
