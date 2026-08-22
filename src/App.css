@@ -41,10 +41,15 @@
   gap: 16px;
 }
 
+/* The link is a bare wrapper, so without a floor its target is exactly the
+   logo: 36px here, 31px once the ≤600px rule shrinks the image. The image
+   keeps its own size; only the hit area grows, and 44px still fits the
+   header row, which resolves to 58-60px at every width. */
 .app__logo-link {
   display: flex;
   align-items: center;
   flex-shrink: 0;
+  min-height: 44px;
 }
 
 .app__logo img {
@@ -152,7 +157,13 @@
   background: var(--white);
 }
 
+/* This menu is the only route to Share feedback and the theme toggle at
+   every width, so its rows are primary targets: 12px of padding around a
+   16px line box left them at 40px. */
 .app__mobile-menu-link {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
   font-size: 14px;
   font-weight: 600;
   color: var(--text-muted);
@@ -516,7 +527,13 @@
   gap: 12px;
 }
 
+/* A real route link sitting on a 12px line box, so its target was 14px
+   tall. It shares the header row with the logo link; both now clear 44px
+   inside the same 60px row. */
 .app__suite-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   color: var(--teal);
   font-size: 12px;
   font-weight: 800;
@@ -777,11 +794,14 @@
     border-left: 1px solid var(--border);
   }
 
-  .app__builder-intro {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 18px;
-  }
+  /* No .app__builder-intro override here on purpose. The "Single-screen
+     workspace" layer below is an unconditional block that lands after this
+     media query, so anything set here that it also sets (align-items, gap)
+     loses on source order. A stacked rule used to live here; all that
+     survived was its flex-direction: column, which combined with that
+     layer's align-items: center to centre the heading between 761 and
+     900px. The intro is a row at every width -- flex above 900px, a
+     two-column grid below 760px -- so this band takes the row too. */
 
   .app__header-tool .theme-toggle {
     display: none;
