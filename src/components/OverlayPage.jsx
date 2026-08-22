@@ -1,7 +1,7 @@
 import { useEffect, useId, useRef } from 'react'
 import './OverlayPage.css'
 
-export default function OverlayPage({ isOpen, onClose, eyebrow, title, children, intro = false, wide = false }) {
+export default function OverlayPage({ isOpen, onClose, eyebrow, title, children, intro = false, wide = false, docked = false }) {
   const titleId = useId()
   const closeRef = useRef(null)
 
@@ -23,7 +23,7 @@ export default function OverlayPage({ isOpen, onClose, eyebrow, title, children,
 
   return (
     <div
-      className="overlay-page"
+      className={`overlay-page ${docked ? 'overlay-page--docked' : ''}`}
       role="presentation"
       onMouseDown={event => {
         if (!intro && event.target === event.currentTarget) onClose?.()

@@ -60,24 +60,31 @@
   box-shadow: none;
 }
 
-/* The collapsed bottom bar's mini-keyboard strip -- a fixed, modest-height
-   inline element sitting next to the chord name and play button, not a
-   card of its own. flex-shrink:0 keeps its small intrinsic size (set via
-   the svg's own width/height, see PianoDisplay.jsx's MINIATURE_WIDTH/
-   HEIGHT) from being squeezed by its siblings in that flex row. */
+/* The collapsed dock's mini-keyboard strip -- a modest-height inline element
+   sitting next to the chord name and the Play chord button, not a card of
+   its own. It keeps its small intrinsic size (set via the svg's own
+   width/height, see PianoDisplay.jsx's MINIATURE_WIDTH/HEIGHT) unless the
+   dock actually runs out of room, at which point the max-width/height:auto
+   pair below lets it scale down proportionally rather than overflow. */
 .piano-display--miniature {
   display: block;
   background: none;
   border-radius: 0;
   padding: 0;
   box-shadow: none;
-  flex-shrink: 0;
   line-height: 0;
+  max-width: 100%;
 }
 
+/* max-width + height:auto on an svg that has BOTH intrinsic width/height
+   attributes and a viewBox scales the whole keyboard down while preserving
+   its aspect ratio -- a real shrink, never a crop, so a wide multi-octave
+   voicing keeps every one of its lit keys visible at any phone width. */
 .piano-display__svg--miniature {
   display: block;
   filter: none;
+  max-width: 100%;
+  height: auto;
 }
 
 .piano-display__legend {

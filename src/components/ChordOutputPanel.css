@@ -329,3 +329,56 @@
     font-size: 11px;
   }
 }
+
+/* ─── Play chord ────────────────────────────────────────────────────────────
+   Desktop-only companion to the dock's own Play chord button (see
+   ProgressionStrip.css): same wording, same behaviour, placed next to the
+   chord name so the two-column workspace keeps an in-context play affordance
+   after the ambiguous ▶-plus-symbol control was removed from the
+   Build/Explore selector. */
+.chord-output__name-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.chord-output__play-btn {
+  display: none;
+}
+
+@media (min-width: 901px) {
+  .chord-output__play-btn {
+    min-height: 46px;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 18px;
+    border: 1px solid var(--teal);
+    border-radius: 999px;
+    background: var(--white);
+    color: var(--teal);
+    font: inherit;
+    font-size: 14px;
+    font-weight: 800;
+    white-space: nowrap;
+    cursor: pointer;
+    box-shadow: 0 5px 18px rgba(17, 147, 146, 0.14);
+    transition: background 0.15s, color 0.15s;
+  }
+
+  .chord-output__play-btn:hover:not(:disabled) {
+    background: var(--teal);
+    color: var(--on-accent);
+  }
+
+  .chord-output__play-btn--playing {
+    background: var(--teal);
+    color: var(--on-accent);
+  }
+
+  .chord-output__play-btn:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+}

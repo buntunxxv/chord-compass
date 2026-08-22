@@ -20,6 +20,12 @@
   --border: #E1E1E1;
   --warn-text: #A06A00;
   --warn-bg: #FFF6E6;
+  /* Destructive-action palette. Previously a bare #c0392b repeated inline in
+     ProgressionStrip.css, which had no dark-theme answer at all -- the same
+     deep red on a near-black surface fails contrast and reads as brown. */
+  --danger: #C0392B;
+  --danger-border: #E7BDB7;
+  --danger-tint: #FDF3F1;
   --backdrop: rgba(26, 26, 26, 0.45);
   --panel-shadow: -4px 0 32px rgba(0, 0, 0, 0.14);
   --on-accent: #FFFFFF;
@@ -42,6 +48,22 @@
   --note-color-chord-tone: #119392;
   --note-color-suggested: #8B5CF6;
   --note-color-split-bass: #D6336C;
+
+  /* Height of the collapsed progression dock (ProgressionStrip's fixed
+     bottom bar), safe-area included. Three separate places need to know it
+     -- the builder panel's bottom padding reservation, the docked overlay
+     pages' bottom edge, and the dock's own min-height -- so it lives here as
+     one value rather than three hand-synced magic numbers. Below 760px the
+     dock's buttons wrap onto their own row (chord name + miniature keyboard
+     can't share a line with two 44px targets on a phone), which is where the
+     taller value comes from. */
+  --dock-h: calc(78px + env(safe-area-inset-bottom));
+}
+
+@media (max-width: 759px) {
+  :root {
+    --dock-h: calc(118px + env(safe-area-inset-bottom));
+  }
 }
 
 [data-theme="dark"] {
@@ -60,6 +82,9 @@
   --border: #33383E;
   --warn-text: #E0B34D;
   --warn-bg: #3A2E10;
+  --danger: #F0857A;
+  --danger-border: #58302B;
+  --danger-tint: #2B1A18;
   --backdrop: rgba(0, 0, 0, 0.6);
   --panel-shadow: -4px 0 32px rgba(0, 0, 0, 0.5);
   --shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
@@ -85,4 +110,20 @@ button, select, input {
   place-items: center;
   color: var(--text-muted);
   font-weight: 600;
+}
+
+/* Text that exists only for assistive tech -- lets a control keep its own
+   visible text as its accessible name (instead of an aria-label replacing
+   it) while still spelling out what a bare number or glyph next to it
+   means. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
 }
