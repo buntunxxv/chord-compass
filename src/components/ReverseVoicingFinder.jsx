@@ -159,7 +159,7 @@ export default function ReverseVoicingFinder({ onAddToProgression, onImportSeque
                     type="button"
                     className="reverse-finder__add-btn"
                     onClick={() => onAddToProgression?.(name, soundingNotes(result.frets))}
-                    aria-label={`Add ${name} to progression`}
+                    aria-label={`Add to progression ${name}`}
                   >
                     + Add to progression
                   </button>
