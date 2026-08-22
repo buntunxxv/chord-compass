@@ -174,13 +174,16 @@ export default function ChordOutputPanel({ chordName, notes, intervals, availabl
           </OverlayPage>
         </div>
         <div className="chord-output__actions">
+          {/* Accessible name leads with the visible label so the label is
+              contained in the name (WCAG 2.5.3) and the chord still comes
+              through -- the same shape as the Play chord control. */}
           <button
             id="wt-add-btn"
             className="chord-output__add-btn"
             onClick={() => onAddToProgression(chordName, notes)}
-            aria-label={`Add ${chordName} to progression`}
+            aria-label={`Add to progression ${chordName}`}
           >
-            + Add current chord
+            + Add to progression
           </button>
           {hasSuggestions && (
             <button type="button" className="chord-output__next-btn" onClick={onOpenSuggestions}>

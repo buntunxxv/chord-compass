@@ -53,11 +53,16 @@
 
 /* ─── Header ───────────────────────────────────────────────────────────────── */
 
+/* 10px, not 16px: the two action buttons below carry a 44px min-height, so
+   they grow into the padding rather than pushing the header taller. A 44px
+   content row plus 10px twice plus the 1px border is 65px -- exactly what
+   this header measured when those buttons were 32px, with the logo
+   optically centred as before. */
 .fp-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 24px;
+  padding: 10px 24px;
   background: var(--white);
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
@@ -83,6 +88,9 @@
   font-weight: 600;
   color: var(--text-faint);
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   padding: 6px 0;
   transition: color 0.15s;
   letter-spacing: 0.02em;
@@ -105,6 +113,7 @@
   letter-spacing: 0.06em;
   text-transform: uppercase;
   cursor: pointer;
+  min-height: 44px;
   padding: 6px 0;
   transition: opacity 0.15s;
 }

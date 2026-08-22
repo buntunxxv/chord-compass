@@ -5,22 +5,11 @@
   box-shadow: var(--shadow);
 }
 
-.progression-templates__title {
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  display: block;
-}
-
 .progression-templates__hint {
   font-size: 13px;
   color: var(--text-muted);
   line-height: 1.45;
-  display: block;
-  margin-top: 4px;
-  margin-bottom: 16px;
+  margin: 0 0 16px;
 }
 
 .progression-templates__key {
@@ -56,10 +45,13 @@
   gap: 2px;
 }
 
+/* 44px floor, as on the mood chips below -- this toggle decides which deck
+   you get, so it is a primary control of the panel, and it sat at 29px. */
 .progression-templates__mode-btn {
   border: none;
   background: transparent;
   border-radius: 16px;
+  min-height: 44px;
   padding: 7px 16px;
   font-size: 13px;
   font-weight: 600;
@@ -76,11 +68,72 @@
   color: var(--on-accent);
 }
 
-.progression-templates__mood-filter {
+/* Deck navigation. Hidden here because the base layout is the grid, where
+   every card is already on screen and there is nothing to navigate; the
+   media query at the foot of this file turns it on. Both that query and
+   DECK_QUERY in ProgressionTemplates.jsx are `max-width: 760px` -- pairing a
+   max-width with a min-width instead would leave one width at which the JS
+   thinks it is driving a deck while the CSS is still laying out a grid. */
+.progression-templates__deck-nav {
+  display: none;
+}
+
+.progression-templates__deck-steps {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.progression-templates__deck-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text);
+  font-size: 16px;
+  line-height: 1;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.progression-templates__deck-arrow:hover {
+  border-color: var(--teal);
+  color: var(--teal);
+}
+
+.progression-templates__deck-count {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+}
+
+.progression-templates__deck-position {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--teal);
+  /* Tabular figures so the counter doesn't jitter as the number changes. */
+  font-variant-numeric: tabular-nums;
+}
+
+.progression-templates__deck-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.progression-templates__deck-chips {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-bottom: 16px;
 }
 
 .progression-templates__mood-chip {
@@ -114,7 +167,7 @@
   color: var(--suggest);
 }
 
-.progression-templates__list {
+.progression-templates__deck {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
@@ -210,8 +263,13 @@
   flex: 1;
 }
 
+/* The one action on a card, and at 33px it was under the floor the rest of
+   the app holds to. Width is content-driven and already clears 44px. */
 .progression-templates__load-btn {
   align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   background: transparent;
   border: 1.5px solid var(--teal);
   color: var(--teal);
@@ -232,4 +290,36 @@
   border-color: var(--border);
   color: var(--text-muted);
   cursor: not-allowed;
+}
+
+/* One card at a time, swiped rather than scrolled past. Same track
+   convention as .progression-strip__chart-scroll, with one deliberate
+   difference: snap is `mandatory` here, not `proximity`. That file relaxes
+   it because a JS drag-to-reorder gesture competes with the snap and
+   `mandatory` swallows the small programmatic scrolls the drag depends on.
+   Nothing competes here, and a deck should always come to rest on a card
+   rather than halfway between two. */
+@media (max-width: 760px) {
+  .progression-templates__deck-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .progression-templates__deck {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* min-width: 0 overrides the grid's 220px floor -- below roughly a 250px
+     viewport that floor would make each card wider than the track and push
+     the page into a horizontal scroll of its own. */
+  .progression-templates__card {
+    flex: 0 0 100%;
+    min-width: 0;
+    scroll-snap-align: center;
+  }
 }

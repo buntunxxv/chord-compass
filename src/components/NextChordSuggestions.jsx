@@ -121,7 +121,7 @@ export default function NextChordSuggestions({ suggestions, currentNotes, bpm, p
               <button
                 className="next-chords__add-btn"
                 onClick={() => onAddToProgression(s.chord, s.notes)}
-                aria-label={`Add ${s.chord} to progression`}
+                aria-label={`Add to progression ${s.chord}`}
               >
                 + Add to progression
               </button>
