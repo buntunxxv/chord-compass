@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useId } from 'react'
-import { scrollRevealIntoView } from '../utils/scrollReveal'
+import BottomSheet from './BottomSheet'
 import './Dropdown.css'
 
 // APG "listbox popup" keyboard model: DOM focus stays on the listbox (ul)
@@ -28,7 +28,11 @@ function nextEnabledIndex(options, from, dir) {
   }
 }
 
-export default function Dropdown({ id, value, options, onChange, disabled, label, description, badge }) {
+// The options open in a bottom sheet rather than a popover under the trigger.
+// The APG listbox model is unchanged -- DOM focus stays on the ul while it is
+// open and aria-activedescendant tracks the highlight -- only where that ul
+// renders has moved.
+export default function Dropdown({ id, value, options, onChange, disabled, label, title, description, badge }) {
   const [open, setOpen] = useState(false)
   const [highlightedIndex, setHighlightedIndex] = useState(-1)
   const rootRef = useRef(null)
@@ -55,23 +59,13 @@ export default function Dropdown({ id, value, options, onChange, disabled, label
         ? selectedIndex
         : firstEnabledIndex(options)
       setHighlightedIndex(startIndex)
-      listRef.current?.focus()
-      scrollRevealIntoView(listRef.current)
+      // BottomSheet focuses listRef for us via initialFocusRef; there is no
+      // popover under the trigger to scroll into view any more.
     } else if (wasOpenRef.current) {
       triggerRef.current?.focus()
     }
     wasOpenRef.current = open
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open])
-
-  useEffect(() => {
-    if (!open) return
-
-    function handlePointerDown(e) {
-      if (rootRef.current && !rootRef.current.contains(e.target)) setOpen(false)
-    }
-    document.addEventListener('mousedown', handlePointerDown)
-    return () => document.removeEventListener('mousedown', handlePointerDown)
   }, [open])
 
   useEffect(() => {
@@ -158,7 +152,14 @@ export default function Dropdown({ id, value, options, onChange, disabled, label
         </span>
       </button>
 
-      {open && (
+      <BottomSheet
+        isOpen={open}
+        onClose={() => setOpen(false)}
+        // No eyebrow: for the Build selectors it would just repeat the
+        // title ("ROOT" over "Root"), since both come from `label`.
+        title={title || label || 'Choose an option'}
+        initialFocusRef={listRef}
+      >
         <ul
           id={listboxId}
           ref={listRef}
@@ -177,7 +178,17 @@ export default function Dropdown({ id, value, options, onChange, disabled, label
               aria-selected={opt.value === value}
               aria-disabled={opt.disabled || undefined}
               className={`dropdown__option ${opt.value === value ? 'dropdown__option--selected' : ''} ${opt.disabled ? 'dropdown__option--disabled' : ''} ${index === highlightedIndex ? 'dropdown__option--highlighted' : ''}`}
-              onMouseEnter={() => { if (!opt.disabled) setHighlightedIndex(index) }}
+              // mousemove, not mouseenter: mouseenter also fires when the list
+              // scrolls a different option under a stationary pointer, which
+              // silently overrode the keyboard highlight -- pressing End moved
+              // the highlight to the last option, the effect below scrolled it
+              // into view, and whichever option slid under the resting cursor
+              // took the highlight back. mousemove only fires on real pointer
+              // movement. Latent before, reachable now the list fills a sheet
+              // the pointer is already over rather than a popover below it.
+              onMouseMove={() => {
+                if (!opt.disabled && index !== highlightedIndex) setHighlightedIndex(index)
+              }}
               onClick={() => {
                 if (opt.disabled) return
                 onChange(opt.value)
@@ -196,7 +207,7 @@ export default function Dropdown({ id, value, options, onChange, disabled, label
             </li>
           ))}
         </ul>
-      )}
+      </BottomSheet>
     </div>
   )
 }

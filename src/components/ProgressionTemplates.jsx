@@ -24,17 +24,20 @@ export default function ProgressionTemplates({ keyRoot, keyMode, onKeyRootChange
 
   return (
     <div className="progression-templates" id="wt-progression-templates">
-      {/* No heading here: OverlayPage already renders "Templates / Start with
-          a proven progression" above this. The hint stays -- that title does
-          not tell you the key comes first. */}
+      {/* No heading here: the workspace h1 names whichever slide you are on.
+          The hint stays -- that title does not tell you the key comes first. */}
       <p className="progression-templates__hint">Pick a key, then load a named progression built from it</p>
 
       <div className="progression-templates__key">
         <div className="progression-templates__key-field">
           <label className="progression-templates__label">Key</label>
+          {/* title, not label: this Dropdown already has a visible <label>
+              beside it, and `label` would repeat that inside the trigger.
+              title only names the sheet. */}
           <Dropdown
             value={keyRoot}
             onChange={onKeyRootChange}
+            title="Key"
             options={ROOTS.map((r, i) => ({ value: r, label: ROOT_DISPLAY[i] }))}
           />
         </div>

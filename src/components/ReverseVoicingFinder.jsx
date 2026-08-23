@@ -97,9 +97,8 @@ export default function ReverseVoicingFinder({ onAddToProgression, onImportSeque
 
   return (
     <div className="reverse-finder">
-      {/* No heading here: OverlayPage already renders "Identify / Find a
-          chord from its notes" above this. The hint stays -- it says what to
-          do, which that title doesn't. */}
+      {/* No heading here: the workspace h1 names whichever slide you are on.
+          The hint stays -- it says what to do, which that title doesn't. */}
       <p className="reverse-finder__hint">
         {referenceGuitarShape
           ? `Tap the notes you want to hear, then see the best shapes near ${lastChordName} on the neck.`

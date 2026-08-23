@@ -20,7 +20,11 @@ import './BottomSheet.css'
 // only the panel instead of the viewport, and the dock -- outside that subtree
 // -- paints over the foot of the sheet and swallows clicks on whatever sits
 // there. OverlayPage needs no portal: it renders as a sibling of the panel.
-export default function BottomSheet({ isOpen, onClose, eyebrow, title, children }) {
+// `initialFocusRef` is for content that owns its own focus target -- the
+// Dropdown puts a listbox in here and the APG listbox model keeps DOM focus on
+// the list itself, so landing on the close button instead would break arrow-key
+// navigation before it started.
+export default function BottomSheet({ isOpen, onClose, eyebrow, title, children, initialFocusRef }) {
   const titleId = useId()
   const closeRef = useRef(null)
 
@@ -31,12 +35,12 @@ export default function BottomSheet({ isOpen, onClose, eyebrow, title, children 
       if (event.key === 'Escape') onClose?.()
     }
     document.addEventListener('keydown', handleKeyDown)
-    closeRef.current?.focus()
+    ;(initialFocusRef?.current ?? closeRef.current)?.focus()
     return () => {
       document.removeEventListener('keydown', handleKeyDown)
       previouslyFocused?.focus?.()
     }
-  }, [isOpen, onClose])
+  }, [isOpen, onClose, initialFocusRef])
 
   if (!isOpen) return null
 
