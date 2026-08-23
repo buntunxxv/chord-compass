@@ -5,15 +5,6 @@
   box-shadow: var(--shadow);
 }
 
-.reverse-finder__title {
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  margin-bottom: 8px;
-}
-
 .reverse-finder__hint {
   font-size: 13px;
   color: var(--text-muted);
@@ -32,9 +23,14 @@
   width: fit-content;
 }
 
+/* 44px floor on the panel's controls, as on the deck's own chips and
+   arrows. These were 24-38px tall. Padding and font-size are untouched --
+   only the tappable box grows. */
 .reverse-finder__input-tab {
   display: flex;
   align-items: center;
+  justify-content: center;
+  min-height: 44px;
   gap: 6px;
   background: transparent;
   border: none;
@@ -85,6 +81,9 @@
 }
 
 .reverse-finder__clear-btn {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   background: transparent;
   border: 1.5px solid var(--border);
   color: var(--text-muted);
@@ -110,11 +109,16 @@
   line-height: 1.4;
 }
 
+/* The margin lives on the section, not the track, so it sits above the deck
+   nav at deck widths rather than between the nav and the cards. */
+.reverse-finder__shapes {
+  margin-top: 20px;
+}
+
 .reverse-finder__results {
   display: flex;
   flex-wrap: wrap;
   gap: 16px;
-  margin-top: 20px;
 }
 
 .reverse-finder__result {
@@ -173,6 +177,10 @@
 }
 
 .reverse-finder__add-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
   background: transparent;
   border: 1.5px solid var(--teal);
   color: var(--teal);

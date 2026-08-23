@@ -4,7 +4,10 @@
   gap: 8px;
 }
 
+/* The twelve note keys are the primary input of the Identify panel and sat
+   at 42px -- two short of the floor the rest of the app holds to. */
 .note-picker__key {
+  min-height: 44px;
   background: var(--bg);
   border: 1.5px solid var(--border);
   border-radius: 8px;

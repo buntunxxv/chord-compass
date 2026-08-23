@@ -3,6 +3,8 @@ import { Chord } from 'tonal'
 import GuitarDisplay from './GuitarDisplay'
 import NotePicker from './NotePicker'
 import MidiImportPanel from './MidiImportPanel'
+import DeckNav from './DeckNav'
+import { useCardDeck } from '../hooks/useCardDeck'
 import { findVoicings, soundingNotes, detectChordName, PITCH_CLASS_NAMES } from '../utils/reverseVoicingLookup'
 import { formatChordName } from '../utils/formatChordName'
 import './ReverseVoicingFinder.css'
@@ -54,16 +56,44 @@ export default function ReverseVoicingFinder({ onAddToProgression, onImportSeque
     return findVoicings(selected, { maxResults: 3, referenceShape: referenceGuitarShape?.frets ?? null })
   }, [selected, referenceGuitarShape])
 
-  const selectedNoteNames = selected
-    .slice()
-    .sort((a, b) => a - b)
-    .map(pc => PITCH_CLASS_NAMES[pc])
+  // Memoised rather than derived inline because `shapes` below depends on
+  // it and useCardDeck keys the deck off that array's identity -- a fresh
+  // array every render would snap the deck back to the first shape.
+  const selectedNoteNames = useMemo(
+    () => selected.slice().sort((a, b) => a - b).map(pc => PITCH_CLASS_NAMES[pc]),
+    [selected],
+  )
+
+  // Naming resolved here rather than inside the render loop, so the deck's
+  // counter can show the current shape's chord name without detecting it a
+  // second time.
+  const shapes = useMemo(() => results.map(result => {
+    // Detected per-result, not once for the whole picked set -- this specific
+    // shape's actual sounding notes (doublings/an extra tone) can genuinely
+    // differ from another ranked shape's, so they can legitimately deserve
+    // different names.
+    const detected = detectChordName(result.frets)
+    const name = formatChordName(detected.name)
+    // Root for GuitarDisplay's highlight/aria-label: derived from the RAW
+    // detected name (Chord.get needs tonal's own naming, not
+    // formatChordName's display-only "M"-tag stripping), same
+    // Chord.get(...).tonic pattern App.jsx already uses. Falls back to the
+    // first picked note when detection found no confident match
+    // (detected.name is then just a plain note list, which Chord.get can't
+    // resolve a tonic from).
+    const root = Chord.get(detected.name).tonic || selectedNoteNames[0]
+    return { result, detected, name, root }
+  }), [results, selectedNoteNames])
+
+  const { index, isDeck, trackRef, cardRefs, chipRefs, goTo, handleChipKeyDown } = useCardDeck(shapes)
 
   const lastChordName = progression && progression.length > 0 ? progression[progression.length - 1].chord : null
 
   return (
     <div className="reverse-finder">
-      <h2 className="reverse-finder__title">Find Shapes by Notes</h2>
+      {/* No heading here: OverlayPage already renders "Identify / Find a
+          chord from its notes" above this. The hint stays -- it says what to
+          do, which that title doesn't. */}
       <p className="reverse-finder__hint">
         {referenceGuitarShape
           ? `Tap the notes you want to hear, then see the best shapes near ${lastChordName} on the neck.`
@@ -123,51 +153,60 @@ export default function ReverseVoicingFinder({ onAddToProgression, onImportSeque
       )}
 
       {selected.length > 0 && selected.length <= STRING_COUNT && (
-        <div className="reverse-finder__results">
-          {results.length === 0 ? (
-            <p className="reverse-finder__notice">
-              No playable shape found for these notes within a 15-fret range.
-            </p>
-          ) : (
-            results.map((result, i) => {
-              // Detected per-result, not once for the whole picked set --
-              // this specific shape's actual sounding notes (doublings/an
-              // extra tone) can genuinely differ from another ranked
-              // shape's, so they can legitimately deserve different names.
-              const detected = detectChordName(result.frets)
-              const name = formatChordName(detected.name)
-              // Root for GuitarDisplay's highlight/aria-label: derived from
-              // the RAW detected name (Chord.get needs tonal's own naming,
-              // not formatChordName's display-only "M"-tag stripping), same
-              // Chord.get(...).tonic pattern App.jsx already uses. Falls
-              // back to the first picked note when detection found no
-              // confident match (detected.name is then just a plain note
-              // list, which Chord.get can't resolve a tonic from).
-              const root = Chord.get(detected.name).tonic || selectedNoteNames[0]
-              return (
-                <div className="reverse-finder__result" key={result.frets.join('-')}>
-                  <div className="reverse-finder__result-label">{RESULT_LABELS[i] || `#${i + 1}`}</div>
-                  <div className={`reverse-finder__result-name ${detected.isDetected ? '' : 'reverse-finder__result-name--fallback'}`}>
-                    {name}
-                  </div>
-                  {detected.isDetected && detected.alternates.length > 0 && (
-                    <div className="reverse-finder__result-alt">also: {detected.alternates.map(formatChordName).join(', ')}</div>
-                  )}
-                  <GuitarDisplay shape={{ frets: result.frets }} notes={selectedNoteNames} root={root} compact />
-                  <div className="reverse-finder__result-stats">{statsLine(result)}</div>
-                  <button
-                    type="button"
-                    className="reverse-finder__add-btn"
-                    onClick={() => onAddToProgression?.(name, soundingNotes(result.frets))}
-                    aria-label={`Add to progression ${name}`}
+        shapes.length === 0 ? (
+          <p className="reverse-finder__notice">
+            No playable shape found for these notes within a 15-fret range.
+          </p>
+        ) : (
+          <div className="reverse-finder__shapes">
+            {/* Chips are the rank, not the chord name: three voicings of one
+                chord detect as the same name more often than not, and three
+                identical chips would name nothing. Ranking is the thing that
+                actually distinguishes these cards, and the counter carries
+                the name alongside it. */}
+            <DeckNav
+              count={shapes.length}
+              index={index}
+              name={shapes[index]?.name}
+              chipLabels={shapes.map((_, i) => RESULT_LABELS[i] || `#${i + 1}`)}
+              noun="shape"
+              onGoTo={goTo}
+              onChipKeyDown={handleChipKeyDown}
+              chipRefs={chipRefs}
+            />
+            <div className="reverse-finder__results deck-track" ref={trackRef}>
+              {shapes.map(({ result, detected, name, root }, i) => {
+                const rank = RESULT_LABELS[i] || `#${i + 1}`
+                return (
+                  <article
+                    className="reverse-finder__result"
+                    key={result.frets.join('-')}
+                    ref={el => { cardRefs.current[i] = el }}
+                    aria-label={isDeck ? `${rank}, ${name}, ${i + 1} of ${shapes.length}` : undefined}
                   >
-                    + Add to progression
-                  </button>
-                </div>
-              )
-            })
-          )}
-        </div>
+                    <div className="reverse-finder__result-label">{rank}</div>
+                    <div className={`reverse-finder__result-name ${detected.isDetected ? '' : 'reverse-finder__result-name--fallback'}`}>
+                      {name}
+                    </div>
+                    {detected.isDetected && detected.alternates.length > 0 && (
+                      <div className="reverse-finder__result-alt">also: {detected.alternates.map(formatChordName).join(', ')}</div>
+                    )}
+                    <GuitarDisplay shape={{ frets: result.frets }} notes={selectedNoteNames} root={root} compact />
+                    <div className="reverse-finder__result-stats">{statsLine(result)}</div>
+                    <button
+                      type="button"
+                      className="reverse-finder__add-btn"
+                      onClick={() => onAddToProgression?.(name, soundingNotes(result.frets))}
+                      aria-label={`Add to progression ${name}`}
+                    >
+                      + Add to progression
+                    </button>
+                  </article>
+                )
+              })}
+            </div>
+          </div>
+        )
       )}
     </div>
   )
