@@ -32,7 +32,7 @@ function snapBpm(val) {
   return Math.abs(val - BPM_MID) <= SNAP_THRESHOLD ? BPM_MID : val
 }
 
-export default function ProgressionStrip({ expanded, onExpandedChange, currentChordName, onPlayChord, isChordPlaying, canPlayChord, progression, selectedChordIndex, bpm, onBpmChange, onClear, onRemoveLast, onSelectChord, onReorder, onLoadSaved, teaserMessage, onPlayingChordChange, chordNotes, previewNotes, bassHighlightNote, keysRootNote, keysPositionIndex, onKeysPositionChange, guitarPositionIndex, onGuitarPositionChange, root, guitarShape, guitarSlashNotice, guitarInversionUnavailable, guitarPositions, templateInfo, canUndoLoad, onUndoLoad, isPro }) {
+export default function ProgressionStrip({ expanded, onExpandedChange, currentChordName, onPlayChord, isChordPlaying, canPlayChord, progression, selectedChordIndex, bpm, onBpmChange, onClear, onRemoveSelected, onSelectChord, onReorder, onLoadSaved, teaserMessage, onPlayingChordChange, chordNotes, previewNotes, bassHighlightNote, keysRootNote, keysPositionIndex, onKeysPositionChange, guitarPositionIndex, onGuitarPositionChange, root, guitarShape, guitarSlashNotice, guitarInversionUnavailable, guitarPositions, templateInfo, canUndoLoad, onUndoLoad, isPro }) {
   const [activeIndex, setActiveIndex] = useState(null)
   const [isPlaying, setIsPlaying] = useState(false)
   const synthRef = useRef(null)
@@ -785,9 +785,11 @@ export default function ProgressionStrip({ expanded, onExpandedChange, currentCh
               <div className="progression-strip__danger-row">
                 <button
                   className="progression-strip__clear-btn"
-                  onClick={onRemoveLast}
+                  onClick={onRemoveSelected}
+                  disabled={!hasSelection}
+                  title={hasSelection ? undefined : 'Select a chord first'}
                 >
-                  Remove last
+                  Remove selected
                 </button>
                 <button
                   className="progression-strip__clear-btn progression-strip__clear-btn--all"

@@ -406,11 +406,23 @@ export default function App() {
     setTappedChordIndex(null)
   }
 
-  function removeLast() {
+  // Removes whichever chord is selected, not the last one. With the
+  // arrangement laid out as a grid every cell is selectable, which made
+  // "last" the one chord you could point at and still not remove.
+  function removeSelected() {
+    if (tappedChordIndex == null || tappedChordIndex >= progression.length) return
+    const removedIndex = tappedChordIndex
     clearLoadUndo()
     setActiveTemplate(null)
-    setProgression(prev => prev.slice(0, -1))
-    setTappedChordIndex(prev => (prev === progression.length - 1 ? null : prev))
+    setProgression(prev => prev.filter((_, index) => index !== removedIndex))
+    // Selection closes the gap rather than clearing: it lands on whichever
+    // chord slid into the removed slot, or on the new last chord when the
+    // removed one was at the end. Clearing instead would turn removing a run
+    // of chords into a select-remove-select shuffle.
+    setTappedChordIndex(() => {
+      const remaining = progression.length - 1
+      return remaining === 0 ? null : Math.min(removedIndex, remaining - 1)
+    })
   }
 
   // Templates only ever ADD chords (never merge into an existing one), so
@@ -934,7 +946,7 @@ export default function App() {
         bpm={bpm}
         onBpmChange={setBpm}
         onClear={clearProgression}
-        onRemoveLast={removeLast}
+        onRemoveSelected={removeSelected}
         onSelectChord={handleSelectChord}
         onReorder={moveChord}
         onLoadSaved={loadSavedProgression}
