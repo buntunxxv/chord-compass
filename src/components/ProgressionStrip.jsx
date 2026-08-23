@@ -13,32 +13,14 @@ const BPM_MID = 100
 const SNAP_THRESHOLD = 4
 const SAVED_STORAGE_KEY = 'chordCompassSavedProgressions'
 const CONFIRMATION_MS = 1500
-// Below this many pixels of pointer travel, a press-and-release on a chip is
-// treated as a tap (select), not a drag (reorder) -- keeps an ordinary tap
-// from being misread as a zero-distance "drag" that does nothing.
-const DRAG_THRESHOLD_PX = 6
-// Long-press-to-drag: how long a chip has to be held essentially stationary
-// before drag mode engages. Chips sit in a horizontally-scrollable row, so
-// a touch-drag can't be captured as a reorder attempt the instant it
-// starts -- that would make it impossible to ever scroll the row by
-// swiping across a chip. Instead, native scrolling stays available by
-// default (no touch-action:none) until the pointer has been held still
-// this long, at which point drag mode arms and touch-action:none applies
-// only for the remainder of that specific drag.
-const LONG_PRESS_MS = 350
-// A pending long-press is cancelled the moment the pointer moves more than
-// this many px before the timer fires -- that movement means the user
-// meant to scroll, not hold-and-drag, so the browser's native scroll
-// handles it from there with no further involvement from this component.
-const LONG_PRESS_MOVE_CANCEL_PX = 6
-// Drag-to-reorder auto-scroll: how close to the scroll container's edge (in
-// px) a drag has to get before it starts nudging the scroll position, and
-// how far each nudge moves -- without this, a chip can only be dragged as
-// far as whatever's already visible, which breaks down completely once the
-// chip row is wider than the viewport (any progression beyond a handful of
-// chords).
-const AUTO_SCROLL_EDGE_PX = 48
-const AUTO_SCROLL_STEP_PX = 16
+// The arrangement is a 4-wide grid, one page at a time. Rows appear only once
+// there are chords to fill them -- four chords is one row, the 5th opens a
+// second, the 9th a third, the 13th a fourth -- so a short progression never
+// sits in a mostly-empty 16-cell frame. Note that the free tier stops at four
+// chords (PROGRESSION_LIMIT in App.jsx), so rows two and beyond are Pro
+// territory in practice.
+const GRID_COLUMNS = 4
+const PAGE_SIZE = GRID_COLUMNS * 4
 
 function formatProgressionText(progression) {
   return progression
@@ -50,7 +32,7 @@ function snapBpm(val) {
   return Math.abs(val - BPM_MID) <= SNAP_THRESHOLD ? BPM_MID : val
 }
 
-export default function ProgressionStrip({ expanded, onExpandedChange, currentChordName, onPlayChord, isChordPlaying, canPlayChord, progression, selectedChordIndex, bpm, onBpmChange, onClear, onRemoveLast, onSelectChord, onReorder, onLoadSaved, teaserMessage, onPlayingChordChange, chordNotes, previewNotes, bassHighlightNote, keysRootNote, keysPositionIndex, onKeysPositionChange, guitarPositionIndex, onGuitarPositionChange, root, guitarShape, guitarSlashNotice, guitarInversionUnavailable, guitarPositions, templateInfo, canUndoLoad, onUndoLoad, isPro }) {
+export default function ProgressionStrip({ expanded, onExpandedChange, currentChordName, onPlayChord, isChordPlaying, canPlayChord, progression, selectedChordIndex, bpm, onBpmChange, onClear, onRemoveSelected, onSelectChord, onReorder, onLoadSaved, teaserMessage, onPlayingChordChange, chordNotes, previewNotes, bassHighlightNote, keysRootNote, keysPositionIndex, onKeysPositionChange, guitarPositionIndex, onGuitarPositionChange, root, guitarShape, guitarSlashNotice, guitarInversionUnavailable, guitarPositions, templateInfo, canUndoLoad, onUndoLoad, isPro }) {
   const [activeIndex, setActiveIndex] = useState(null)
   const [isPlaying, setIsPlaying] = useState(false)
   const synthRef = useRef(null)
@@ -72,177 +54,14 @@ export default function ProgressionStrip({ expanded, onExpandedChange, currentCh
   const moveLeftRef = useRef(null)
   const moveRightRef = useRef(null)
   const pendingMoveFocusRef = useRef(null)
-
-  // Drag-to-reorder (Pointer Events, not HTML5 DnD -- consistent, reliable
-  // touch support is the whole reason for that choice on a mobile-first
-  // app). dragFromIndex/dragOverIndex are transient UI state local to this
-  // component; the actual reorder is committed to the real progression
-  // array (owned by App.jsx) only on pointer-up, via onReorder.
-  const [dragFromIndex, setDragFromIndex] = useState(null)
-  const [dragOverIndex, setDragOverIndex] = useState(null)
-  const dragStartRef = useRef(null)
   const chipRefs = useRef([])
-  const chartScrollRef = useRef(null)
-  // Set while a long-press is timing out but hasn't armed drag mode yet --
-  // distinct from dragFromIndex, which only becomes non-null once the press
-  // has actually been held long enough (see handleChipPointerDown below).
-  const pendingDragIndexRef = useRef(null)
-  const longPressTimerRef = useRef(null)
-  // The chip currently wearing the native touchmove listener that blocks
-  // scrolling during an active drag -- see armDrag/releaseDragTouchBlock.
-  const dragTouchBlockElRef = useRef(null)
+  const [page, setPage] = useState(0)
 
-  // Chips now sit in a single horizontally-scrollable row (not a wrapped
-  // multi-row grid), so the nearest-chip search is just 1D distance along x
-  // -- carrying over the old 2D (x,y) distance formula would let a finger
-  // drifting vertically during a touch-drag skew which chip reads as
-  // "nearest" for no reason, since every chip now sits at the same y.
-  function nearestChipIndex(x) {
-    let best = null
-    let bestDist = Infinity
-    chipRefs.current.forEach((el, idx) => {
-      if (!el) return
-      const rect = el.getBoundingClientRect()
-      const cx = rect.left + rect.width / 2
-      const dist = Math.abs(cx - x)
-      if (dist < bestDist) {
-        bestDist = dist
-        best = idx
-      }
-    })
-    return best
-  }
-
-  // Nudges the chip row's own scroll position when a drag gets close to
-  // either edge, so a chip can be dragged all the way to a position that
-  // isn't currently visible -- without this, reordering breaks down as soon
-  // as the row is wider than the viewport.
-  function autoScrollChartDuringDrag(x) {
-    const el = chartScrollRef.current
-    if (!el) return
-    const rect = el.getBoundingClientRect()
-    if (x < rect.left + AUTO_SCROLL_EDGE_PX) {
-      el.scrollLeft -= AUTO_SCROLL_STEP_PX
-    } else if (x > rect.right - AUTO_SCROLL_EDGE_PX) {
-      el.scrollLeft += AUTO_SCROLL_STEP_PX
-    }
-  }
-
-  function clearPendingLongPress() {
-    if (longPressTimerRef.current) {
-      clearTimeout(longPressTimerRef.current)
-      longPressTimerRef.current = null
-    }
-    pendingDragIndexRef.current = null
-  }
-
-  // Cancels the touchmove default action for as long as it's attached --
-  // used to block native scrolling only once a drag is actually armed.
-  function preventTouchScroll(e) {
-    e.preventDefault()
-  }
-
-  // CSS touch-action and calling preventDefault() from a React onPointerMove
-  // handler both turn out not to be reliably honored once a touch sequence
-  // is already in flight -- Chromium's gesture recognizer only waits for JS
-  // before committing to a scroll if a genuinely non-passive raw `touchmove`
-  // listener exists on the target at the moment of the next move, and
-  // apparently doesn't extend that same courtesy to a Pointer Event
-  // listener. Attaching one directly, right as the long-press timer fires
-  // (i.e. before the next move can occur), is what actually suppresses the
-  // native scroll for the rest of an armed drag.
-  function blockTouchScrollFor(el) {
-    if (!el) return
-    el.addEventListener('touchmove', preventTouchScroll, { passive: false })
-    dragTouchBlockElRef.current = el
-  }
-
-  function releaseDragTouchBlock() {
-    if (dragTouchBlockElRef.current) {
-      dragTouchBlockElRef.current.removeEventListener('touchmove', preventTouchScroll)
-      dragTouchBlockElRef.current = null
-    }
-  }
-
-  // setPointerCapture happens immediately (harmless -- it only affects which
-  // element JS pointer events route to, it doesn't itself block native
-  // scrolling the way touch-action does), but drag mode itself is deferred
-  // to the long-press timer below. Until that timer fires, this is
-  // indistinguishable from an ordinary tap or the start of a scroll swipe.
-  function handleChipPointerDown(e, index) {
-    if (isPlaying) return
-    e.currentTarget.setPointerCapture(e.pointerId)
-    dragStartRef.current = { x: e.clientX, y: e.clientY }
-    pendingDragIndexRef.current = index
-    longPressTimerRef.current = setTimeout(() => {
-      longPressTimerRef.current = null
-      if (pendingDragIndexRef.current === index) {
-        pendingDragIndexRef.current = null
-        blockTouchScrollFor(chipRefs.current[index])
-        setDragFromIndex(index)
-        setDragOverIndex(index)
-      }
-    }, LONG_PRESS_MS)
-  }
-
-  function handleChipPointerMove(e) {
-    if (dragFromIndex === null) {
-      // Still waiting on the long-press timer -- real movement this early
-      // means the user meant to scroll, not hold-and-drag, so cancel the
-      // pending arm and leave the browser's native touch scroll alone for
-      // the rest of this gesture (touch-action was never blocked).
-      if (pendingDragIndexRef.current === null) return
-      const start = dragStartRef.current
-      const moved = start ? Math.hypot(e.clientX - start.x, e.clientY - start.y) : 0
-      if (moved > LONG_PRESS_MOVE_CANCEL_PX) clearPendingLongPress()
-      return
-    }
-    const idx = nearestChipIndex(e.clientX)
-    if (idx !== null) setDragOverIndex(idx)
-    autoScrollChartDuringDrag(e.clientX)
-  }
-
-  function endDrag(e, index, chordName, commit) {
-    const wasArmed = dragFromIndex !== null
-    clearPendingLongPress()
-    releaseDragTouchBlock()
-    if (commit) {
-      const start = dragStartRef.current
-      const moved = start ? Math.hypot(e.clientX - start.x, e.clientY - start.y) : 0
-      if (moved < DRAG_THRESHOLD_PX) {
-        onSelectChord?.(index, chordName)
-      } else if (wasArmed && dragOverIndex !== null && dragOverIndex !== dragFromIndex) {
-        onReorder?.(dragFromIndex, dragOverIndex)
-      }
-    }
-    setDragFromIndex(null)
-    setDragOverIndex(null)
-    dragStartRef.current = null
-  }
-
-  useEffect(() => () => {
-    if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current)
-    releaseDragTouchBlock()
-  }, [])
-
-  // Selecting a chip from the keyboard. The pointer path commits selection
-  // from pointerup (inside endDrag, which has to distinguish a tap from a
-  // drag), so this can't also ride on the button's click event -- Enter and
-  // Space on a <button> synthesize a click, and a mouse click would then
-  // select twice. preventDefault suppresses that synthesized click, leaving
-  // exactly one selection per activation on either input method.
-  function handleChipKeyDown(e, index, chordName) {
-    if (e.key !== 'Enter' && e.key !== ' ') return
-    e.preventDefault()
-    if (isPlaying) return
-    onSelectChord?.(index, chordName)
-  }
-
-  // The keyboard alternative to long-press drag reordering: explicit Move
-  // left/Move right for whichever chord is selected. Goes through the same
-  // onReorder the drag path uses, so index bookkeeping (App.jsx's moveChord,
-  // which slides the selected index along with the chord it points at) is
-  // shared rather than reimplemented.
+  // Reordering is Move left/Move right only. Long-press drag used to sit
+  // alongside it, but it was built around a single horizontally-scrolling row
+  // -- its edge auto-scroll and 1D nearest-chip search both assumed every chip
+  // shared a y -- and neither survives a grid. It was also never verified on a
+  // real device, since automation cannot produce a true long press.
   function moveSelected(delta) {
     if (selectedChordIndex == null || isPlaying) return
     const to = selectedChordIndex + delta
@@ -273,8 +92,18 @@ export default function ProgressionStrip({ expanded, onExpandedChange, currentCh
     if (!expanded) return
     const indexToReveal = activeIndex ?? selectedChordIndex
     if (indexToReveal == null) return
+    // Turning the page matters more than scrolling now: playing a progression
+    // longer than one page would otherwise highlight the sounding chord on a
+    // page you are not looking at.
+    setPage(Math.floor(indexToReveal / PAGE_SIZE))
     chipRefs.current[indexToReveal]?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' })
   }, [activeIndex, selectedChordIndex, expanded])
+
+  // Removing chords can strand the view on a page that no longer exists.
+  useEffect(() => {
+    const lastPage = Math.max(0, Math.ceil(progression.length / PAGE_SIZE) - 1)
+    setPage(current => Math.min(current, lastPage))
+  }, [progression.length])
 
   const [savedProgressions, setSavedProgressions] = useState(() => {
     try {
@@ -590,47 +419,85 @@ export default function ProgressionStrip({ expanded, onExpandedChange, currentCh
               <p className="progression-strip__empty">No chords yet — add one from Build, Identify or Templates and it lands here.</p>
             ) : (
               <>
-                <div
-                  className={`progression-strip__chart-scroll ${dragFromIndex !== null ? 'progression-strip__chart-scroll--dragging' : ''}`}
-                  ref={chartScrollRef}
-                >
-                  {progression.map((entry, index) => {
-                    // Every chip is tappable (and draggable), not just the
-                    // last one -- Session 11's "last chip only" restriction
-                    // is lifted here; the same generalization also makes
-                    // chords with accidental roots (e.g. F#m7) fully
-                    // tappable, since the exclusion was never really about
-                    // accidentals, just about position, and
-                    // chordNameToSelection already parses sharps/flats
-                    // correctly (Session 18).
-                    const tappable = !isPlaying
-                    const isDragSource = dragFromIndex === index
-                    const isDropTarget = dragOverIndex === index && dragFromIndex !== null && dragOverIndex !== dragFromIndex
-                    return (
-                      <button
-                        key={index}
-                        type="button"
-                        ref={el => { chipRefs.current[index] = el }}
-                        className={`progression-strip__slot ${activeIndex === index ? 'progression-strip__slot--active' : ''} ${activeIndex == null && selectedChordIndex === index ? 'progression-strip__slot--selected' : ''} ${tappable ? 'progression-strip__slot--tappable' : ''} ${isDragSource ? 'progression-strip__slot--dragging' : ''} ${isDropTarget ? 'progression-strip__slot--drag-over' : ''}`}
-                        aria-pressed={selectedChordIndex === index}
-                        disabled={!tappable}
-                        onPointerDown={tappable ? e => handleChipPointerDown(e, index) : undefined}
-                        onPointerMove={tappable ? handleChipPointerMove : undefined}
-                        onPointerUp={tappable ? e => endDrag(e, index, entry.chord, true) : undefined}
-                        onPointerCancel={tappable ? e => endDrag(e, index, entry.chord, false) : undefined}
-                        onKeyDown={e => handleChipKeyDown(e, index, entry.chord)}
-                        title={tappable ? `${entry.chord} — select it, or press and hold to drag` : undefined}
+                {(() => {
+                  const pageCount = Math.max(1, Math.ceil(progression.length / PAGE_SIZE))
+                  const safePage = Math.min(page, pageCount - 1)
+                  const pageStart = safePage * PAGE_SIZE
+                  const pageEntries = progression.slice(pageStart, pageStart + PAGE_SIZE)
+                  const rows = Math.min(GRID_COLUMNS, Math.max(1, Math.ceil(pageEntries.length / GRID_COLUMNS)))
+                  const cells = Array.from({ length: rows * GRID_COLUMNS }, (_, i) => pageEntries[i] ?? null)
+                  return (
+                    <>
+                      <div
+                        className="progression-strip__grid"
+                        style={{ '--prog-rows': rows }}
+                        role="group"
+                        aria-label={pageCount > 1 ? `Chords ${pageStart + 1} to ${pageStart + pageEntries.length} of ${progression.length}` : 'Chords in this progression'}
                       >
-                        <span className="progression-strip__slot-index">{index + 1}</span>
-                        <span className="progression-strip__slot-chord">{entry.chord}</span>
-                      </button>
-                    )
-                  })}
-                </div>
+                        {cells.map((entry, cell) => {
+                          if (!entry) {
+                            // A placeholder rather than nothing, so a part-full
+                            // row still reads as a row with space left in it.
+                            return <span key={`empty-${cell}`} className="progression-strip__cell-empty" aria-hidden="true" />
+                          }
+                          const index = pageStart + cell
+                          // Every chip is selectable, not just the last one --
+                          // Session 11's "last chip only" restriction is lifted
+                          // here; the same generalization also makes chords with
+                          // accidental roots (e.g. F#m7) fully tappable, since
+                          // the exclusion was never really about accidentals,
+                          // just about position, and chordNameToSelection
+                          // already parses sharps/flats correctly (Session 18).
+                          const tappable = !isPlaying
+                          return (
+                            <button
+                              key={index}
+                              type="button"
+                              ref={el => { chipRefs.current[index] = el }}
+                              className={`progression-strip__slot ${activeIndex === index ? 'progression-strip__slot--active' : ''} ${activeIndex == null && selectedChordIndex === index ? 'progression-strip__slot--selected' : ''} ${tappable ? 'progression-strip__slot--tappable' : ''}`}
+                              aria-pressed={selectedChordIndex === index}
+                              disabled={!tappable}
+                              onClick={() => onSelectChord?.(index, entry.chord)}
+                              title={tappable ? `Select ${entry.chord}` : undefined}
+                            >
+                              <span className="progression-strip__slot-index">{index + 1}</span>
+                              <span className="progression-strip__slot-chord">{entry.chord}</span>
+                            </button>
+                          )
+                        })}
+                      </div>
 
-                {/* Keyboard (and any non-pointer) route to reordering. Drag
-                    still works exactly as before for pointer users; this is
-                    an alternative, not a replacement. */}
+                      {pageCount > 1 && (
+                        <div className="progression-strip__pager" role="group" aria-label="Progression pages">
+                          <button
+                            type="button"
+                            className="progression-strip__pager-btn"
+                            onClick={() => setPage(current => Math.max(0, current - 1))}
+                            disabled={safePage === 0}
+                            aria-label="Previous page of chords"
+                          >
+                            ←
+                          </button>
+                          <span className="progression-strip__pager-label" aria-live="polite">
+                            Chords {pageStart + 1}–{pageStart + pageEntries.length} of {progression.length}
+                          </span>
+                          <button
+                            type="button"
+                            className="progression-strip__pager-btn"
+                            onClick={() => setPage(current => Math.min(pageCount - 1, current + 1))}
+                            disabled={safePage >= pageCount - 1}
+                            aria-label="Next page of chords"
+                          >
+                            →
+                          </button>
+                        </div>
+                      )}
+                    </>
+                  )
+                })()}
+
+                {/* The only route to reordering now that long-press drag is
+                    gone -- and the only one that ever worked from a keyboard. */}
                 <div className="progression-strip__reorder" role="group" aria-label="Reorder the selected chord">
                   <span className="progression-strip__reorder-status">
                     {hasSelection
@@ -918,9 +785,11 @@ export default function ProgressionStrip({ expanded, onExpandedChange, currentCh
               <div className="progression-strip__danger-row">
                 <button
                   className="progression-strip__clear-btn"
-                  onClick={onRemoveLast}
+                  onClick={onRemoveSelected}
+                  disabled={!hasSelection}
+                  title={hasSelection ? undefined : 'Select a chord first'}
                 >
-                  Remove last
+                  Remove selected
                 </button>
                 <button
                   className="progression-strip__clear-btn progression-strip__clear-btn--all"
