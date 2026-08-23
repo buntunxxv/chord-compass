@@ -10,7 +10,7 @@ import { applyDrop2, applyLeftHandSplit } from './utils/pianoVoicings'
 import { createKeysSynth, startAudioContext } from './audio/synth'
 import { useTheme } from './hooks/useTheme'
 import { toDataKey, chordNameToSelection, resolveGuitarPositions, guitarShapeForChordName } from './utils/chordSelectionLookup'
-import { walkthroughFlowForPath } from './utils/walkthroughs'
+import { shouldAutoOpenWalkthrough, walkthroughFlowForPath } from './utils/walkthroughs'
 import ChordSelector from './components/ChordSelector'
 import ChordOutputPanel from './components/ChordOutputPanel'
 import NextChordSuggestions from './components/NextChordSuggestions'
@@ -33,15 +33,16 @@ const PROGRESSION_TEASER = 'Longer progressions are coming in Chord Compass Pro.
 const LOAD_UNDO_WINDOW_MS = 10000
 const CHORD_AUDITION_SECONDS = 1.5
 
-// The three ways to create or find a chord. Progression is deliberately NOT
-// one of them -- it's the project the collected chords go into, and it has
-// its own permanent destination in the bottom dock (see ProgressionStrip),
-// so putting it here again would present a workspace as a fourth "way to
-// make a chord" and leave two competing entry points to the same place.
-// The three ways to find a chord, in slide order. Build, Identify and
-// Templates are siblings you can swipe between -- Identify and Templates used
-// to be aria-modal overlays stacked over Build, which made two of the three
-// feel like detours off the "real" screen rather than peers of it.
+// The three ways to find a chord, in slide order -- siblings you can swipe
+// between. Identify and Templates used to be aria-modal overlays stacked over
+// Build, which made two of the three feel like detours off the "real" screen
+// rather than peers of it.
+//
+// Progression is deliberately NOT among them: it's the project the collected
+// chords go into, and it has its own permanent destination in the bottom dock
+// (see ProgressionStrip). Listing it here too would present a workspace as a
+// fourth "way to make a chord" and leave two competing entry points to the
+// same place.
 const WORKSPACE_PAGES = [
   { key: 'build', label: 'Build', eyebrow: 'Chord Compass', title: 'Build, hear and save a chord' },
   { key: 'find', label: 'Identify', eyebrow: 'Identify', title: 'Find a chord from its notes' },
@@ -91,10 +92,8 @@ export default function App() {
   // user's own tap/swipe on the sheet ever changes it -- selecting a chord,
   // playing, switching Build/Templates/Find modes, none of that touches it.
   const [sheetExpanded, setSheetExpanded] = useState(false)
-  // Builder-panel mode toggle: the normal forward chord builder, or the new
-  // reverse voicing lookup (Phase 1 -- pick notes, get ranked guitar shapes
-  // that contain them). A tab inside the existing panel, not a separate
-  // route or modal, and not persisted -- always starts back on the builder.
+  // Which of the three slides is showing. Not persisted -- always starts back
+  // on Build.
   const [workspacePage, setWorkspacePage] = useState('build')
   // Suggestions is the one page that stays a true overlay: it is opened FROM
   // the builder for the chord it is currently showing, so it belongs on top of
@@ -624,6 +623,16 @@ export default function App() {
   // voicing transform.
   const pianoRootNote = playingChordNotes ? playingRootNote : (chordNotes[0] ?? null)
 
+  // #82 removed the on-mount auto-open when the welcome overlay took over
+  // first-run duty, leaving shouldAutoOpenWalkthrough exported but uncalled --
+  // which meant the storage key was written on close and never read. It runs
+  // again now, but gated on the welcome overlay being dismissed: firing on
+  // mount would put a tour behind a modal that covers everything it points at.
+  useEffect(() => {
+    if (introOpen) return
+    if (shouldAutoOpenWalkthrough(path, localStorage)) setWalkthroughFlow(walkthroughFlowForPath(path))
+  }, [introOpen, path])
+
   // A tab click scrolls the track; a swipe scrolls it directly. Both have to
   // end with the same tab marked current, so the tab drives scroll position
   // and this observer drives the tab from scroll position -- without the
@@ -781,12 +790,13 @@ export default function App() {
                 border so the two read as one sheet), collapsing to an ordinary
                 horizontal selector below 900px -- see App.css. */}
             <div className="app__workspace-shell">
-              <nav className="app__workspace-nav" aria-label="Chord Compass pages">
+              <nav id="wt-workspace-nav" className="app__workspace-nav" aria-label="Chord Compass pages">
                 {WORKSPACE_PAGES.map(page => {
                   const isActive = page.key === workspacePage
                   return (
                     <button
                       key={page.key}
+                      id={`wt-tab-${page.key}`}
                       type="button"
                       className={`app__workspace-tab ${isActive ? 'app__workspace-tab--active' : ''}`}
                       aria-current={isActive ? 'page' : undefined}
@@ -954,11 +964,11 @@ export default function App() {
 
       <OverlayPage isOpen={introOpen} intro eyebrow="Welcome to Chord Compass" title="Find the next chord without losing your place">
         <div className="app__intro-page">
-          <p className="app__intro-lead">Build a chord, hear it, and collect the chords you like into a progression—all from one screen.</p>
+          <p className="app__intro-lead">Three ways to find a chord, side by side—swipe or tap between them. Whatever you find lands in the progression bar at the bottom.</p>
           <ol className="app__intro-steps">
-            <li><span>1</span><div><strong>Build</strong><p>Choose a root and quality on the main screen.</p></div></li>
-            <li><span>2</span><div><strong>Explore</strong><p>Hear the chord, inspect its notes, and choose where it could go next.</p></div></li>
-            <li><span>3</span><div><strong>Progress</strong><p>Add chords, then open Progression to arrange, play and view them on an instrument.</p></div></li>
+            <li><span>1</span><div><strong>Build</strong><p>Pick a root and quality from a list, and hear the chord.</p></div></li>
+            <li><span>2</span><div><strong>Identify</strong><p>Know the notes but not the name? Tap them and get the shapes that fit.</p></div></li>
+            <li><span>3</span><div><strong>Templates</strong><p>Start from a progression that already works, in any key.</p></div></li>
           </ol>
           <button
             type="button"

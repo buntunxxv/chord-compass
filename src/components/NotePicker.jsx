@@ -11,7 +11,7 @@ export default function NotePicker({ selected, onChange }) {
   }
 
   return (
-    <div className="note-picker" role="group" aria-label="Select notes">
+    <div id="wt-note-picker" className="note-picker" role="group" aria-label="Select notes">
       {PITCH_CLASS_NAMES.map((name, pc) => (
         <button
           key={name}
