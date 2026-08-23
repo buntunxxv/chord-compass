@@ -17,7 +17,12 @@ const STEP_KEYS = ['ArrowLeft', 'ArrowRight', 'Home', 'End']
 // back. `items` has to be referentially stable between renders that don't
 // change the deck -- both callers pass a useMemo'd array -- because its
 // identity is what resets the deck and rebinds the observer.
-export function useCardDeck(items) {
+//
+// `enabled` is for a deck whose track is not always mounted: Identify's lives
+// inside a bottom sheet, and the observer has to bind when that sheet opens
+// rather than once on mount, or a swipe inside it would move the cards while
+// the counter and chips stayed on the first one.
+export function useCardDeck(items, enabled = true) {
   const [index, setIndex] = useState(0)
   const [isDeck, setIsDeck] = useState(() => window.matchMedia(DECK_QUERY).matches)
   const trackRef = useRef(null)
@@ -37,7 +42,7 @@ export function useCardDeck(items) {
   useEffect(() => {
     setIndex(0)
     trackRef.current?.scrollTo({ left: 0 })
-  }, [items])
+  }, [items, enabled])
 
   // A swipe moves the track without going through goTo(), so position has to
   // follow the scroll rather than only drive it -- otherwise the counter and
@@ -48,7 +53,7 @@ export function useCardDeck(items) {
     const track = trackRef.current
     cardRefs.current.length = items.length
     chipRefs.current.length = items.length
-    if (!isDeck || !track) return undefined
+    if (!enabled || !isDeck || !track) return undefined
 
     const observer = new IntersectionObserver(
       entries => {
@@ -62,7 +67,7 @@ export function useCardDeck(items) {
     )
     cardRefs.current.forEach(card => { if (card) observer.observe(card) })
     return () => observer.disconnect()
-  }, [isDeck, items])
+  }, [enabled, isDeck, items])
 
   // Wraps at both ends: these decks hold a handful of cards, few enough that
   // running off the end and stopping reads as a fault rather than a boundary.

@@ -109,10 +109,38 @@
   line-height: 1.4;
 }
 
-/* The margin lives on the section, not the track, so it sits above the deck
-   nav at deck widths rather than between the nav and the cards. */
-.reverse-finder__shapes {
+/* Results no longer sit in the panel -- they live in a bottom sheet, and this
+   bar is what announces them and opens it. Full width and unmissable, because
+   it is the only route to the shapes now. */
+.reverse-finder__results-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-height: 52px;
   margin-top: 20px;
+  padding: 10px 16px;
+  border: 1.5px solid var(--teal);
+  border-radius: 12px;
+  background: var(--teal-tint);
+  color: var(--teal-dark);
+  font-family: var(--font);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.reverse-finder__results-bar:hover {
+  background: var(--teal);
+  color: var(--on-accent);
+}
+
+.reverse-finder__results-cta {
+  font-size: 13px;
+  font-weight: 800;
+  white-space: nowrap;
 }
 
 .reverse-finder__results {

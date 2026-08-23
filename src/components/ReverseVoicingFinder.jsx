@@ -4,6 +4,7 @@ import GuitarDisplay from './GuitarDisplay'
 import NotePicker from './NotePicker'
 import MidiImportPanel from './MidiImportPanel'
 import DeckNav from './DeckNav'
+import BottomSheet from './BottomSheet'
 import { useCardDeck } from '../hooks/useCardDeck'
 import { findVoicings, soundingNotes, detectChordName, PITCH_CLASS_NAMES } from '../utils/reverseVoicingLookup'
 import { formatChordName } from '../utils/formatChordName'
@@ -42,6 +43,11 @@ function statsLine(result) {
 export default function ReverseVoicingFinder({ onAddToProgression, onImportSequence, progression, referenceGuitarShape, isPro }) {
   const [selected, setSelected] = useState([])
   const [inputMode, setInputMode] = useState('notes') // 'notes' | 'midi'
+  // Shapes exist from the first note picked, but picking is incremental -- a
+  // sheet that opened on that first tap would sit over the keys still being
+  // tapped. So the results announce themselves as a bar, and opening them is
+  // a deliberate tap.
+  const [sheetOpen, setSheetOpen] = useState(false)
 
   // Defense-in-depth, same pattern InstrumentDock uses for its own tabs:
   // even if inputMode somehow held 'midi' while isPro was/became false,
@@ -85,7 +91,7 @@ export default function ReverseVoicingFinder({ onAddToProgression, onImportSeque
     return { result, detected, name, root }
   }), [results, selectedNoteNames])
 
-  const { index, isDeck, trackRef, cardRefs, chipRefs, goTo, handleChipKeyDown } = useCardDeck(shapes)
+  const { index, isDeck, trackRef, cardRefs, chipRefs, goTo, handleChipKeyDown } = useCardDeck(shapes, sheetOpen)
 
   const lastChordName = progression && progression.length > 0 ? progression[progression.length - 1].chord : null
 
@@ -158,56 +164,77 @@ export default function ReverseVoicingFinder({ onAddToProgression, onImportSeque
             No playable shape found for these notes within a 15-fret range.
           </p>
         ) : (
-          <div className="reverse-finder__shapes">
-            {/* Chips are the rank, not the chord name: three voicings of one
-                chord detect as the same name more often than not, and three
-                identical chips would name nothing. Ranking is the thing that
-                actually distinguishes these cards, and the counter carries
-                the name alongside it. */}
-            <DeckNav
-              count={shapes.length}
-              index={index}
-              name={shapes[index]?.name}
-              chipLabels={shapes.map((_, i) => RESULT_LABELS[i] || `#${i + 1}`)}
-              noun="shape"
-              onGoTo={goTo}
-              onChipKeyDown={handleChipKeyDown}
-              chipRefs={chipRefs}
-            />
-            <div className="reverse-finder__results deck-track" ref={trackRef}>
-              {shapes.map(({ result, detected, name, root }, i) => {
-                const rank = RESULT_LABELS[i] || `#${i + 1}`
-                return (
-                  <article
-                    className="reverse-finder__result"
-                    key={result.frets.join('-')}
-                    ref={el => { cardRefs.current[i] = el }}
-                    aria-label={isDeck ? `${rank}, ${name}, ${i + 1} of ${shapes.length}` : undefined}
-                  >
-                    <div className="reverse-finder__result-label">{rank}</div>
-                    <div className={`reverse-finder__result-name ${detected.isDetected ? '' : 'reverse-finder__result-name--fallback'}`}>
-                      {name}
-                    </div>
-                    {detected.isDetected && detected.alternates.length > 0 && (
-                      <div className="reverse-finder__result-alt">also: {detected.alternates.map(formatChordName).join(', ')}</div>
-                    )}
-                    <GuitarDisplay shape={{ frets: result.frets }} notes={selectedNoteNames} root={root} compact />
-                    <div className="reverse-finder__result-stats">{statsLine(result)}</div>
-                    <button
-                      type="button"
-                      className="reverse-finder__add-btn"
-                      onClick={() => onAddToProgression?.(name, soundingNotes(result.frets))}
-                      aria-label={`Add to progression ${name}`}
-                    >
-                      + Add to progression
-                    </button>
-                  </article>
-                )
-              })}
-            </div>
-          </div>
+          <button
+            type="button"
+            className="reverse-finder__results-bar"
+            onClick={() => setSheetOpen(true)}
+          >
+            <span className="reverse-finder__results-count">
+              {shapes.length} shape{shapes.length === 1 ? '' : 's'} found
+            </span>
+            <span className="reverse-finder__results-cta" aria-hidden="true">View →</span>
+          </button>
         )
       )}
+
+      <BottomSheet
+        isOpen={sheetOpen && shapes.length > 0}
+        onClose={() => setSheetOpen(false)}
+        eyebrow="Identify"
+        title={`Shapes for ${selectedNoteNames.join(', ')}`}
+      >
+        {/* Chips are the rank, not the chord name: three voicings of one chord
+            detect as the same name more often than not, and three identical
+            chips would name nothing. Ranking is what distinguishes these
+            cards, and the counter carries the name alongside it. */}
+        <DeckNav
+          count={shapes.length}
+          index={index}
+          name={shapes[index]?.name}
+          chipLabels={shapes.map((_, i) => RESULT_LABELS[i] || `#${i + 1}`)}
+          noun="shape"
+          onGoTo={goTo}
+          onChipKeyDown={handleChipKeyDown}
+          chipRefs={chipRefs}
+        />
+        <div className="reverse-finder__results deck-track" ref={trackRef}>
+          {shapes.map(({ result, detected, name, root }, i) => {
+            const rank = RESULT_LABELS[i] || `#${i + 1}`
+            return (
+              <article
+                className="reverse-finder__result"
+                key={result.frets.join('-')}
+                ref={el => { cardRefs.current[i] = el }}
+                aria-label={isDeck ? `${rank}, ${name}, ${i + 1} of ${shapes.length}` : undefined}
+              >
+                <div className="reverse-finder__result-label">{rank}</div>
+                <div className={`reverse-finder__result-name ${detected.isDetected ? '' : 'reverse-finder__result-name--fallback'}`}>
+                  {name}
+                </div>
+                {detected.isDetected && detected.alternates.length > 0 && (
+                  <div className="reverse-finder__result-alt">also: {detected.alternates.map(formatChordName).join(', ')}</div>
+                )}
+                <GuitarDisplay shape={{ frets: result.frets }} notes={selectedNoteNames} root={root} compact />
+                <div className="reverse-finder__result-stats">{statsLine(result)}</div>
+                <button
+                  type="button"
+                  className="reverse-finder__add-btn"
+                  onClick={() => {
+                    onAddToProgression?.(name, soundingNotes(result.frets))
+                    // Close on add: the dock is behind the backdrop, so leaving
+                    // the sheet up would hide the only feedback that the chord
+                    // actually landed anywhere.
+                    setSheetOpen(false)
+                  }}
+                  aria-label={`Add to progression ${name}`}
+                >
+                  + Add to progression
+                </button>
+              </article>
+            )
+          })}
+        </div>
+      </BottomSheet>
     </div>
   )
 }
