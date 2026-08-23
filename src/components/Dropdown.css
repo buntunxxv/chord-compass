@@ -141,21 +141,13 @@
   transform: rotate(180deg);
 }
 
+/* Lives in a BottomSheet now, not a popover under the trigger, so it brings no
+   surface of its own -- no position, border, shadow or max-height. The sheet
+   caps its own height and scrolls its content. */
 .dropdown__panel {
-  position: absolute;
-  top: calc(100% + 8px);
-  left: 0;
-  right: 0;
-  max-height: 240px;
-  overflow-y: auto;
-  background: var(--white);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  box-shadow: var(--shadow);
-  padding: 6px;
   margin: 0;
+  padding: 0;
   list-style: none;
-  z-index: 30;
 }
 
 .dropdown__option {
@@ -163,10 +155,13 @@
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  padding: 9px 12px;
+  /* A full-width row in a sheet rather than a compact popover line: 44px
+     floor, and the larger type that goes with something you tap. */
+  min-height: 44px;
+  padding: 10px 12px;
   border-radius: 9px;
   font-family: var(--font);
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 500;
   color: var(--text);
   cursor: pointer;

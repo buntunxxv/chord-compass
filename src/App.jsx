@@ -38,10 +38,14 @@ const CHORD_AUDITION_SECONDS = 1.5
 // its own permanent destination in the bottom dock (see ProgressionStrip),
 // so putting it here again would present a workspace as a fourth "way to
 // make a chord" and leave two competing entry points to the same place.
+// The three ways to find a chord, in slide order. Build, Identify and
+// Templates are siblings you can swipe between -- Identify and Templates used
+// to be aria-modal overlays stacked over Build, which made two of the three
+// feel like detours off the "real" screen rather than peers of it.
 const WORKSPACE_PAGES = [
-  { key: null, label: 'Build' },
-  { key: 'find', label: 'Identify' },
-  { key: 'templates', label: 'Templates' },
+  { key: 'build', label: 'Build', eyebrow: 'Chord Compass', title: 'Build, hear and save a chord' },
+  { key: 'find', label: 'Identify', eyebrow: 'Identify', title: 'Find a chord from its notes' },
+  { key: 'templates', label: 'Templates', eyebrow: 'Templates', title: 'Start with a proven progression' },
 ]
 
 // Resolves each displayed note's interval label from what it actually IS
@@ -91,7 +95,13 @@ export default function App() {
   // reverse voicing lookup (Phase 1 -- pick notes, get ranked guitar shapes
   // that contain them). A tab inside the existing panel, not a separate
   // route or modal, and not persisted -- always starts back on the builder.
-  const [activePage, setActivePage] = useState(null)
+  const [workspacePage, setWorkspacePage] = useState('build')
+  // Suggestions is the one page that stays a true overlay: it is opened FROM
+  // the builder for the chord it is currently showing, so it belongs on top of
+  // Build rather than beside it.
+  const [suggestionsOpen, setSuggestionsOpen] = useState(false)
+  const slidesRef = useRef(null)
+  const slideRefs = useRef({})
   const [phonePanel, setPhonePanel] = useState('build')
 
   // Top-level Learn/Build path (distinct from `mode`, the build/find tab
@@ -614,24 +624,47 @@ export default function App() {
   // voicing transform.
   const pianoRootNote = playingChordNotes ? playingRootNote : (chordNotes[0] ?? null)
 
-  function openWorkspacePage(page) {
+  // A tab click scrolls the track; a swipe scrolls it directly. Both have to
+  // end with the same tab marked current, so the tab drives scroll position
+  // and this observer drives the tab from scroll position -- without the
+  // second direction, swiping to Identify would leave Build looking current.
+  // Unlike useCardDeck's observer this runs at every width: the workspace
+  // slides at desktop sizes too, where the deck inside a card does not.
+  useEffect(() => {
+    const track = slidesRef.current
+    if (!track) return undefined
+    const observer = new IntersectionObserver(
+      entries => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue
+          const key = entry.target.dataset.page
+          if (key) setWorkspacePage(key)
+        }
+      },
+      { root: track, threshold: 0.6 },
+    )
+    Object.values(slideRefs.current).forEach(slide => { if (slide) observer.observe(slide) })
+    return () => observer.disconnect()
+  }, [])
+
+  const currentPage = WORKSPACE_PAGES.find(page => page.key === workspacePage) ?? WORKSPACE_PAGES[0]
+
+  function showWorkspacePage(page) {
     setSheetExpanded(false)
-    setActivePage(page)
+    setWorkspacePage(page)
+    slideRefs.current[page]?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' })
   }
 
-  // Opening the Progression workspace closes whichever creation page (Identify/
-  // Templates/suggestions) was open: those are overlay pages that deliberately
-  // sit ABOVE the dock rather than covering it (see .overlay-page--docked), so
-  // without this the workspace would expand underneath one of them.
+  // Opening the Progression workspace closes the suggestions overlay: it
+  // deliberately sits ABOVE the dock rather than covering it (see
+  // .overlay-page--docked), so without this the workspace would expand
+  // underneath it. Identify and Templates need no such handling any more --
+  // they are slides beside Build now, not overlays on top of it.
   function handleProgressionExpandedChange(next) {
-    if (next) setActivePage(null)
+    if (next) setSuggestionsOpen(false)
     setSheetExpanded(next)
   }
 
-  // Build stays the "current" page for its own sub-page (the suggestions
-  // overlay is opened FROM the builder for the chord it's showing), so the
-  // nav never goes blank while a Build-owned overlay is up.
-  const currentPageKey = activePage === 'suggestions' ? null : activePage
   // The dock echoes whatever is actually sounding during progression
   // playback, and the builder's own chord the rest of the time -- the same
   // rule pianoNotes already follows above, so the name and the miniature
@@ -687,7 +720,13 @@ export default function App() {
             </button>
             <button
               className="app__help-btn"
-              onClick={() => setWalkthroughFlow(walkthroughFlowForPath(path))}
+              onClick={() => {
+                // The tool walkthrough spotlights #wt-root, which lives in the
+                // Build slide -- inert while you are on Identify or Templates,
+                // so the first step would point at something you cannot reach.
+                if (path !== 'learn') showWorkspacePage('build')
+                setWalkthroughFlow(walkthroughFlowForPath(path))
+              }}
               aria-label={path === 'learn' ? 'How to use Learn' : 'How to use Chord Compass'}
             >
               ?
@@ -723,8 +762,14 @@ export default function App() {
           <div className={`app__panel-inner ${sheetExpanded ? '' : 'app__panel-inner--sheet-collapsed'}`}>
             <section className="app__builder-intro" aria-labelledby="builder-intro-title">
               <div className="app__builder-intro-copy">
-                <p className="app__eyebrow">Chord Compass</p>
-                <h1 id="builder-intro-title">Build, hear and save a chord</h1>
+                {/* Names the page you are on. Build/Identify/Templates are
+                    peers now, so a fixed "Build, hear and save a chord" would
+                    be wrong on two of the three -- and giving each slide its
+                    own header instead would put a second heading above every
+                    panel, the duplication #84 and #85 spent their time
+                    removing. */}
+                <p className="app__eyebrow">{currentPage.eyebrow}</p>
+                <h1 id="builder-intro-title">{currentPage.title}</h1>
               </div>
               <div className="app__workspace-actions">
                 {!isPro && <Link to="/upgrade" className="app__upgrade-link">Upgrade <span>to Pro</span></Link>}
@@ -738,14 +783,14 @@ export default function App() {
             <div className="app__workspace-shell">
               <nav className="app__workspace-nav" aria-label="Chord Compass pages">
                 {WORKSPACE_PAGES.map(page => {
-                  const isActive = page.key === currentPageKey
+                  const isActive = page.key === workspacePage
                   return (
                     <button
-                      key={page.label}
+                      key={page.key}
                       type="button"
                       className={`app__workspace-tab ${isActive ? 'app__workspace-tab--active' : ''}`}
                       aria-current={isActive ? 'page' : undefined}
-                      onClick={() => page.key ? openWorkspacePage(page.key) : setActivePage(null)}
+                      onClick={() => showWorkspacePage(page.key)}
                     >
                       {page.label}
                     </button>
@@ -753,7 +798,19 @@ export default function App() {
                 })}
               </nav>
 
-              <section className="app__section app__builder-workspace" aria-label="Build and preview a chord">
+              {/* All three pages are mounted at once so the track can slide
+                  between them, which means the two you are not on are still in
+                  the tab order unless they are made inert -- otherwise tabbing
+                  off Build lands in Identify's note keys and drags the track
+                  along with the focus. */}
+              <div className="app__workspace-slides" ref={slidesRef}>
+              <section
+                className="app__section app__builder-workspace app__workspace-slide"
+                data-page="build"
+                ref={el => { slideRefs.current.build = el }}
+                aria-label="Build and preview a chord"
+                inert={workspacePage !== 'build'}
+              >
                 <div className="app__phone-panel-tabs" role="group" aria-label="Build or explore the current chord">
                   <button
                     type="button"
@@ -791,7 +848,7 @@ export default function App() {
                     intervals={intervals}
                     available={available}
                     onAddToProgression={(chord, notes) => addToProgression(chord, notes, guitarPositionIndex, keysPositionIndex)}
-                    onOpenSuggestions={() => openWorkspacePage('suggestions')}
+                    onOpenSuggestions={() => { setSheetExpanded(false); setSuggestionsOpen(true) }}
                     hasSuggestions={!!chordEntry?.next}
                     isPro={isPro}
                     onPlayChord={handleAuditionChord}
@@ -800,6 +857,39 @@ export default function App() {
                   />
                 </div>
               </section>
+
+              <section
+                className="app__section app__workspace-slide"
+                data-page="find"
+                ref={el => { slideRefs.current.find = el }}
+                aria-label="Find a chord from its notes"
+                inert={workspacePage !== 'find'}
+              >
+                <ReverseVoicingFinder
+                  onAddToProgression={addToProgression}
+                  onImportSequence={addProgressionSequence}
+                  progression={progression}
+                  referenceGuitarShape={referenceGuitarShape}
+                  isPro={isPro}
+                />
+              </section>
+
+              <section
+                className="app__section app__workspace-slide"
+                data-page="templates"
+                ref={el => { slideRefs.current.templates = el }}
+                aria-label="Start with a proven progression"
+                inert={workspacePage !== 'templates'}
+              >
+                <ProgressionTemplates
+                  keyRoot={templateKeyRoot}
+                  keyMode={templateKeyMode}
+                  onKeyRootChange={setTemplateKeyRoot}
+                  onKeyModeChange={setTemplateKeyMode}
+                  onLoad={(entries, template) => { loadTemplate(entries, template); showWorkspacePage('build') }}
+                />
+              </section>
+              </div>
             </div>
 
             <p className="app__workspace-hint">Build, Identify and Templates are three ways to find a chord. Your progression waits in the bar below.</p>
@@ -807,27 +897,7 @@ export default function App() {
         </main>
       </div>
 
-      <OverlayPage isOpen={activePage === 'find'} onClose={() => setActivePage(null)} eyebrow="Identify" title="Find a chord from its notes" wide docked>
-        <ReverseVoicingFinder
-          onAddToProgression={addToProgression}
-          onImportSequence={addProgressionSequence}
-          progression={progression}
-          referenceGuitarShape={referenceGuitarShape}
-          isPro={isPro}
-        />
-      </OverlayPage>
-
-      <OverlayPage isOpen={activePage === 'templates'} onClose={() => setActivePage(null)} eyebrow="Templates" title="Start with a proven progression" wide docked>
-        <ProgressionTemplates
-          keyRoot={templateKeyRoot}
-          keyMode={templateKeyMode}
-          onKeyRootChange={setTemplateKeyRoot}
-          onKeyModeChange={setTemplateKeyMode}
-          onLoad={(entries, template) => { loadTemplate(entries, template); setActivePage(null) }}
-        />
-      </OverlayPage>
-
-      <OverlayPage isOpen={activePage === 'suggestions'} onClose={() => setActivePage(null)} eyebrow={displayName} title="Choose where this chord goes next" wide docked>
+      <OverlayPage isOpen={suggestionsOpen} onClose={() => setSuggestionsOpen(false)} eyebrow={displayName} title="Choose where this chord goes next" wide docked>
         {available && chordEntry?.next && (
           <NextChordSuggestions
             suggestions={chordEntry.next}

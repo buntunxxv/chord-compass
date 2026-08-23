@@ -1,0 +1,144 @@
+/* Hidden by default because the base layout of every deck host is its grid
+   or row, where every card is already on screen and there is nothing to
+   navigate; the media query at the foot of this file turns it on. That query
+   and DECK_QUERY in useCardDeck.js are both `max-width: 760px` -- pairing a
+   max-width with a min-width instead would leave one width at which the JS
+   thinks it is driving a deck while the CSS is still laying out a grid. */
+.deck-nav {
+  display: none;
+}
+
+.deck-nav__steps {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.deck-nav__arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text);
+  font-size: 16px;
+  line-height: 1;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.deck-nav__arrow:hover {
+  border-color: var(--teal);
+  color: var(--teal);
+}
+
+.deck-nav__count {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+}
+
+.deck-nav__position {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--teal);
+  /* Tabular figures so the counter doesn't jitter as the number changes. */
+  font-variant-numeric: tabular-nums;
+}
+
+.deck-nav__name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.deck-nav__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.deck-nav__chip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid var(--border);
+  background: transparent;
+  color: var(--text-muted);
+  border-radius: 20px;
+  /* 44px floor in both directions, not just height: the shortest labels
+     ("2nd", a one-word mood) are narrow enough on content alone to fall
+     under 44px wide. Padding and font-size are untouched -- only the
+     tappable box around the label grows. */
+  min-height: 44px;
+  min-width: 44px;
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+
+.deck-nav__chip:hover {
+  border-color: var(--teal);
+  color: var(--teal);
+}
+
+.deck-nav__chip--active {
+  background: var(--suggest-tint);
+  border-color: var(--suggest);
+  color: var(--suggest);
+}
+
+/* One card at a time, swiped rather than scrolled past. Same track
+   convention as .progression-strip__chart-scroll, with one deliberate
+   difference: snap is `mandatory` here, not `proximity`. That file relaxes
+   it because a JS drag-to-reorder gesture competes with the snap and
+   `mandatory` swallows the small programmatic scrolls the drag depends on.
+   Nothing competes here, and a deck should always come to rest on a card
+   rather than halfway between two.
+
+   The card rules reach the children with `>` rather than a class of their
+   own, so a host only has to add `deck-track` to whatever container it
+   already lays its cards out in. min-width and max-width are both reset:
+   hosts set a min-width floor (which below a ~250px viewport would make a
+   card wider than the track) and Identify caps its cards at 240px, neither
+   of which should survive into a full-width deck.
+
+   `.deck-track` is doubled to `.deck-track.deck-track` on purpose. Every
+   host stylesheet also styles the same element by its own class -- flex-wrap
+   on the container, max-width on the cards -- at equal (0,1,0) specificity,
+   and each host imports DeckNav before its own stylesheet, so on source
+   order the host would win and the deck would silently stay a wrapped grid.
+   A media query adds no specificity of its own, so it cannot break that tie.
+   Doubling the class takes these rules to (0,2,0) and settles it wherever
+   the bundler happens to put the two files. */
+@media (max-width: 760px) {
+  .deck-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .deck-track.deck-track {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .deck-track.deck-track > * {
+    flex: 0 0 100%;
+    min-width: 0;
+    max-width: none;
+    scroll-snap-align: center;
+  }
+}

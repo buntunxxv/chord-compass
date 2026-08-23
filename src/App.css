@@ -327,11 +327,46 @@
   color: var(--teal);
 }
 
-.app__workspace-shell .app__builder-workspace {
+/* One snap track holding all three pages. It carries no chrome of its own --
+   each slide is its own surface -- so the active folder tab still paints over
+   a real border, and it is always the visible slide's, since every slide
+   snaps to the same left edge. */
+.app__workspace-slides {
   flex: 1;
   min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+
+.app__workspace-slide {
+  flex: 0 0 100%;
+  min-width: 0;
+  scroll-snap-align: start;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 28px;
+}
+
+.app__workspace-shell .app__workspace-slide {
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
+}
+
+/* The slide already is the surface, so the panels inside it must not paint a
+   second card within the first. Mirrors what .overlay-page did for these same
+   panels while they were overlays. */
+.app__workspace-slide .reverse-finder,
+.app__workspace-slide .progression-templates {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .app__workspace-actions {
@@ -730,10 +765,6 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
   align-items: stretch;
   gap: 32px;
-  padding: 28px;
-  background: var(--white);
-  border: 1px solid var(--border);
-  border-radius: 18px;
 }
 
 /* Build/Explore is a phone-only affordance: the desktop workspace shows both
@@ -846,6 +877,9 @@
 
   .app__builder-workspace {
     gap: 10px;
+  }
+
+  .app__workspace-slide {
     padding: 14px;
   }
 
@@ -931,14 +965,21 @@
   cursor: not-allowed;
 }
 
+/* Each slide fills the single-screen workspace and scrolls inside itself if
+   its own content is taller -- the track never grows, so the dock and the
+   page around it stay put whichever page you are on. */
+.app__workspace-slide {
+  height: 100%;
+  padding: clamp(18px, 3vh, 30px);
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
 .app__builder-workspace {
   min-height: 0;
-  height: 100%;
   position: relative;
   align-self: stretch;
   align-items: center;
-  padding: clamp(18px, 3vh, 30px);
-  overflow: hidden;
 }
 
 .app__builder-controls,
@@ -1051,6 +1092,9 @@
     grid-template-columns: 1fr;
     grid-template-rows: auto minmax(0, 1fr);
     gap: 10px;
+  }
+
+  .app__workspace-slide {
     padding: 14px;
   }
 
@@ -1206,7 +1250,7 @@
     gap: 8px;
   }
 
-  .app__builder-workspace {
+  .app__workspace-slide {
     padding-block: 8px;
   }
 
@@ -1286,7 +1330,7 @@
     box-shadow: 0 1px 5px rgba(0, 0, 0, 0.08);
   }
 
-  .app__workspace-shell .app__builder-workspace {
+  .app__workspace-shell .app__workspace-slide {
     min-height: 0;
     border-radius: 18px;
   }
