@@ -326,45 +326,86 @@
   font-style: italic;
 }
 
-/* Single horizontally-scrollable row (not a wrapped multi-row grid) --
-   long progressions (10-20 chords) stay on one legible line instead of
-   wrapping into several rows of cramped, truncated names. scroll-snap is
-   "proximity" (not "mandatory") so it doesn't fight the JS-driven
-   drag-to-reorder gesture below -- it only nudges *momentum* scrolling to
-   rest on a chip boundary, it never blocks or redirects an active drag. */
-.progression-strip__chart-scroll {
-  display: flex;
-  flex-wrap: nowrap;
+/* Four across, and only as many rows as there are chords to fill: the row
+   count comes from the JS as --prog-rows, so four chords render one row
+   rather than one row plus three empty ones. A page holds sixteen; beyond
+   that the pager below moves between pages, which keeps every chord name at
+   a legible size instead of shrinking a long progression to fit. */
+.progression-strip__grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-rows: repeat(var(--prog-rows, 1), auto);
   gap: 8px;
-  overflow-x: auto;
-  scroll-snap-type: x proximity;
   padding: 2px 2px 6px;
-  -webkit-overflow-scrolling: touch;
 }
 
-/* Dragging a chip near either edge nudges scrollLeft a few px at a time
-   (see autoScrollChartDuringDrag in the JS) so a chip can be reordered past
-   whatever's currently visible -- CSS scroll-snap fights that directly: the
-   browser immediately re-snaps a small programmatic scrollLeft change back
-   toward the nearest snap point, which silently swallows every nudge.
-   Suspending snap for the duration of a drag keeps the nice snap-to-chip
-   feel during ordinary browsing without breaking long-distance reordering. */
-.progression-strip__chart-scroll--dragging {
-  scroll-snap-type: none;
+/* Holds the shape of a part-full row so it reads as a row with space left in
+   it, rather than the grid simply ending mid-line. */
+.progression-strip__cell-empty {
+  min-height: 44px;
+  border: 1.5px dashed var(--border);
+  border-radius: 8px;
+}
+
+.progression-strip__pager {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.progression-strip__pager-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text);
+  font-size: 16px;
+  line-height: 1;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.progression-strip__pager-btn:hover:not(:disabled) {
+  border-color: var(--teal);
+  color: var(--teal);
+}
+
+.progression-strip__pager-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.progression-strip__pager-label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
 }
 
 /* A real <button>, not a pointer-only <span>: chips are the primary way to
    choose which chord the builder and instrument display are showing, so they
-   have to be reachable and operable from a keyboard. The long-press drag
-   behaviour below is unchanged and still pointer-driven. */
+   have to be reachable and operable from a keyboard. */
+/* Stacked, not side by side: in a 4-column grid a cell is about 83px wide on
+   a 390px phone and 68px at 320px, and an inline index badge plus its gap ate
+   roughly a third of that -- enough that most real chord names (Fmaj7,
+   F#m7b5, A7sus4) truncated to an ellipsis. Putting the number above gives
+   the name the full width of the cell. The old layout could afford the badge
+   inline because chips sized to their content in a scrolling row; a grid cell
+   cannot. */
 .progression-strip__slot {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 6px;
-  flex: 0 0 auto;
-  min-width: 68px;
-  min-height: 44px;
-  padding: 8px 12px;
+  justify-content: center;
+  gap: 1px;
+  min-width: 0;
+  min-height: 48px;
+  padding: 6px 5px;
   font: inherit;
   font-size: 14px;
   font-weight: 700;
@@ -382,25 +423,32 @@
 /* Small position badge ("1", "2", "3"...) so a long progression's order is
    legible without counting chips manually -- color-mix against currentColor
    (rather than a fixed color) keeps it readable in every chip state
-   (default, active/teal-filled, dragging) with no extra state-specific
+   (default, active/teal-filled, selected) with no extra state-specific
    overrides needed. */
 .progression-strip__slot-index {
   flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 17px;
-  height: 17px;
-  border-radius: 50%;
-  background: color-mix(in srgb, currentColor 15%, transparent);
   font-size: 9.5px;
   font-weight: 700;
+  line-height: 1;
+  opacity: 0.55;
   color: inherit;
 }
 
 .progression-strip__slot-chord {
+  max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* At the narrowest supported width a grid cell is about 65px, where the
+   longest names the app produces (F#m7b5, Dbmaj7, A7sus4) still overflow at
+   14px. 12.5px is the size the workspace nav already uses at these widths, so
+   the whole name survives rather than becoming an ellipsis. */
+@media (max-width: 360px) {
+  .progression-strip__slot {
+    font-size: 12.5px;
+    padding: 6px 3px;
+  }
 }
 
 .progression-strip__slot--active {
@@ -422,12 +470,6 @@
   text-decoration-color: var(--teal);
   text-underline-offset: 3px;
   box-shadow: inset 0 0 0 1.5px var(--teal);
-  /* touch-action stays at its default (native scrolling allowed) here --
-     chips sit in a horizontally-scrollable row, and a swipe across one has
-     to be able to scroll it. Pointer Events don't engage drag mode until a
-     long-press timer fires (see handleChipPointerDown), at which point
-     .progression-strip__slot--dragging below takes over and blocks native
-     scrolling only for that specific chip's active drag. */
   user-select: none;
 }
 
@@ -443,21 +485,7 @@
   opacity: 1;
 }
 
-.progression-strip__slot--dragging {
-  opacity: 0.45;
-  /* Applied only once a long-press has armed drag mode -- Pointer Events
-     drive the reorder from here, not the browser's own touch-scroll. */
-  touch-action: none;
-}
-
-.progression-strip__slot--drag-over {
-  background: color-mix(in srgb, var(--teal) 18%, transparent);
-  box-shadow: inset 0 0 0 2px var(--teal);
-}
-
-/* The keyboard route to reordering. Long-press drag stays available for
-   pointer users; this is the alternative for everyone else, not a
-   replacement for it. */
+/* The only route to reordering, now that long-press drag is gone. */
 .progression-strip__reorder {
   display: flex;
   align-items: center;
