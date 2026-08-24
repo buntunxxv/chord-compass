@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { formatNoteNames } from '../utils/formatNotes'
+import { formatNoteNames, toUnicodeAccidentals } from '../utils/formatNotes'
 import { buildChordMidiBytes, downloadMidiFile, sanitizeFilename } from '../utils/midiExport'
 import OverlayPage from './OverlayPage'
 import './ChordOutputPanel.css'
@@ -88,6 +88,12 @@ export default function ChordOutputPanel({ chordName, notes, intervals, availabl
   }
 
   const noteNames = formatNoteNames(notes)
+  // chordName itself stays raw ASCII ("Db") -- it's the exact string
+  // chordNameToSelection parses back into root/quality/extension when a
+  // progression entry is re-selected, and sanitizeFilename's MIDI export
+  // name, so onAddToProgression and handleExportMidi both keep using the
+  // prop directly. Only this formatted copy reaches the page.
+  const displayChordName = toUnicodeAccidentals(chordName)
 
   function renderDetailsPanel() {
     return (
@@ -127,7 +133,7 @@ export default function ChordOutputPanel({ chordName, notes, intervals, availabl
 
   return (
     <div className="chord-output" id="wt-chord-output">
-      <h2 className="chord-output__title">Explore {chordName}</h2>
+      <h2 className="chord-output__title">Explore {displayChordName}</h2>
       <div className="chord-output__body">
         <div className="chord-output__summary">
           {/* Play sits beside the chord it plays, at desktop widths only.
@@ -139,14 +145,14 @@ export default function ChordOutputPanel({ chordName, notes, intervals, availabl
               on screen there, and two identical buttons a thumb apart is
               worse than one. */}
           <div className="chord-output__name-row">
-            <div className="chord-output__name">{chordName}</div>
+            <div className="chord-output__name">{displayChordName}</div>
             {onPlayChord && (
               <button
                 type="button"
                 className={`chord-output__play-btn ${isPlayingChord ? 'chord-output__play-btn--playing' : ''}`}
                 onClick={onPlayChord}
                 disabled={isPlayingChord || !canPlayChord}
-                aria-label={`Play chord ${chordName}`}
+                aria-label={`Play chord ${displayChordName}`}
               >
                 <span aria-hidden="true">{isPlayingChord ? '♪' : '▶'}</span>
                 {isPlayingChord ? 'Playing…' : 'Play chord'}
@@ -167,7 +173,7 @@ export default function ChordOutputPanel({ chordName, notes, intervals, availabl
           <OverlayPage
             isOpen={detailsOpen}
             onClose={() => setDetailsOpen(false)}
-            eyebrow={chordName}
+            eyebrow={displayChordName}
             title="Chord details"
           >
             {renderDetailsPanel()}
@@ -181,7 +187,7 @@ export default function ChordOutputPanel({ chordName, notes, intervals, availabl
             id="wt-add-btn"
             className="chord-output__add-btn"
             onClick={() => onAddToProgression(chordName, notes)}
-            aria-label={`Add to progression ${chordName}`}
+            aria-label={`Add to progression ${displayChordName}`}
           >
             + Add to progression
           </button>
