@@ -9,6 +9,12 @@ export default function UpgradePage() {
   const { preference: themePreference, resolvedTheme, setPreference: setThemePreference } = useTheme()
   const [unlockEmail, setUnlockEmail] = useState('')
   const [unlockState, setUnlockState] = useState('idle') // idle | loading | success | error
+  // Set VITE_STRIPE_PAYMENT_LINK_URL in Vercel (Project Settings → Environment
+  // Variables) to the Founder Access Payment Link's public checkout URL
+  // (Stripe Dashboard → Payment links → copy link, looks like
+  // https://buy.stripe.com/xxxxxxxx). Falls back to the disabled "Coming
+  // soon" state below until it's set, so this is safe to ship either way.
+  const paymentLinkUrl = import.meta.env.VITE_STRIPE_PAYMENT_LINK_URL
 
   useEffect(() => {
     logEvent('upgrade_page_view')
@@ -69,9 +75,19 @@ export default function UpgradePage() {
             </div>
             <p className="upgrade-page__plan-note">One-time payment — £9</p>
             <p className="upgrade-page__plan-blurb">You're backing the build, not paying for a finished product.</p>
-            <button className="upgrade-page__cta-btn" disabled>
-              Coming soon
-            </button>
+            {paymentLinkUrl ? (
+              <a
+                className="upgrade-page__cta-btn"
+                href={paymentLinkUrl}
+                onClick={() => logEvent('upgrade_cta_click', { source: 'upgrade_page_purchase_button' })}
+              >
+                Get Founder Access — £9
+              </a>
+            ) : (
+              <button className="upgrade-page__cta-btn upgrade-page__cta-btn--disabled" disabled>
+                Coming soon
+              </button>
+            )}
           </div>
         </div>
 
