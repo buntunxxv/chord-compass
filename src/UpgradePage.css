@@ -146,6 +146,10 @@
 }
 
 .upgrade-page__cta-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
   background: var(--teal);
   color: var(--on-accent);
   border: none;
@@ -153,9 +157,20 @@
   padding: 12px 20px;
   font-size: 15px;
   font-weight: 700;
-  cursor: not-allowed;
-  opacity: 0.6;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
   width: 100%;
+}
+
+.upgrade-page__cta-btn:hover {
+  background: var(--teal-dark);
+}
+
+.upgrade-page__plan-after {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  line-height: 1.4;
 }
 
 .upgrade-page__features {
