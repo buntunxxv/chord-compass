@@ -395,6 +395,31 @@
   white-space: nowrap;
 }
 
+.app__pro-badge {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 16px;
+  border-radius: 11px;
+  /* --text on --teal-tint rather than white on --teal: it clears contrast
+     in both themes, and a quiet chip is right for a status indicator that
+     doubles as a link, next to a heading rather than shouting over it. */
+  background: var(--teal-tint);
+  border: 1px solid var(--teal);
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.app__pro-badge:hover {
+  border-color: var(--teal-dark);
+}
+
 .app__upgrade-link:hover {
   filter: brightness(0.94);
 }

@@ -793,7 +793,17 @@ export default function App() {
                 <h1 id="builder-intro-title">{currentPage.title}</h1>
               </div>
               <div className="app__workspace-actions">
-                {!isPro && <Link to="/upgrade" className="app__upgrade-link">Upgrade <span>to Pro</span></Link>}
+                {/* Pro users need a way back to /upgrade too -- it is the
+                    only place that can log them out, and every other link to
+                    it is hidden once isPro is true, which used to leave the
+                    page reachable only by typing the URL. */}
+                {isPro
+                  ? (
+                    <Link to="/upgrade" className="app__pro-badge">
+                      Pro<span className="sr-only"> — unlocked on this device, manage</span>
+                    </Link>
+                  )
+                  : <Link to="/upgrade" className="app__upgrade-link">Upgrade <span>to Pro</span></Link>}
               </div>
             </section>
 

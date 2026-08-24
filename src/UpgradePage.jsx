@@ -16,6 +16,10 @@ export default function UpgradePage() {
   const { preference: themePreference, resolvedTheme, setPreference: setThemePreference } = useTheme()
   const [unlockEmail, setUnlockEmail] = useState('')
   const [unlockState, setUnlockState] = useState('idle') // idle | loading | success | error
+  // There is no account or session -- "logged in" means this browser holds
+  // the kcc_tier flag that App.jsx reads to gate every Pro feature. So
+  // logging out is removing that flag, and it is per device and per browser.
+  const [isPro, setIsPro] = useState(() => localStorage.getItem('kcc_tier') === 'pro')
 
   useEffect(() => {
     logEvent('upgrade_page_view')
@@ -45,6 +49,17 @@ export default function UpgradePage() {
     }
   }
 
+  function handleLogOut() {
+    localStorage.removeItem('kcc_tier')
+    setIsPro(false)
+    // A fresh unlock in this same visit leaves unlockState on 'success';
+    // without this reset the page would keep showing "Pro unlocked" after
+    // logging back out.
+    setUnlockState('idle')
+    setUnlockEmail('')
+    logEvent('pro_logout')
+  }
+
   return (
     <div className="upgrade-page">
       <header className="upgrade-page__header">
@@ -68,6 +83,9 @@ export default function UpgradePage() {
           <p className="upgrade-page__subtitle">More directions. More movement. More song.</p>
         </div>
 
+        {/* No buy button for someone who already paid -- they keep the
+            feature list below, which now reads as what they have. */}
+        {!isPro && (
         <div className="upgrade-page__plans">
           <div className="upgrade-page__plan upgrade-page__plan--highlight">
             <div className="upgrade-page__plan-badge">Founder Access</div>
@@ -101,6 +119,7 @@ export default function UpgradePage() {
             </p>
           </div>
         </div>
+        )}
 
         <ul className="upgrade-page__features">
           <li>5 next-chord suggestions per chord</li>
@@ -113,12 +132,31 @@ export default function UpgradePage() {
         </ul>
 
         <div className="upgrade-page__unlock">
-          <h2 className="upgrade-page__unlock-title">Already backed the project?</h2>
-          <p className="upgrade-page__unlock-hint">Enter the email you used at checkout to unlock Pro features.</p>
+          <h2 className="upgrade-page__unlock-title">
+            {isPro ? 'Pro is unlocked on this device' : 'Already backed the project?'}
+          </h2>
+          <p className="upgrade-page__unlock-hint">
+            {isPro
+              ? 'Unlocking is stored per device and per browser, so logging out here only affects this one.'
+              : 'Enter the email you used at checkout to unlock Pro features.'}
+          </p>
           {unlockState === 'success' ? (
             <div className="upgrade-page__unlock-success" role="status">
               Pro unlocked — welcome aboard. <Link to="/">Go back to the app →</Link>
             </div>
+          ) : isPro ? (
+            <>
+              <button type="button" className="upgrade-page__logout-btn" onClick={handleLogOut}>
+                Log out of Pro
+              </button>
+              {/* Logging out is not meant to be scary or lossy: it drops one
+                  flag. Saying so up front stops it reading like "delete my
+                  account", which it is not -- there is no account. */}
+              <p className="upgrade-page__logout-note">
+                You can unlock again any time with the email you paid with. Your saved
+                progressions stay on this device either way.
+              </p>
+            </>
           ) : (
             <form className="upgrade-page__unlock-form" onSubmit={handleUnlock}>
               <label htmlFor="upgrade-unlock-email" className="upgrade-page__unlock-label">

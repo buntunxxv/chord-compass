@@ -167,6 +167,36 @@
   background: var(--teal-dark);
 }
 
+.upgrade-page__logout-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 12px 20px;
+  border-radius: 8px;
+  /* Outlined rather than filled: logging out is a get-out, not the thing
+     this page wants you to do, so it should not out-shout the CTA. */
+  background: transparent;
+  border: 1.5px solid var(--border);
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.upgrade-page__logout-btn:hover {
+  border-color: var(--danger-border);
+  color: var(--danger);
+}
+
+.upgrade-page__logout-note {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  line-height: 1.4;
+  max-width: 42ch;
+}
+
 .upgrade-page__plan-after {
   font-size: 12.5px;
   color: var(--text-muted);
