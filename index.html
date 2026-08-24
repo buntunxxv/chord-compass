@@ -4,6 +4,26 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Chord Compass — Kynda Learning</title>
+
+    <!-- The .ico carries 16/32/48 so each browser picks its own size instead
+         of downsampling one bitmap; the PNG is what modern browsers prefer.
+         Both are the Kynda mark on a white disc with transparent corners, so
+         it sits on a light or dark tab strip without a white box around it. -->
+    <link rel="icon" href="/favicon.ico" sizes="16x16 32x32 48x48" />
+    <link rel="icon" type="image/png" href="/favicon-32.png" sizes="32x32" />
+
+    <!-- Home screen. iOS reads apple-touch-icon and these meta tags, not the
+         manifest; Android reads the manifest. -->
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="theme-color" content="#119392" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <!-- Without this iOS labels the icon from <title>, which would read
+         "Chord Compass — Kynda Learning" and truncate to "Chord Com…". -->
+    <meta name="apple-mobile-web-app-title" content="Chord Compass" />
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@400;500;600;700;800&family=Lora:ital,wght@1,400;1,600&display=swap" rel="stylesheet" />
