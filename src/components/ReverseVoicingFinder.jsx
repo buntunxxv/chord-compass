@@ -7,7 +7,7 @@ import DeckNav from './DeckNav'
 import BottomSheet from './BottomSheet'
 import { useCardDeck } from '../hooks/useCardDeck'
 import { findVoicings, soundingNotes, detectChordName, PITCH_CLASS_NAMES } from '../utils/reverseVoicingLookup'
-import { formatChordName } from '../utils/formatChordName'
+import { formatChordName, normalizeChordName } from '../utils/formatChordName'
 import './ReverseVoicingFinder.css'
 
 const STRING_COUNT = 6
@@ -79,6 +79,11 @@ export default function ReverseVoicingFinder({ onAddToProgression, onImportSeque
     // differ from another ranked shape's, so they can legitimately deserve
     // different names.
     const detected = detectChordName(result.frets)
+    // rawName is what gets stored as a progression entry's "chord" field
+    // (onAddToProgression below) -- plain ASCII, so a later tap on the chip
+    // can still round-trip through chordNameToSelection. name is the
+    // Unicode-accidental version for display only (see formatChordName).
+    const rawName = normalizeChordName(detected.name)
     const name = formatChordName(detected.name)
     // Root for GuitarDisplay's highlight/aria-label: derived from the RAW
     // detected name (Chord.get needs tonal's own naming, not
@@ -88,7 +93,7 @@ export default function ReverseVoicingFinder({ onAddToProgression, onImportSeque
     // (detected.name is then just a plain note list, which Chord.get can't
     // resolve a tonic from).
     const root = Chord.get(detected.name).tonic || selectedNoteNames[0]
-    return { result, detected, name, root }
+    return { result, detected, rawName, name, root }
   }), [results, selectedNoteNames])
 
   const { index, isDeck, trackRef, cardRefs, chipRefs, goTo, handleChipKeyDown } = useCardDeck(shapes, sheetOpen)
@@ -197,7 +202,7 @@ export default function ReverseVoicingFinder({ onAddToProgression, onImportSeque
           chipRefs={chipRefs}
         />
         <div className="reverse-finder__results deck-track" ref={trackRef}>
-          {shapes.map(({ result, detected, name, root }, i) => {
+          {shapes.map(({ result, detected, rawName, name, root }, i) => {
             const rank = RESULT_LABELS[i] || `#${i + 1}`
             return (
               <article
@@ -219,7 +224,7 @@ export default function ReverseVoicingFinder({ onAddToProgression, onImportSeque
                   type="button"
                   className="reverse-finder__add-btn"
                   onClick={() => {
-                    onAddToProgression?.(name, soundingNotes(result.frets))
+                    onAddToProgression?.(rawName, soundingNotes(result.frets))
                     // Close on add: the dock is behind the backdrop, so leaving
                     // the sheet up would hide the only feedback that the chord
                     // actually landed anywhere.

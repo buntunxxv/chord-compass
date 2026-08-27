@@ -4,7 +4,7 @@
 // convention (see buildChordSymbol in src/components/ChordSelector.jsx)
 // and converts ASCII accidentals to Unicode. Run: node scripts/verify-format-chord-name.mjs
 import { Chord } from 'tonal'
-import { formatChordName } from '../src/utils/formatChordName.js'
+import { formatChordName, normalizeChordName } from '../src/utils/formatChordName.js'
 
 const failures = []
 
@@ -47,6 +47,17 @@ check('undetected fallback note list', formatChordName('C · C# · D'), 'C · C�
 // Falsy passthrough -- formatChordName is called at a display boundary,
 // not a validation boundary; a falsy input should pass straight through.
 check('falsy passthrough', formatChordName(''), '')
+
+// normalizeChordName is the storage-safe half formatChordName is built on:
+// same "M"-tag stripping, but WITHOUT the Unicode accidental conversion --
+// its whole reason to exist is staying parseable by chordNameToSelection's
+// ASCII-only regex when a progression entry's stored "chord" field is later
+// tapped back into the builder (App.jsx). A regression here that made it
+// emit Unicode again would silently break that round-trip for every
+// accidental-root chord identified via ReverseVoicingFinder or MIDI import.
+check('normalizeChordName strips M-tag, keeps ASCII', normalizeChordName('CMadd9'), 'Cadd9')
+check('normalizeChordName leaves ASCII accidental untouched', normalizeChordName('F#m'), 'F#m')
+check('normalizeChordName slash chord', normalizeChordName('CM/E'), 'C/E')
 
 console.log()
 if (failures.length === 0) {
