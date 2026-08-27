@@ -14,23 +14,24 @@ export async function startAudioContext() {
 // Single shared "keys" patch — an FM electric-piano style tone instead of a
 // plain oscillator, so chords played by the app don't sound like an 8-bit blip.
 //
-// harmonicity 1.5 + a sine (rather than square) modulator keeps the tone
-// bell-like without the harsh, metallic edge a higher ratio/square wave
-// produces. A fast-decaying modulation envelope gives the classic
-// Rhodes-style "tine" transient — bright pluck settling into a warm sustain.
-// Chorus adds width/movement before the room reverb.
+// harmonicity 1 keeps every partial a clean integer multiple of the
+// fundamental (no bell-like inharmonicity), and a low modulation index adds
+// just enough overtone to sound like a struck tine rather than a flute. The
+// dark lowpass filter and a low-dampening (dark-tailed) reverb roll off the
+// top end for warmth; a slow, deep chorus adds body/movement rather than
+// shimmer.
 export function createKeysSynth() {
-  const chorus = new Tone.Chorus({ frequency: 1.1, delayTime: 3.5, depth: 0.4, wet: 0.25 }).start()
-  const filter = new Tone.Filter({ type: 'lowpass', frequency: 5200, rolloff: -12 })
-  const reverb = new Tone.Freeverb({ roomSize: 0.6, dampening: 3000, wet: 0.18 }).toDestination()
+  const chorus = new Tone.Chorus({ frequency: 0.8, delayTime: 4, depth: 0.45, wet: 0.28 }).start()
+  const filter = new Tone.Filter({ type: 'lowpass', frequency: 3200, rolloff: -12 })
+  const reverb = new Tone.Freeverb({ roomSize: 0.55, dampening: 2200, wet: 0.2 }).toDestination()
 
   return new Tone.PolySynth(Tone.FMSynth, {
-    harmonicity: 1.5,
-    modulationIndex: 3.5,
+    harmonicity: 1,
+    modulationIndex: 2,
     oscillator: { type: 'sine' },
     modulation: { type: 'sine' },
-    envelope: { attack: 0.004, decay: 1.1, sustain: 0.18, release: 1.6 },
-    modulationEnvelope: { attack: 0.002, decay: 0.35, sustain: 0.03, release: 1.0 },
-    volume: -10,
+    envelope: { attack: 0.008, decay: 1.3, sustain: 0.22, release: 1.8 },
+    modulationEnvelope: { attack: 0.004, decay: 0.4, sustain: 0.02, release: 1.1 },
+    volume: -9,
   }).chain(filter, chorus, reverb)
 }
