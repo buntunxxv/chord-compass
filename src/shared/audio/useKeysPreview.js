@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef } from 'react'
 import * as Tone from 'tone'
-import { startAudioContext } from '../../audio/synth'
+import { createKeysSynth, startAudioContext } from '../../audio/synth'
 
 export function useKeysPreview() {
   const synthRef = useRef(null)
@@ -8,14 +8,7 @@ export function useKeysPreview() {
   const getSynth = useCallback(async () => {
     await startAudioContext()
     if (!synthRef.current) {
-      synthRef.current = new Tone.PolySynth(Tone.FMSynth, {
-        harmonicity: 2.5,
-        modulationIndex: 5,
-        oscillator: { type: 'sine' },
-        envelope: { attack: 0.008, decay: 0.45, sustain: 0.16, release: 0.8 },
-        modulationEnvelope: { attack: 0.008, decay: 0.2, sustain: 0.05, release: 0.5 },
-        volume: -12,
-      }).toDestination()
+      synthRef.current = createKeysSynth()
     }
     return synthRef.current
   }, [])

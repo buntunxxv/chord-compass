@@ -13,16 +13,25 @@ export async function startAudioContext() {
 
 // Single shared "keys" patch — an FM electric-piano style tone instead of a
 // plain oscillator, so chords played by the app don't sound like an 8-bit blip.
+//
+// harmonicity 1 keeps every partial a clean integer multiple of the
+// fundamental (no bell-like inharmonicity), and a low modulation index adds
+// just enough overtone to sound like a struck tine rather than a flute. The
+// dark lowpass filter and a low-dampening (dark-tailed) reverb roll off the
+// top end for warmth; a slow, deep chorus adds body/movement rather than
+// shimmer.
 export function createKeysSynth() {
-  const reverb = new Tone.Freeverb({ roomSize: 0.6, dampening: 3000, wet: 0.18 }).toDestination()
+  const chorus = new Tone.Chorus({ frequency: 0.8, delayTime: 4, depth: 0.45, wet: 0.28 }).start()
+  const filter = new Tone.Filter({ type: 'lowpass', frequency: 3200, rolloff: -12 })
+  const reverb = new Tone.Freeverb({ roomSize: 0.55, dampening: 2200, wet: 0.2 }).toDestination()
 
   return new Tone.PolySynth(Tone.FMSynth, {
-    harmonicity: 3,
-    modulationIndex: 8,
+    harmonicity: 1,
+    modulationIndex: 2,
     oscillator: { type: 'sine' },
-    modulation: { type: 'square' },
-    envelope: { attack: 0.006, decay: 1.0, sustain: 0.2, release: 1.4 },
-    modulationEnvelope: { attack: 0.006, decay: 0.3, sustain: 0.05, release: 1.0 },
-    volume: -12,
-  }).connect(reverb)
+    modulation: { type: 'sine' },
+    envelope: { attack: 0.008, decay: 1.3, sustain: 0.22, release: 1.8 },
+    modulationEnvelope: { attack: 0.004, decay: 0.4, sustain: 0.02, release: 1.1 },
+    volume: -9,
+  }).chain(filter, chorus, reverb)
 }
