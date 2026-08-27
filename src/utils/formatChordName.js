@@ -15,16 +15,26 @@ function stripMajorTag(part) {
   return suffix.startsWith('M') ? root + suffix.slice(1) : part
 }
 
-// Single formatting boundary for any chord name reaching the user that
-// didn't come from this app's own builder -- Chord.detect results in
-// ReverseVoicingFinder and MIDI import, plus their plain-note-list
-// fallback when detection finds nothing. Normalizes Tonal's naming to this
-// app's own convention (see stripMajorTag) and converts ASCII accidentals
-// to Unicode, the same conversion formatNoteNames already uses for note
-// lists -- so a slash chord like "CMadd9/E" becomes "Cadd9/E" and an
-// altered dominant like "C7#9" becomes "C7♯9".
-export function formatChordName(name) {
+// Tonal-naming -> this app's own convention (see stripMajorTag), staying in
+// plain ASCII. This is the form that has to be stored as a progression
+// entry's "chord" field: chordNameToSelection (App.jsx) parses that field
+// back into root/quality/extension whenever the entry is re-selected, and
+// its regex only recognizes ASCII "#"/"b" -- a Unicode accidental would
+// silently fail to parse, leaving the tapped chip highlighted but the
+// builder/instrument stuck on whatever chord was showing before.
+export function normalizeChordName(name) {
   if (!name) return name
-  const normalized = name.split('/').map(stripMajorTag).join('/')
-  return toUnicodeAccidentals(normalized)
+  return name.split('/').map(stripMajorTag).join('/')
+}
+
+// Display boundary for any chord name reaching the user that didn't come
+// from this app's own builder -- Chord.detect results in ReverseVoicingFinder
+// and MIDI import, plus their plain-note-list fallback when detection finds
+// nothing. Adds the Unicode accidental conversion formatNoteNames already
+// uses for note lists on top of normalizeChordName -- so a slash chord like
+// "CMadd9/E" becomes "Cadd9/E" and an altered dominant like "C7#9" becomes
+// "C7♯9". Display-only: never pass this to onAddToProgression/
+// onImportSequence, use normalizeChordName for that.
+export function formatChordName(name) {
+  return toUnicodeAccidentals(normalizeChordName(name))
 }

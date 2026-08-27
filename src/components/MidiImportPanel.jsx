@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { parseMidiArrayBuffer, segmentChordMoments } from '../utils/midiChordMoments'
 import { detectChordNameFromPitchClasses } from '../utils/reverseVoicingLookup'
-import { formatChordName } from '../utils/formatChordName'
+import { formatChordName, normalizeChordName } from '../utils/formatChordName'
 import './MidiImportPanel.css'
 
 function formatTime(seconds) {
@@ -68,7 +68,11 @@ export default function MidiImportPanel({ onLoadMoment, onImportSequence, onImpo
     const ordered = [...checked].sort((a, b) => a - b).map(i => {
       const m = moments[i]
       const detected = detectChordNameFromPitchClasses(m.pitchClasses)
-      return { chord: formatChordName(detected.name), notes: m.notes.map(n => n.name) }
+      // ASCII, not formatChordName's Unicode-accidental display form -- this
+      // is stored as the progression entry's "chord" field, which
+      // chordNameToSelection (App.jsx) has to be able to parse back when the
+      // entry is later tapped (see normalizeChordName's own comment).
+      return { chord: normalizeChordName(detected.name), notes: m.notes.map(n => n.name) }
     })
     onImportSequence?.(ordered)
     setChecked(new Set())

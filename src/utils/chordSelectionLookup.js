@@ -47,28 +47,57 @@ export function toDataKey(root, quality, extension) {
   return null
 }
 
+// Exact inverse of buildChordSymbol (ChordSelector.jsx): every suffix that
+// function can ever append to a root, mapped back to the quality/extension
+// that produced it. A Pro user can add any of these -- not just the 8 basic
+// types -- to the progression from Build, so chordNameToSelection has to
+// recognize every one of them too, or tapping that chip later leaves the
+// arrangement's own selection highlighted (plain index state) while the
+// builder/instrument silently keeps showing whatever chord was selected
+// before, since the failed parse means setSelection never runs.
+const SUFFIX_TO_SELECTION = {
+  '': { quality: 'major', extension: 'none' },
+  '7': { quality: 'major', extension: '7' },
+  'maj7': { quality: 'major', extension: 'maj7' },
+  'add9': { quality: 'major', extension: 'add9' },
+  '9': { quality: 'major', extension: '9' },
+  'maj9': { quality: 'major', extension: 'maj9' },
+  '11': { quality: 'major', extension: '11' },
+  '13': { quality: 'major', extension: '13' },
+  'maj13': { quality: 'major', extension: 'maj13' },
+  '7#9': { quality: 'major', extension: '7#9' },
+  '7b9': { quality: 'major', extension: '7b9' },
+  '7#5': { quality: 'major', extension: '7#5' },
+  '7b5': { quality: 'major', extension: '7b5' },
+  '7#11': { quality: 'major', extension: '7#11' },
+  'm': { quality: 'minor', extension: 'none' },
+  'm7': { quality: 'minor', extension: '7' },
+  'mM7': { quality: 'minor', extension: 'maj7' },
+  'madd9': { quality: 'minor', extension: 'add9' },
+  'm9': { quality: 'minor', extension: '9' },
+  'm11': { quality: 'minor', extension: '11' },
+  'm13': { quality: 'minor', extension: '13' },
+  'dim': { quality: 'diminished', extension: 'none' },
+  'm7b5': { quality: 'diminished', extension: '7' },
+  'dim7': { quality: 'diminished', extension: 'dim7' },
+  'aug': { quality: 'augmented', extension: 'none' },
+  'aug7': { quality: 'augmented', extension: '7' },
+  'sus2': { quality: 'sus2', extension: 'none' },
+  'sus4': { quality: 'sus4', extension: 'none' },
+}
+
 // Parse a chord DISPLAY NAME (e.g. a progression chip's or a suggestion's
-// "chord" field -- "C", "Dm7", "Cmaj7", "Csus2"...) back into selector
-// state. Only covers the 8 base types the free-tier suggestion engine can
-// ever produce (see Chord Data Reference) -- extended/altered qualities
-// never appear as a suggestion or progression-addable name, so they don't
-// need a case here. Returns null for anything else (including slash
-// chords -- a bare display string can't recover a slash bass).
+// "chord" field -- "C", "Dm7", "Cmaj7", "Db7#5", "Gbm13"...) back into
+// selector state. Returns null for anything the builder itself could never
+// have produced (including slash chords -- a bare display string can't
+// recover a slash bass -- and any name Chord.detect might invent that
+// doesn't match this app's own suffix conventions).
 export function chordNameToSelection(name) {
-  const m = name.match(/^([A-G][#b]?)(m7|maj7|m|add9|sus2|sus4|7|)$/)
+  if (!name) return null
+  const m = name.match(/^([A-G][#b]?)(.*)$/)
   if (!m) return null
   const [, root, suffix] = m
-  const map = {
-    '': { quality: 'major', extension: 'none' },
-    'm': { quality: 'minor', extension: 'none' },
-    '7': { quality: 'major', extension: '7' },
-    'maj7': { quality: 'major', extension: 'maj7' },
-    'm7': { quality: 'minor', extension: '7' },
-    'add9': { quality: 'major', extension: 'add9' },
-    'sus2': { quality: 'sus2', extension: 'none' },
-    'sus4': { quality: 'sus4', extension: 'none' },
-  }
-  const qual = map[suffix]
+  const qual = SUFFIX_TO_SELECTION[suffix]
   if (!qual) return null
   return { root, ...qual }
 }

@@ -447,14 +447,19 @@ export default function App() {
     armLoadUndo({ progression, activeTemplate, tappedChordIndex })
     setProgression(entries)
     setActiveTemplate({ name: template.name, description: template.description })
-    setTappedChordIndex(null)
+    // Same "last chord added becomes selected" rule every other add path
+    // (single chord, suggestion, reverse-lookup, MIDI range import) already
+    // follows -- a template load is a bulk add, not a reason to leave the
+    // arrangement with nothing selected.
+    setTappedChordIndex(entries.length > 0 ? entries.length - 1 : null)
   }
 
   function loadSavedProgression(chords) {
     clearLoadUndo()
     setActiveTemplate(null)
     setProgression(chords)
-    setTappedChordIndex(null)
+    // Same rule as loadTemplate just above.
+    setTappedChordIndex(chords.length > 0 ? chords.length - 1 : null)
   }
 
   // Drag-to-reorder: splice the moved chord into its new position, and slide
