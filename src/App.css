@@ -195,18 +195,21 @@
 }
 
 .app__mobile-menu-link--current {
+  padding-left: 21px;
+  border-left: 3px solid var(--teal);
   color: var(--text);
+  font-weight: 800;
+  background: var(--teal-tint);
   cursor: default;
 }
 
-.app__mobile-menu-link--current span {
-  color: var(--text-muted);
-  font-weight: 400;
+.app__mobile-menu-link--current.app__mobile-menu-link--child {
+  padding-left: 37px;
 }
 
 .app__mobile-menu-link--current:hover {
   color: var(--text);
-  background: none;
+  background: var(--teal-tint);
 }
 
 .app__mobile-menu-feedback {

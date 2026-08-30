@@ -5,11 +5,13 @@ import { SUITE_MENU_ITEMS } from './suiteMenu'
 // link elements, styled by the caller's own className so Chord Compass's
 // header and ToolShell's mobile menu can keep their existing look while
 // drawing from the one shared list. The item matching the current route
-// renders as inert, marked text instead of a link to itself -- a tap that
-// would silently do nothing is worse than no link at all. Items flagged
-// `child` (the 4 tools, nested under "All tools") get childClassName added
-// on top, so the caller can indent/de-emphasize them without this component
-// needing to know what that should look like.
+// renders as inert text instead of a link to itself -- a tap that would
+// silently do nothing is worse than no link at all -- highlighted via
+// currentClassName rather than a visible label; aria-current="page" still
+// carries that to screen readers. Items flagged `child` (the 4 tools,
+// nested under "All tools") get childClassName added on top, so the caller
+// can indent/de-emphasize them without this component needing to know what
+// that should look like.
 export default function SuiteMenuLinks({ className, currentClassName, childClassName, onNavigate }) {
   const { pathname } = useLocation()
 
@@ -27,7 +29,7 @@ export default function SuiteMenuLinks({ className, currentClassName, childClass
     if (item.to === pathname) {
       return (
         <span key={item.key} className={`${itemClassName} ${currentClassName}`} aria-current="page">
-          {item.label} <span aria-hidden="true">(this page)</span>
+          {item.label}
         </span>
       )
     }
