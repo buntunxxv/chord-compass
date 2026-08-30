@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import ThemeToggle from '../components/ThemeToggle'
+import SuiteMenuLinks from './SuiteMenuLinks'
 import { useTheme } from '../hooks/useTheme'
 import './ToolShell.css'
 
@@ -51,10 +52,12 @@ export default function ToolShell({ title, eyebrow, learningAction, children }) 
         </div>
         {menuOpen && (
           <nav id="tool-shell-menu" className="tool-shell__mobile-menu" aria-label="Tool menu">
-            <Link to="/tools" className="tool-shell__mobile-menu-link" onClick={() => setMenuOpen(false)}>All tools</Link>
-            <a href="https://www.kyndalearning.co.uk/courses" className="tool-shell__mobile-menu-link" onClick={() => setMenuOpen(false)}>Courses</a>
-            <a href="https://www.kyndalearning.co.uk/workshops" className="tool-shell__mobile-menu-link" onClick={() => setMenuOpen(false)}>Workshops</a>
-            <a href="https://www.kyndalearning.co.uk/portal" className="tool-shell__mobile-menu-link" onClick={() => setMenuOpen(false)}>Portal</a>
+            <SuiteMenuLinks
+              className="tool-shell__mobile-menu-link"
+              currentClassName="tool-shell__mobile-menu-link--current"
+              childClassName="tool-shell__mobile-menu-link--child"
+              onNavigate={() => setMenuOpen(false)}
+            />
             <div className="tool-shell__mobile-menu-theme">
               <span>Appearance</span>
               <ThemeToggle preference={preference} onChange={setPreference} />
