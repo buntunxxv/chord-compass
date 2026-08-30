@@ -15,7 +15,13 @@ const CHECKOUT_URL = 'https://buy.stripe.com/14A7sMgxD0qLaWm1wgbAs0o'
 export default function UpgradePage() {
   const { preference: themePreference, resolvedTheme, setPreference: setThemePreference } = useTheme()
   const [unlockEmail, setUnlockEmail] = useState('')
-  const [unlockState, setUnlockState] = useState('idle') // idle | loading | success | error
+  const [unlockCode, setUnlockCode] = useState('')
+  // email: enter the address to get a code. code: enter the code that was
+  // sent. success: unlocked. Replaces the old single-step "enter any email
+  // that matches" check -- a code proves the visitor actually owns the inbox.
+  const [unlockStep, setUnlockStep] = useState('email')
+  const [unlockStatus, setUnlockStatus] = useState('idle') // idle | loading | error
+  const [unlockError, setUnlockError] = useState('')
   // There is no account or session -- "logged in" means this browser holds
   // the kcc_tier flag that App.jsx reads to gate every Pro feature. So
   // logging out is removing that flag, and it is per device and per browser.
@@ -25,38 +31,83 @@ export default function UpgradePage() {
     logEvent('upgrade_page_view')
   }, [])
 
-  async function handleUnlock(e) {
+  async function handleRequestCode(e) {
     e.preventDefault()
-    if (!unlockEmail.trim() || unlockState === 'loading') return
-    setUnlockState('loading')
+    if (!unlockEmail.trim() || unlockStatus === 'loading') return
+    setUnlockStatus('loading')
+    setUnlockError('')
     try {
-      const res = await fetch('/api/check-entitlement', {
+      const res = await fetch('/api/request-unlock-code', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: unlockEmail.trim() }),
       })
       const data = await res.json()
-      if (data.isPro) {
-        localStorage.setItem('kcc_tier', 'pro')
-        setUnlockState('success')
-        logEvent('pro_unlock_success')
+      if (res.ok) {
+        setUnlockStep('code')
+        setUnlockStatus('idle')
+        logEvent('pro_unlock_code_requested')
       } else {
-        setUnlockState('error')
-        logEvent('pro_unlock_not_found')
+        setUnlockStatus('error')
+        setUnlockError(data.error || 'Something went wrong — try again.')
       }
     } catch {
-      setUnlockState('error')
+      setUnlockStatus('error')
+      setUnlockError('Something went wrong — try again.')
     }
+  }
+
+  async function handleVerifyCode(e) {
+    e.preventDefault()
+    if (!unlockCode.trim() || unlockStatus === 'loading') return
+    setUnlockStatus('loading')
+    setUnlockError('')
+    try {
+      const res = await fetch('/api/verify-unlock-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: unlockEmail.trim(), code: unlockCode.trim() }),
+      })
+      const data = await res.json()
+      if (res.ok && data.isPro) {
+        localStorage.setItem('kcc_tier', 'pro')
+        setUnlockStep('success')
+        setUnlockStatus('idle')
+        logEvent('pro_unlock_success')
+      } else if (res.ok) {
+        // Code was valid but this email has no Pro entitlement -- most
+        // likely a typo against the address used at checkout.
+        setUnlockStatus('error')
+        setUnlockError("That email doesn't have Pro yet — check it matches the one you paid with.")
+        logEvent('pro_unlock_not_found')
+      } else {
+        setUnlockStatus('error')
+        setUnlockError(data.error || 'Something went wrong — try again.')
+      }
+    } catch {
+      setUnlockStatus('error')
+      setUnlockError('Something went wrong — try again.')
+    }
+  }
+
+  function handleChangeEmail() {
+    setUnlockStep('email')
+    setUnlockStatus('idle')
+    setUnlockError('')
+    setUnlockCode('')
   }
 
   function handleLogOut() {
     localStorage.removeItem('kcc_tier')
     setIsPro(false)
-    // A fresh unlock in this same visit leaves unlockState on 'success';
+    // A fresh unlock in this same visit leaves unlockStep on 'success';
     // without this reset the page would keep showing "Pro unlocked" after
     // logging back out.
-    setUnlockState('idle')
+    setUnlockStep('email')
+    setUnlockStatus('idle')
+    setUnlockError('')
     setUnlockEmail('')
+    setUnlockCode('')
     logEvent('pro_logout')
   }
 
@@ -138,9 +189,11 @@ export default function UpgradePage() {
           <p className="upgrade-page__unlock-hint">
             {isPro
               ? 'Unlocking is stored per device and per browser, so logging out here only affects this one.'
+              : unlockStep === 'code'
+              ? `We sent a code to ${unlockEmail.trim()}. Enter it below to unlock Pro.`
               : 'Enter the email you used at checkout to unlock Pro features.'}
           </p>
-          {unlockState === 'success' ? (
+          {unlockStep === 'success' ? (
             <div className="upgrade-page__unlock-success" role="status">
               Pro unlocked — welcome aboard. <Link to="/">Go back to the app →</Link>
             </div>
@@ -157,8 +210,46 @@ export default function UpgradePage() {
                 progressions stay on this device either way.
               </p>
             </>
+          ) : unlockStep === 'code' ? (
+            <form className="upgrade-page__unlock-form" onSubmit={handleVerifyCode}>
+              <label htmlFor="upgrade-unlock-code" className="upgrade-page__unlock-label">
+                6-digit code
+              </label>
+              <input
+                id="upgrade-unlock-code"
+                className="upgrade-page__unlock-input"
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                maxLength={6}
+                placeholder="123456"
+                value={unlockCode}
+                onChange={e => { setUnlockCode(e.target.value); if (unlockStatus === 'error') setUnlockStatus('idle') }}
+                required
+                autoComplete="one-time-code"
+                autoFocus
+              />
+              <button
+                className="upgrade-page__unlock-btn"
+                type="submit"
+                disabled={unlockStatus === 'loading'}
+              >
+                {unlockStatus === 'loading' ? 'Checking…' : 'Unlock Pro'}
+              </button>
+              <button type="button" className="upgrade-page__unlock-secondary" onClick={handleChangeEmail}>
+                Use a different email or resend the code
+              </button>
+              {/* Same role="status" pattern ProgressionStrip's save/export
+                  toasts use -- announced to screen readers rather than only
+                  a silent visual change. */}
+              {unlockStatus === 'error' && (
+                <p className="upgrade-page__unlock-error" role="status">
+                  {unlockError}
+                </p>
+              )}
+            </form>
           ) : (
-            <form className="upgrade-page__unlock-form" onSubmit={handleUnlock}>
+            <form className="upgrade-page__unlock-form" onSubmit={handleRequestCode}>
               <label htmlFor="upgrade-unlock-email" className="upgrade-page__unlock-label">
                 Email
               </label>
@@ -168,23 +259,20 @@ export default function UpgradePage() {
                 type="email"
                 placeholder="you@example.com"
                 value={unlockEmail}
-                onChange={e => { setUnlockEmail(e.target.value); if (unlockState === 'error') setUnlockState('idle') }}
+                onChange={e => { setUnlockEmail(e.target.value); if (unlockStatus === 'error') setUnlockStatus('idle') }}
                 required
                 autoComplete="email"
               />
               <button
                 className="upgrade-page__unlock-btn"
                 type="submit"
-                disabled={unlockState === 'loading'}
+                disabled={unlockStatus === 'loading'}
               >
-                {unlockState === 'loading' ? 'Checking…' : 'Unlock Pro'}
+                {unlockStatus === 'loading' ? 'Sending…' : 'Send unlock code'}
               </button>
-              {/* Same role="status" pattern ProgressionStrip's save/export
-                  toasts use -- announced to screen readers rather than only
-                  a silent visual change. */}
-              {unlockState === 'error' && (
+              {unlockStatus === 'error' && (
                 <p className="upgrade-page__unlock-error" role="status">
-                  We couldn't find that email — check for typos, or wait a few minutes after payment and try again.
+                  {unlockError}
                 </p>
               )}
             </form>

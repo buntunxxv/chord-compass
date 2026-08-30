@@ -306,6 +306,24 @@
   cursor: not-allowed;
 }
 
+.upgrade-page__unlock-secondary {
+  align-self: flex-start;
+  background: none;
+  border: none;
+  padding: 0;
+  margin-top: -2px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--font);
+  color: var(--teal);
+  cursor: pointer;
+  text-align: left;
+}
+
+.upgrade-page__unlock-secondary:hover {
+  text-decoration: underline;
+}
+
 .upgrade-page__unlock-error {
   font-size: 13px;
   color: #c0392b;
