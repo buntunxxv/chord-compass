@@ -1,37 +1,7 @@
 import { Link } from 'react-router-dom'
 import ToolShell from './ToolShell'
+import { TOOLS } from './tools'
 import './ToolHome.css'
-
-const TOOLS = [
-  {
-    name: 'Chord Compass',
-    description: 'Build chord progressions and understand why each movement works.',
-    path: '/',
-    label: 'Open tool',
-    icon: '⌁',
-  },
-  {
-    name: 'Metronome',
-    description: 'Set a pulse, choose a time signature, or find a tempo by tapping.',
-    path: '/metronome',
-    label: 'Open tool',
-    icon: '♩',
-  },
-  {
-    name: 'Interval Ear Trainer',
-    description: 'Learn to recognise the distance between two notes by ear.',
-    path: '/ear-trainer',
-    label: 'Open tool',
-    icon: '◒',
-  },
-  {
-    name: 'Chord–Scale Explorer',
-    description: 'Find scales for a chord—or chords that belong to a scale.',
-    path: '/chord-scales',
-    label: 'Open tool',
-    icon: '◎',
-  },
-]
 
 export default function ToolHome() {
   return (
@@ -50,7 +20,7 @@ export default function ToolHome() {
                 <p>{tool.description}</p>
               </div>
               <span className={`tool-home__label ${tool.path ? '' : 'tool-home__label--muted'}`}>
-                {tool.label}{tool.path && ' →'}
+                Open tool{tool.path && ' →'}
               </span>
             </>
           )

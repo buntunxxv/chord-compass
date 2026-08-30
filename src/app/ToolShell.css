@@ -99,6 +99,21 @@
   background: rgba(17, 147, 146, 0.06);
 }
 
+.tool-shell__mobile-menu-link--current {
+  color: var(--text);
+  cursor: default;
+}
+
+.tool-shell__mobile-menu-link--current span {
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.tool-shell__mobile-menu-link--current:hover {
+  color: var(--text);
+  background: none;
+}
+
 .tool-shell__mobile-menu-theme {
   margin-top: 4px;
   padding: 10px 24px 14px;

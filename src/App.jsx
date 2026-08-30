@@ -22,6 +22,7 @@ import WalkthroughOverlay from './components/WalkthroughOverlay'
 import ThemeToggle from './components/ThemeToggle'
 import LearnPath from './components/LearnPath'
 import OverlayPage from './components/OverlayPage'
+import SuiteMenuLinks from './app/SuiteMenuLinks'
 import './App.css'
 
 const PROGRESSION_LIMIT = 4
@@ -761,10 +762,11 @@ export default function App() {
         </div>
         {menuOpen && (
           <div className="app__mobile-menu">
-            <Link to="/tools" className="app__mobile-menu-link" onClick={() => setMenuOpen(false)}>All tools</Link>
-            <a href="https://www.kyndalearning.co.uk/courses" className="app__mobile-menu-link" onClick={() => setMenuOpen(false)}>Courses</a>
-            <a href="https://www.kyndalearning.co.uk/workshops" className="app__mobile-menu-link" onClick={() => setMenuOpen(false)}>Workshops</a>
-            <a href="https://www.kyndalearning.co.uk/portal" className="app__mobile-menu-link" onClick={() => setMenuOpen(false)}>Portal</a>
+            <SuiteMenuLinks
+              className="app__mobile-menu-link"
+              currentClassName="app__mobile-menu-link--current"
+              onNavigate={() => setMenuOpen(false)}
+            />
             <button
               className="app__mobile-menu-link app__mobile-menu-feedback"
               onClick={() => { setMenuOpen(false); setFeedbackOpen(true) }}

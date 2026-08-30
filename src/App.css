@@ -177,6 +177,21 @@
   background: rgba(17, 147, 146, 0.06);
 }
 
+.app__mobile-menu-link--current {
+  color: var(--text);
+  cursor: default;
+}
+
+.app__mobile-menu-link--current span {
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.app__mobile-menu-link--current:hover {
+  color: var(--text);
+  background: none;
+}
+
 .app__mobile-menu-feedback {
   background: none;
   border: none;
