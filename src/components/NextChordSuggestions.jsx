@@ -91,7 +91,7 @@ export default function NextChordSuggestions({ suggestions, currentNotes, bpm, p
       </div>
 
       {hasMoreForPro && (
-        <p className="next-chords__pro-teaser">2 more directions available in Chord Compass Pro.</p>
+        <p className="next-chords__pro-teaser">2 more directions available in Chord Moves Pro.</p>
       )}
 
       {selected && (() => {

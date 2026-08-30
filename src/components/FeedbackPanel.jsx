@@ -29,7 +29,7 @@ const CORE_QUESTIONS = [
   {
     id: 'q1',
     type: 'choice',
-    question: 'What did you think Chord Compass was helping you do?',
+    question: 'What did you think Chord Moves was helping you do?',
     options: [
       'Understand the notes in a chord',
       'Hear how a chord sounds',
@@ -302,12 +302,12 @@ export default function FeedbackPanel({ isOpen, onClose, theme }) {
 
   async function submitFeedback() {
     try {
-      await supabase.from('chord_compass_feedback').insert({
+      await supabase.from('chord_moves_feedback').insert({
         user_type: userType,
         answers,
       })
     } catch (err) {
-      console.error('[Chord Compass Feedback] submit failed', err)
+      console.error('[Chord Moves Feedback] submit failed', err)
     }
   }
 
@@ -446,7 +446,7 @@ export default function FeedbackPanel({ isOpen, onClose, theme }) {
                 This feedback genuinely shapes what gets built next. We appreciate you taking the time.
               </p>
               <button className="fp-btn fp-btn--primary" onClick={() => { onClose(); startOver() }}>
-                Back to Chord Compass
+                Back to Chord Moves
               </button>
               <button className="fp-btn fp-btn--ghost" onClick={startOver}>
                 Submit another response

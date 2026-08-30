@@ -19,7 +19,7 @@ export default async function handler(req, res) {
   // Most recent code for this email, whether or not it matches -- lets us
   // tell "wrong code" apart from "no code was ever requested".
   const { data: unlockCode, error: fetchError } = await supabase
-    .from('chord_compass_unlock_codes')
+    .from('chord_moves_unlock_codes')
     .select('id, code, expires_at, used')
     .eq('email', normalizedEmail)
     .order('created_at', { ascending: false })
@@ -46,7 +46,7 @@ export default async function handler(req, res) {
   // Mark used before the entitlement lookup so a code can never unlock
   // twice, even if the lookup below fails partway through.
   const { error: updateError } = await supabase
-    .from('chord_compass_unlock_codes')
+    .from('chord_moves_unlock_codes')
     .update({ used: true })
     .eq('id', unlockCode.id)
 

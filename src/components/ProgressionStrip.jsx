@@ -11,7 +11,7 @@ const BPM_MIN = 60
 const BPM_MAX = 140
 const BPM_MID = 100
 const SNAP_THRESHOLD = 4
-const SAVED_STORAGE_KEY = 'chordCompassSavedProgressions'
+const SAVED_STORAGE_KEY = 'chordMovesSavedProgressions'
 const CONFIRMATION_MS = 1500
 // The arrangement is a 4-wide grid, one page at a time. Rows appear only once
 // there are chords to fill them -- four chords is one row, the 5th opens a

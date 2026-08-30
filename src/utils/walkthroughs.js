@@ -4,7 +4,7 @@ export const WALKTHROUGH_CONFIGS = {
     // v2 -- Identify and Templates went from overlays stacked on Build to
     // slides beside it -- so the tour is worth showing once more rather than
     // leaving existing users to discover the new navigation themselves.
-    storageKey: 'kcc_seen_intro_v3',
+    storageKey: 'cm_seen_intro_v3',
     steps: [
       {
         // The nav first: it is the only step that explains there is more than
@@ -45,7 +45,7 @@ export const WALKTHROUGH_CONFIGS = {
     ],
   },
   learn: {
-    storageKey: 'kcc_seen_learn_intro',
+    storageKey: 'cm_seen_learn_intro',
     steps: [
       {
         selector: '#wt-learn-key-picker',

@@ -26,8 +26,8 @@ import SuiteMenuLinks from './app/SuiteMenuLinks'
 import './App.css'
 
 const PROGRESSION_LIMIT = 4
-const PROGRESSION_STORAGE_KEY = 'chordCompassProgression'
-const PROGRESSION_TEASER = 'Longer progressions are coming in Chord Compass Pro.'
+const PROGRESSION_STORAGE_KEY = 'chordMovesProgression'
+const PROGRESSION_TEASER = 'Longer progressions are coming in Chord Moves Pro.'
 // How long the one-step "Undo" after a template load stays available before
 // it silently expires -- it also clears sooner, immediately, on any other
 // progression-mutating action (see clearLoadUndo's call sites below).
@@ -45,7 +45,7 @@ const CHORD_AUDITION_SECONDS = 1.5
 // fourth "way to make a chord" and leave two competing entry points to the
 // same place.
 const WORKSPACE_PAGES = [
-  { key: 'build', label: 'Build', eyebrow: 'Chord Compass', title: 'Build, hear and save a chord' },
+  { key: 'build', label: 'Build', eyebrow: 'Chord Moves', title: 'Build, hear and save a chord' },
   { key: 'find', label: 'Identify', eyebrow: 'Identify', title: 'Find a chord from its notes' },
   { key: 'templates', label: 'Templates', eyebrow: 'Templates', title: 'Start with a proven progression' },
 ]
@@ -107,10 +107,10 @@ export default function App() {
   // Top-level Learn/Build path (distinct from `mode`, the build/find tab
   // inside the builder panel above) -- persisted so the choice survives a
   // reload.
-  const [path, setPath] = useState(() => localStorage.getItem('kcc_path') || 'build')
+  const [path, setPath] = useState(() => localStorage.getItem('cm_path') || 'build')
 
   useEffect(() => {
-    localStorage.setItem('kcc_path', path)
+    localStorage.setItem('cm_path', path)
   }, [path])
 
   const [previewIndex, setPreviewIndex] = useState(null)
@@ -178,7 +178,7 @@ export default function App() {
   }
 
   useEffect(() => {
-    setIsPro(localStorage.getItem('kcc_tier') === 'pro')
+    setIsPro(localStorage.getItem('cm_tier') === 'pro')
   }, [])
   const [playingChordNotes, setPlayingChordNotes] = useState(null)
   const [playingRootNote, setPlayingRootNote] = useState(null)
@@ -754,7 +754,7 @@ export default function App() {
                 if (path !== 'learn') showWorkspacePage('build')
                 setWalkthroughFlow(walkthroughFlowForPath(path))
               }}
-              aria-label={path === 'learn' ? 'How to use Learn' : 'How to use Chord Compass'}
+              aria-label={path === 'learn' ? 'How to use Learn' : 'How to use Chord Moves'}
             >
               ?
             </button>
@@ -820,7 +820,7 @@ export default function App() {
                 border so the two read as one sheet), collapsing to an ordinary
                 horizontal selector below 900px -- see App.css. */}
             <div className="app__workspace-shell">
-              <nav id="wt-workspace-nav" className="app__workspace-nav" aria-label="Chord Compass pages">
+              <nav id="wt-workspace-nav" className="app__workspace-nav" aria-label="Chord Moves pages">
                 {WORKSPACE_PAGES.map(page => {
                   const isActive = page.key === workspacePage
                   return (
@@ -992,7 +992,7 @@ export default function App() {
       )}
       </div>
 
-      <OverlayPage isOpen={introOpen} intro eyebrow="Welcome to Chord Compass" title="Find the next chord without losing your place">
+      <OverlayPage isOpen={introOpen} intro eyebrow="Welcome to Chord Moves" title="Find the next chord without losing your place">
         <div className="app__intro-page">
           <p className="app__intro-lead">Three ways to find a chord, side by side—swipe or tap between them. Whatever you find lands in the progression bar at the bottom.</p>
           <ol className="app__intro-steps">

@@ -4,7 +4,7 @@ import './AdminFeedback.css'
 
 const QUESTION_LABELS = {
   // Round 2 (current)
-  q1: 'What did you think Chord Compass was helping you do?',
+  q1: 'What did you think Chord Moves was helping you do?',
   q2: 'Could you build a 4-chord progression without help?',
   q3: 'Did the suggested chord cards help you decide what to add next?',
   q4: 'Did the notes shown on each suggested chord help, or was it too much?',
@@ -58,7 +58,7 @@ export default function AdminFeedback() {
 
   useEffect(() => {
     supabase
-      .from('chord_compass_feedback')
+      .from('chord_moves_feedback')
       .select('*')
       .order('created_at', { ascending: false })
       .then(({ data, error: err }) => {
@@ -87,7 +87,7 @@ export default function AdminFeedback() {
     <div className="af-page">
       <div className="af-header">
         <div className="af-header__top">
-          <h1 className="af-title">Chord Compass — Feedback</h1>
+          <h1 className="af-title">Chord Moves — Feedback</h1>
           <a href="/" className="af-back">← Back to tool</a>
         </div>
         <div className="af-stats">

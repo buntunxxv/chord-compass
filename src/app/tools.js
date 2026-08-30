@@ -4,7 +4,7 @@
 // happen to agree today.
 export const TOOLS = [
   {
-    name: 'Chord Compass',
+    name: 'Chord Moves',
     description: 'Build chord progressions and understand why each movement works.',
     path: '/',
     icon: '⌁',

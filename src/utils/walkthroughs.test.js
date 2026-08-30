@@ -19,7 +19,7 @@ function memoryStorage(initial = {}) {
 }
 
 test('Learn walkthrough has its own three-step sequence and storage flag', () => {
-  assert.equal(WALKTHROUGH_CONFIGS.learn.storageKey, 'kcc_seen_learn_intro')
+  assert.equal(WALKTHROUGH_CONFIGS.learn.storageKey, 'cm_seen_learn_intro')
   assert.notEqual(WALKTHROUGH_CONFIGS.learn.storageKey, WALKTHROUGH_CONFIGS.build.storageKey)
   assert.deepEqual(
     WALKTHROUGH_CONFIGS.learn.steps.map(step => step.selector),
@@ -62,5 +62,5 @@ test('Build walkthrough moves to Identify by making you tap the tab', () => {
 })
 
 test('Build walkthrough storage key was bumped so v2 viewers see the new tour', () => {
-  assert.equal(WALKTHROUGH_CONFIGS.build.storageKey, 'kcc_seen_intro_v3')
+  assert.equal(WALKTHROUGH_CONFIGS.build.storageKey, 'cm_seen_intro_v3')
 })

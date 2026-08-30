@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 
-const STORAGE_KEY = 'chordCompassThemePreference'
+const STORAGE_KEY = 'chordMovesThemePreference'
 const VALID_PREFERENCES = ['light', 'dark', 'system']
 
 function getSystemTheme() {
