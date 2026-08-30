@@ -765,6 +765,7 @@ export default function App() {
             <SuiteMenuLinks
               className="app__mobile-menu-link"
               currentClassName="app__mobile-menu-link--current"
+              childClassName="app__mobile-menu-link--child"
               onNavigate={() => setMenuOpen(false)}
             />
             <button

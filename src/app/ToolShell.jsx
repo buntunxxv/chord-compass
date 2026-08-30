@@ -55,6 +55,7 @@ export default function ToolShell({ title, eyebrow, learningAction, children }) 
             <SuiteMenuLinks
               className="tool-shell__mobile-menu-link"
               currentClassName="tool-shell__mobile-menu-link--current"
+              childClassName="tool-shell__mobile-menu-link--child"
               onNavigate={() => setMenuOpen(false)}
             />
             <div className="tool-shell__mobile-menu-theme">
