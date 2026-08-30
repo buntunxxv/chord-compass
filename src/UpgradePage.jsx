@@ -23,9 +23,9 @@ export default function UpgradePage() {
   const [unlockStatus, setUnlockStatus] = useState('idle') // idle | loading | error
   const [unlockError, setUnlockError] = useState('')
   // There is no account or session -- "logged in" means this browser holds
-  // the kcc_tier flag that App.jsx reads to gate every Pro feature. So
+  // the cm_tier flag that App.jsx reads to gate every Pro feature. So
   // logging out is removing that flag, and it is per device and per browser.
-  const [isPro, setIsPro] = useState(() => localStorage.getItem('kcc_tier') === 'pro')
+  const [isPro, setIsPro] = useState(() => localStorage.getItem('cm_tier') === 'pro')
 
   useEffect(() => {
     logEvent('upgrade_page_view')
@@ -70,7 +70,7 @@ export default function UpgradePage() {
       })
       const data = await res.json()
       if (res.ok && data.isPro) {
-        localStorage.setItem('kcc_tier', 'pro')
+        localStorage.setItem('cm_tier', 'pro')
         setUnlockStep('success')
         setUnlockStatus('idle')
         logEvent('pro_unlock_success')
@@ -98,7 +98,7 @@ export default function UpgradePage() {
   }
 
   function handleLogOut() {
-    localStorage.removeItem('kcc_tier')
+    localStorage.removeItem('cm_tier')
     setIsPro(false)
     // A fresh unlock in this same visit leaves unlockStep on 'success';
     // without this reset the page would keep showing "Pro unlocked" after
@@ -122,7 +122,7 @@ export default function UpgradePage() {
           </div>
           <div className="upgrade-page__header-tool">
             <div className="upgrade-page__header-divider" />
-            <span className="upgrade-page__header-tool-name">Chord Compass</span>
+            <span className="upgrade-page__header-tool-name">Chord Moves</span>
             <ThemeToggle preference={themePreference} onChange={setThemePreference} />
           </div>
         </div>
@@ -130,7 +130,7 @@ export default function UpgradePage() {
 
       <main className="upgrade-page__main">
         <div className="upgrade-page__hero">
-          <h1 className="upgrade-page__title">Chord Compass Pro</h1>
+          <h1 className="upgrade-page__title">Chord Moves Pro</h1>
           <p className="upgrade-page__subtitle">More directions. More movement. More song.</p>
         </div>
 
@@ -279,7 +279,7 @@ export default function UpgradePage() {
           )}
         </div>
 
-        <Link to="/" className="upgrade-page__back">← Back to Chord Compass</Link>
+        <Link to="/" className="upgrade-page__back">← Back to Chord Moves</Link>
       </main>
     </div>
   )

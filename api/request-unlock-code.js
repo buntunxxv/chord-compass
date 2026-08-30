@@ -33,7 +33,7 @@ export default async function handler(req, res) {
 
   const windowStart = new Date(Date.now() - RATE_LIMIT_WINDOW_MINUTES * 60 * 1000).toISOString()
   const { count, error: countError } = await supabase
-    .from('chord_compass_unlock_codes')
+    .from('chord_moves_unlock_codes')
     .select('id', { count: 'exact', head: true })
     .eq('email', normalizedEmail)
     .gte('created_at', windowStart)
@@ -51,7 +51,7 @@ export default async function handler(req, res) {
   const expiresAt = new Date(Date.now() + CODE_TTL_MINUTES * 60 * 1000).toISOString()
 
   const { error: insertError } = await supabase
-    .from('chord_compass_unlock_codes')
+    .from('chord_moves_unlock_codes')
     .insert({ email: normalizedEmail, code, expires_at: expiresAt, used: false })
 
   if (insertError) {
@@ -68,8 +68,8 @@ export default async function handler(req, res) {
     body: JSON.stringify({
       from: 'Kynda Learning <hello@kyndalearning.co.uk>',
       to: normalizedEmail,
-      subject: `Your Chord Compass unlock code: ${code}`,
-      text: `Your Chord Compass Pro unlock code is ${code}.\n\nIt expires in ${CODE_TTL_MINUTES} minutes. If you didn't request this, you can ignore this email.`,
+      subject: `Your Chord Moves unlock code: ${code}`,
+      text: `Your Chord Moves Pro unlock code is ${code}.\n\nIt expires in ${CODE_TTL_MINUTES} minutes. If you didn't request this, you can ignore this email.`,
     }),
   })
 

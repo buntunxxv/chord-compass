@@ -2,7 +2,7 @@
 // verify-unlock-code.js so the "is this email Pro" query lives in one place.
 export async function lookupIsPro(supabase, normalizedEmail) {
   const { data, error } = await supabase
-    .from('chord_compass_entitlements')
+    .from('chord_moves_entitlements')
     .select('id')
     .eq('email', normalizedEmail)
     .maybeSingle()

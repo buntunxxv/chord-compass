@@ -1,7 +1,7 @@
 // v1 marked any fully revealed attempt complete, even when it contained
 // wrong guesses. Starting a fresh key prevents those false-positive marks
 // from surviving after completion becomes accuracy-based.
-export const LEARN_COMPLETION_STORAGE_KEY = 'kcc_completed_learn_challenges_v2'
+export const LEARN_COMPLETION_STORAGE_KEY = 'cm_completed_learn_challenges_v2'
 
 export function learnCompletionId(keyRoot, challengeId) {
   return `${keyRoot}:${challengeId}`
